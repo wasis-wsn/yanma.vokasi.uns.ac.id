@@ -73,24 +73,10 @@ class PenundaanController extends Controller
             ->editColumn('status_id', function ($row) {
                 return '<button type="button" class="btn ' . $row->status->color . ' btn-sm" disabled>' . $row->status->name . '</button>';
             })
-            ->editColumn('queue_number', function ($row) {
-                if ($row->queue_status === 'processed') {
-                    return "Selesai";
-                }
-                $currentQueue = Penundaan::whereDate('created_at', today())
-                                ->where('queue_status', 'waiting')
-                                ->orderBy('queue_number', 'asc')
-                                ->first();
-                
-                $position = $row->queue_number;
-                $current = $currentQueue ? $currentQueue->queue_number : 0;
-                
-                return "Antrian $position (Sekarang: $current)";
-            })
             ->editColumn('catatan', function ($row) {
                 return wordwrap($row->catatan, 30, "<br>");
             })
-            ->rawColumns(['action', 'tanggal_submit', 'tanggal_proses', 'status_id', 'tahun_akademik', 'tanggal_ambil', 'catatan', 'queue_number'])
+            ->rawColumns(['action', 'tanggal_submit', 'tanggal_proses', 'status_id', 'tahun_akademik', 'tanggal_ambil', 'catatan'])
             ->toJson();
     }
 
@@ -104,14 +90,6 @@ class PenundaanController extends Controller
                 $q->where('prodi', $request->prodi);
             });
         }
-
-        $totalWaiting = Penundaan::whereDate('created_at', today())
-                ->where('queue_status', 'waiting')
-                ->count();
-
-        $list->each(function($item) use ($totalWaiting) {
-            $item->total_waiting = $totalWaiting;
-        });
 
         return DataTables::of($list)
         ->addIndexColumn()
@@ -156,24 +134,10 @@ class PenundaanController extends Controller
             ->editColumn('nama_prodi', function ($row) {
                 return wordwrap($row->user->prodis->name, 20, "<br>");
             })
-            ->editColumn('queue_number', function ($row) {
-                if ($row->queue_status === 'processed') {
-                    return "Selesai";
-                }
-                $currentQueue = Penundaan::whereDate('created_at', today())
-                                ->where('queue_status', 'waiting')
-                                ->orderBy('queue_number', 'asc')
-                                ->first();
-                
-                $position = $row->queue_number;
-                $current = $currentQueue ? $currentQueue->queue_number : 0;
-                
-                return "Antrian $position (Sekarang: $current)";
-            })
             ->editColumn('catatan', function ($row) {
                 return wordwrap($row->catatan, 30, "<br>");
             })
-            ->rawColumns(['id', 'action', 'tanggal_submit', 'tahun_akademik', 'status_id', 'nama_prodi', 'catatan', 'queue_number'])
+            ->rawColumns(['id', 'action', 'tanggal_submit', 'tahun_akademik', 'status_id', 'nama_prodi', 'catatan'])
             ->toJson();
 }
 
@@ -188,14 +152,6 @@ class PenundaanController extends Controller
             });
         }
         $list = $list->orderBy('created_at', 'desc')->get();
-
-        $totalWaiting = Penundaan::whereDate('created_at', today())
-                ->where('queue_status', 'waiting')
-                ->count();
-
-        $list->each(function($item) use ($totalWaiting) {
-            $item->total_waiting = $totalWaiting;
-        });
 
         return DataTables::of($list)
             ->addIndexColumn()
@@ -222,24 +178,10 @@ class PenundaanController extends Controller
             ->editColumn('nama_prodi', function ($row) {
                 return wordwrap($row->user->prodis->name, 20, "<br>");
             })
-            ->editColumn('queue_number', function ($row) {
-                if ($row->queue_status === 'processed') {
-                    return "Selesai";
-                }
-                $currentQueue = Penundaan::whereDate('created_at', today())
-                                ->where('queue_status', 'waiting')
-                                ->orderBy('queue_number', 'asc')
-                                ->first();
-                
-                $position = $row->queue_number;
-                $current = $currentQueue ? $currentQueue->queue_number : 0;
-                
-                return "Antrian $position (Sekarang: $current)";
-            })
             ->editColumn('catatan', function ($row) {
                 return wordwrap($row->catatan, 30, "<br>");
             })
-            ->rawColumns(['id', 'action', 'tanggal_submit', 'tahun_akademik', 'status_id', 'nama_prodi', 'catatan', 'queue_number'])
+            ->rawColumns(['id', 'action', 'tanggal_submit', 'tahun_akademik', 'status_id', 'nama_prodi', 'catatan'])
             ->toJson();
     }
 
@@ -325,25 +267,16 @@ class PenundaanController extends Controller
             $file = 'Penundaan' . '_' . $user->nim . '_' . Str::of($user->name)->trim() . '_' . time() . '.pdf';
             $request->file('file')->storeAs('penundaan/upload/', $file, 'public');
 
-             // Generate nomor antrian terlepas dari siapa yang mengajukan
-             $lastQueue = Penundaan::whereDate('created_at', today())
-             ->orderBy('queue_number', 'desc')
-             ->first();
-
-            $queueNumber = $lastQueue ? $lastQueue->queue_number + 1 : 1;
-
             Penundaan::create([
                 'user_id' => $user->id,
                 'status_id' => '1',
                 'semester_id' => $request->semester_id,
                 'tahun_akademik_id' => $request->tahun_akademik_id,
-                'queue_number' => $queueNumber,
-                'queue_status' => 'waiting',
                 'alasan' => $request->alasan,
                 'file' => $file,
             ]);
         } catch (\Throwable $th) {
-            return response()->json(['status' => false, 'message' => 'Terjadi Kesalahan', 'queue_number' => $queueNumber], 500);
+            return response()->json(['status' => false, 'message' => 'Terjadi Kesalahan'], 500);
         }
         return response()->json(['status' => true, 'message' => 'Ajuan Berhasil Ditambahkan!'], 200);
     }
@@ -498,17 +431,16 @@ class PenundaanController extends Controller
                 // Jika status 5/6, hapus file via Laravel storage (opsional jika pakai unlink)
                 if (in_array($request->status_id, ['5', '6'])) {
                     Storage::disk('public')->delete('penundaan/upload/' . $ajuan->file);
-                    $data_update['queue_status'] = 'processed'; // Update status antrian
                 }
     
                 $ajuan->update($data_update);
     
                 // Hitung antrian yang tersisa
-                $waitingCount = Penundaan::where('queue_status', 'waiting')
-                    ->whereDate('created_at', today())
-                    ->count();
+                // $waitingCount = Penundaan::where('queue_status', 'waiting')
+                //     ->whereDate('created_at', today())
+                //     ->count();
     
-                $return['waiting_count'] = $waitingCount;
+                // $return['waiting_count'] = $waitingCount;
             } catch (\Throwable $th) {
                 $return['status'] = false;
                 $return['message'] = 'Terjadi Kesalahan!';
@@ -538,78 +470,78 @@ class PenundaanController extends Controller
 }
 
 
-    private function generateQueueNumber()
-    {
-        $lastQueue = Penundaan::whereDate('created_at', today())
-                        ->orderBy('queue_number', 'desc')
-                        ->first();
+//     private function generateQueueNumber()
+//     {
+//         $lastQueue = Penundaan::whereDate('created_at', today())
+//                         ->orderBy('queue_number', 'desc')
+//                         ->first();
         
-        return $lastQueue ? $lastQueue->queue_number + 1 : 1;
-    }
+//         return $lastQueue ? $lastQueue->queue_number + 1 : 1;
+//     }
 
-    public function updateQueue()
-{
-    try {
-        $waitingQueues = Penundaan::whereDate('created_at', today())
-                        ->where('queue_status', 'waiting')
-                        ->orderBy('queue_number', 'asc')
-                        ->get();
+//     public function updateQueue()
+// {
+//     try {
+//         $waitingQueues = Penundaan::whereDate('created_at', today())
+//                         ->where('queue_status', 'waiting')
+//                         ->orderBy('queue_number', 'asc')
+//                         ->get();
         
-        $newQueueNumber = 1;
+//         $newQueueNumber = 1;
         
-        foreach ($waitingQueues as $queue) {
-            $queue->update(['queue_number' => $newQueueNumber++]);
-        }
+//         foreach ($waitingQueues as $queue) {
+//             $queue->update(['queue_number' => $newQueueNumber++]);
+//         }
         
-        $totalWaiting = Penundaan::whereDate('created_at', today())
-                        ->where('queue_status', 'waiting')
-                        ->count();
+//         $totalWaiting = Penundaan::whereDate('created_at', today())
+//                         ->where('queue_status', 'waiting')
+//                         ->count();
         
-        return response()->json([
-            'status' => true,
-            'total_waiting' => $totalWaiting,
-            'current_queue' => $waitingQueues->first()->queue_number ?? null
-        ]);
+//         return response()->json([
+//             'status' => true,
+//             'total_waiting' => $totalWaiting,
+//             'current_queue' => $waitingQueues->first()->queue_number ?? null
+//         ]);
         
-    } catch (\Throwable $th) {
-        return response()->json([
-            'status' => false,
-            'message' => 'Gagal mengupdate antrian'
-        ], 500);
-    }
-}
+//     } catch (\Throwable $th) {
+//         return response()->json([
+//             'status' => false,
+//             'message' => 'Gagal mengupdate antrian'
+//         ], 500);
+//     }
+// }
 
-    public function queueStatus()
-{
-    $userQueue = Penundaan::where('user_id', Auth::id())
-                    ->whereDate('created_at', today())
-                    ->where('queue_status', 'waiting')
-                    ->first();
+//     public function queueStatus()
+// {
+//     $userQueue = Penundaan::where('user_id', Auth::id())
+//                     ->whereDate('created_at', today())
+//                     ->where('queue_status', 'waiting')
+//                     ->first();
     
-    // Get the current queue number (lowest waiting)
-    $currentQueue = Penundaan::whereDate('created_at', today())
-                    ->where('queue_status', 'waiting')
-                    ->orderBy('queue_number', 'asc')
-                    ->first();
+//     // Get the current queue number (lowest waiting)
+//     $currentQueue = Penundaan::whereDate('created_at', today())
+//                     ->where('queue_status', 'waiting')
+//                     ->orderBy('queue_number', 'asc')
+//                     ->first();
     
-    $totalWaiting = Penundaan::whereDate('created_at', today())
-                    ->where('queue_status', 'waiting')
-                    ->count();
+//     $totalWaiting = Penundaan::whereDate('created_at', today())
+//                     ->where('queue_status', 'waiting')
+//                     ->count();
     
-    return response()->json([
-        'status' => true,
-        'user_queue' => $userQueue ? $userQueue->queue_number : null,
-        'total_waiting' => $totalWaiting,
-        'current_queue' => $currentQueue ? $currentQueue->queue_number : null
-    ]);
-}
+//     return response()->json([
+//         'status' => true,
+//         'user_queue' => $userQueue ? $userQueue->queue_number : null,
+//         'total_waiting' => $totalWaiting,
+//         'current_queue' => $currentQueue ? $currentQueue->queue_number : null
+//     ]);
+// }
 
-    private function getQueueInfo($queueNumber)
-    {
-        $totalWaiting = Penundaan::whereDate('created_at', today())
-                        ->where('queue_status', 'waiting')
-                        ->count();
+//     private function getQueueInfo($queueNumber)
+//     {
+//         $totalWaiting = Penundaan::whereDate('created_at', today())
+//                         ->where('queue_status', 'waiting')
+//                         ->count();
         
-        return "Antrian $queueNumber dari $totalWaiting";
-    }
+//         return "Antrian $queueNumber dari $totalWaiting";
+//     }
 }

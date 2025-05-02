@@ -27,10 +27,10 @@ const initializeDataTable = (status_table, year, prodi_table) => {
             { data: "mulai_kegiatan" },
             { data: "no_surat" },
             { data: "status_id" },
-            { 
-                data: "queue_number",
-                className: "queue-info"
-            },
+            // { 
+            //     data: "queue_number",
+            //     className: "queue-info"
+            // },
             { data: "catatan" },
         ],
         columnDefs: [
@@ -89,23 +89,23 @@ $(".prodi-menu").on("click", function (e) {
     table = initializeDataTable(status_table, year, selectedProdi);
 });
 
-setInterval(function() {
-    if ($('#modalDetail').is(':visible')) {
-        $.ajax({
-            url: window.Laravel.queueStatus,
-            type: "GET",
-            success: function(res) {
-                if (res.status) {
-                    $("#detail-queue-number").text(res.user_queue);
-                    $("#detail-total-queue").text(res.total_waiting);
+// setInterval(function() {
+//     if ($('#modalDetail').is(':visible')) {
+//         $.ajax({
+//             url: window.Laravel.queueStatus,
+//             type: "GET",
+//             success: function(res) {
+//                 if (res.status) {
+//                     $("#detail-queue-number").text(res.user_queue);
+//                     $("#detail-total-queue").text(res.total_waiting);
                     
-                    // Update juga di tabel
-                    table.ajax.reload(null, false);
-                }
-            }
-        });
-    }
-}, 30000); // 30 detik
+//                     // Update juga di tabel
+//                     table.ajax.reload(null, false);
+//                 }
+//             }
+//         });
+//     }
+// }, 30000); // 30 detik
 
 $('#btn-export').click(function () {
     $('#form-export').attr('action', window.Laravel.export);
@@ -129,7 +129,7 @@ $("#show_data").on("click", ".btn-detail", function () {
                 $("#detail-nama").html(": " + res.data.user.name);
                 $("#detail-nim").html(": " + res.data.user.nim);
                 $("#detail-prodi").html(": " + res.data.user.prodis.name);
-                $("#detail-antrian").html(": " + res.data.queue_number);
+                // $("#detail-antrian").html(": " + res.data.queue_number);
                 $("#detail-no-wa").html(": " + res.data.user.no_wa);
                 $("#detail-tanggal-kegiatan").html(
                     ": " + res.data.tanggal_kegiatan

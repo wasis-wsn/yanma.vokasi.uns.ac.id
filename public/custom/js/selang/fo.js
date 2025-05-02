@@ -23,10 +23,10 @@ const initializeDataTable = (status_table, year, prodi_table) => {
             { data: "user.nim" },
             { data: "user.prodis.name" },
             { data: "no_surat" },
-            { 
-                data: "queue_number",
-                className: "queue-info"
-            },
+            // { 
+            //     data: "queue_number",
+            //     className: "queue-info"
+            // },
             { data: "tanggal_ambil" },
             { data: "action" },
             { data: "catatan" },
@@ -73,27 +73,9 @@ $(".prodi-menu").on("click", function (e) {
     table = initializeDataTable(status_table, year, selectedProdi);
 });
 
-// Cek update antrian setiap 30 detik
-setInterval(function() {
-    if ($('#modalDetail').is(':visible') || $('.dataTables_filter input').is(':focus')) {
-        $.ajax({
-            url: '/selang/queue-status',
-            type: "GET",
-            success: function(res) {
-                if (res.status) {
-                    // Update tabel
-                    table.ajax.reload(null, false);
-                    
-                    // Update modal detail jika terbuka
-                    if ($('#modalDetail').is(':visible')) {
-                        $("#detail-queue-number").text(res.user_queue);
-                        $("#detail-total-queue").text(res.total_waiting);
-                    }
-                }
-            }
-        });
-    }
-}, 30000);
+setInterval(function () {
+    table.ajax.reload(null, false); // user paging is not reset on reload
+}, 300000);
 
 
 $("#show_data").on("click", ".btn-proses", function () {
@@ -103,7 +85,7 @@ $("#show_data").on("click", ".btn-proses", function () {
 
     $("form#form-proses").attr("action", action);
     $("form#form-proses textarea").val("");
-    $("#detail-antrian").html(": " + res.data.queue_number);
+    // $("#detail-antrian").html(": " + res.data.queue_number);
     $("#modalProses").modal("show");
 });
 
@@ -139,9 +121,9 @@ $("#form-proses").submit(function (e) {
                     showConfirmButton: false,
                     timer: 1500,
                 });
-                if (res.status_id && [5,6,7].includes(parseInt(res.status_id))) {
-                    updateQueueNumbers();
-                }
+                // if (res.status_id && [5,6,7].includes(parseInt(res.status_id))) {
+                //     updateQueueNumbers();
+                // }
                 table.ajax.reload();
             } else {
                 Swal.fire({
@@ -165,19 +147,19 @@ $("#form-proses").submit(function (e) {
     });
 });
 
-function updateQueueNumbers() {
-    $.ajax({
-        url: '/selang/update-queue',
-        type: 'GET',
-        success: function(res) {
-            if (res.status) {
-                table.ajax.reload(null, false);
-                if ($('#modalDetail').is(':visible')) {
-                    // Update juga di modal detail jika terbuka
-                    $("#detail-queue-number").text(res.user_queue);
-                    $("#detail-total-queue").text(res.total_waiting);
-                }
-            }
-        }
-    });
-}
+// function updateQueueNumbers() {
+//     $.ajax({
+//         url: '/selang/update-queue',
+//         type: 'GET',
+//         success: function(res) {
+//             if (res.status) {
+//                 table.ajax.reload(null, false);
+//                 if ($('#modalDetail').is(':visible')) {
+//                     // Update juga di modal detail jika terbuka
+//                     $("#detail-queue-number").text(res.user_queue);
+//                     $("#detail-total-queue").text(res.total_waiting);
+//                 }
+//             }
+//         }
+//     });
+// }

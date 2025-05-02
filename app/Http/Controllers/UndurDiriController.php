@@ -80,20 +80,20 @@ class UndurDiriController extends Controller
             ->editColumn('status_id', function ($row) {
                 return '<button type="button" class="btn ' . $row->status->color . ' btn-sm" disabled>' . $row->status->name . '</button>';
             })
-            ->editColumn('queue_number', function ($row) {
-                if ($row->queue_status === 'processed') {
-                    return "Selesai";
-                }
-                $currentQueue = UndurDiri::whereDate('created_at', today())
-                                ->where('queue_status', 'waiting')
-                                ->orderBy('queue_number', 'asc')
-                                ->first();
+            // ->editColumn('queue_number', function ($row) {
+            //     if ($row->queue_status === 'processed') {
+            //         return "Selesai";
+            //     }
+            //     $currentQueue = UndurDiri::whereDate('created_at', today())
+            //                     ->where('queue_status', 'waiting')
+            //                     ->orderBy('queue_number', 'asc')
+            //                     ->first();
                 
-                $position = $row->queue_number;
-                $current = $currentQueue ? $currentQueue->queue_number : 0;
+            //     $position = $row->queue_number;
+            //     $current = $currentQueue ? $currentQueue->queue_number : 0;
                 
-                return "Antrian $position (Sekarang: $current)";
-            })
+            //     return "Antrian $position (Sekarang: $current)";
+            // })
             ->editColumn('catatan', function ($row) {
                 return wordwrap($row->catatan, 30, "<br>");
             })
@@ -112,13 +112,13 @@ class UndurDiriController extends Controller
             });
         }
 
-        $totalWaiting = UndurDiri::whereDate('created_at', today())
-                ->where('queue_status', 'waiting')
-                ->count();
+        // $totalWaiting = UndurDiri::whereDate('created_at', today())
+        //         ->where('queue_status', 'waiting')
+        //         ->count();
 
-        $list->each(function($item) use ($totalWaiting) {
-            $item->total_waiting = $totalWaiting;
-        });
+        // $list->each(function($item) use ($totalWaiting) {
+        //     $item->total_waiting = $totalWaiting;
+        // });
 
         return DataTables::of($list)
             ->addIndexColumn()
@@ -163,20 +163,20 @@ class UndurDiriController extends Controller
             ->editColumn('nama_prodi', function ($row) {
                 return wordwrap($row->user->prodis->name, 20, "<br>");
             })
-            ->editColumn('queue_number', function ($row) {
-                if ($row->queue_status === 'processed') {
-                    return "Selesai";
-                }
-                $currentQueue = UndurDiri::whereDate('created_at', today())
-                                ->where('queue_status', 'waiting')
-                                ->orderBy('queue_number', 'asc')
-                                ->first();
+            // ->editColumn('queue_number', function ($row) {
+            //     if ($row->queue_status === 'processed') {
+            //         return "Selesai";
+            //     }
+            //     $currentQueue = UndurDiri::whereDate('created_at', today())
+            //                     ->where('queue_status', 'waiting')
+            //                     ->orderBy('queue_number', 'asc')
+            //                     ->first();
                 
-                $position = $row->queue_number;
-                $current = $currentQueue ? $currentQueue->queue_number : 0;
+            //     $position = $row->queue_number;
+            //     $current = $currentQueue ? $currentQueue->queue_number : 0;
                 
-                return "Antrian $position (Sekarang: $current)";
-            })
+            //     return "Antrian $position (Sekarang: $current)";
+            // })
             ->editColumn('catatan', function ($row) {
                 return wordwrap($row->catatan, 30, "<br>");
             })
@@ -196,13 +196,13 @@ class UndurDiriController extends Controller
         }
         $list = $list->orderBy('created_at', 'desc')->get();
 
-        $totalWaiting = UndurDiri::whereDate('created_at', today())
-                ->where('queue_status', 'waiting')
-                ->count();
+        // $totalWaiting = UndurDiri::whereDate('created_at', today())
+        //         ->where('queue_status', 'waiting')
+        //         ->count();
 
-        $list->each(function($item) use ($totalWaiting) {
-            $item->total_waiting = $totalWaiting;
-        });
+        // $list->each(function($item) use ($totalWaiting) {
+        //     $item->total_waiting = $totalWaiting;
+        // });
 
         return DataTables::of($list)
             ->addIndexColumn()
@@ -226,20 +226,20 @@ class UndurDiriController extends Controller
             ->editColumn('status_id', function ($row) {
                 return '<button type="button" class="btn ' . $row->status->color . ' btn-sm" disabled>' . $row->status->name . '</button>';
             })
-            ->editColumn('queue_number', function ($row) {
-                if ($row->queue_status === 'processed') {
-                    return "Selesai";
-                }
-                $currentQueue = UndurDiri::whereDate('created_at', today())
-                                ->where('queue_status', 'waiting')
-                                ->orderBy('queue_number', 'asc')
-                                ->first();
+            // ->editColumn('queue_number', function ($row) {
+            //     if ($row->queue_status === 'processed') {
+            //         return "Selesai";
+            //     }
+            //     $currentQueue = UndurDiri::whereDate('created_at', today())
+            //                     ->where('queue_status', 'waiting')
+            //                     ->orderBy('queue_number', 'asc')
+            //                     ->first();
                 
-                $position = $row->queue_number;
-                $current = $currentQueue ? $currentQueue->queue_number : 0;
+            //     $position = $row->queue_number;
+            //     $current = $currentQueue ? $currentQueue->queue_number : 0;
                 
-                return "Antrian $position (Sekarang: $current)";
-            })
+            //     return "Antrian $position (Sekarang: $current)";
+            // })
             ->rawColumns(['action', 'tanggal_ambil', 'tahun_akademik', 'status_id'])
             ->toJson();
     }
@@ -255,13 +255,13 @@ class UndurDiriController extends Controller
         }
         $list = $list->orderBy('created_at', 'desc')->get();
 
-        $totalWaiting = UndurDiri::whereDate('created_at', today())
-                ->where('queue_status', 'waiting')
-                ->count();
+        // $totalWaiting = UndurDiri::whereDate('created_at', today())
+        //         ->where('queue_status', 'waiting')
+        //         ->count();
 
-        $list->each(function($item) use ($totalWaiting) {
-            $item->total_waiting = $totalWaiting;
-        });
+        // $list->each(function($item) use ($totalWaiting) {
+        //     $item->total_waiting = $totalWaiting;
+        // });
 
         return DataTables::of($list)
             ->addIndexColumn()
@@ -288,20 +288,20 @@ class UndurDiriController extends Controller
             ->editColumn('nama_prodi', function ($row) {
                 return wordwrap($row->user->prodis->name, 20, "<br>");
             })
-            ->editColumn('queue_number', function ($row) {
-                if ($row->queue_status === 'processed') {
-                    return "Selesai";
-                }
-                $currentQueue = UndurDiri::whereDate('created_at', today())
-                                ->where('queue_status', 'waiting')
-                                ->orderBy('queue_number', 'asc')
-                                ->first();
+            // ->editColumn('queue_number', function ($row) {
+            //     if ($row->queue_status === 'processed') {
+            //         return "Selesai";
+            //     }
+            //     $currentQueue = UndurDiri::whereDate('created_at', today())
+            //                     ->where('queue_status', 'waiting')
+            //                     ->orderBy('queue_number', 'asc')
+            //                     ->first();
                 
-                $position = $row->queue_number;
-                $current = $currentQueue ? $currentQueue->queue_number : 0;
+            //     $position = $row->queue_number;
+            //     $current = $currentQueue ? $currentQueue->queue_number : 0;
                 
-                return "Antrian $position (Sekarang: $current)";
-            })
+            //     return "Antrian $position (Sekarang: $current)";
+            // })
             ->editColumn('catatan', function ($row) {
                 return wordwrap($row->catatan, 30, "<br>");
             })
@@ -320,13 +320,13 @@ class UndurDiriController extends Controller
         }
         $list = $list->orderBy('created_at', 'desc')->get();
 
-        $totalWaiting = UndurDiri::whereDate('created_at', today())
-                ->where('queue_status', 'waiting')
-                ->count();
+        // $totalWaiting = UndurDiri::whereDate('created_at', today())
+        //         ->where('queue_status', 'waiting')
+        //         ->count();
 
-        $list->each(function($item) use ($totalWaiting) {
-            $item->total_waiting = $totalWaiting;
-        });
+        // $list->each(function($item) use ($totalWaiting) {
+        //     $item->total_waiting = $totalWaiting;
+        // });
 
         return DataTables::of($list)
             ->addIndexColumn()
@@ -350,20 +350,20 @@ class UndurDiriController extends Controller
             ->editColumn('status_id', function ($row) {
                 return '<button type="button" class="btn ' . $row->status->color . ' btn-sm" disabled>' . $row->status->name . '</button>';
             })
-            ->editColumn('queue_number', function ($row) {
-                if ($row->queue_status === 'processed') {
-                    return "Selesai";
-                }
-                $currentQueue = UndurDiri::whereDate('created_at', today())
-                                ->where('queue_status', 'waiting')
-                                ->orderBy('queue_number', 'asc')
-                                ->first();
+            // ->editColumn('queue_number', function ($row) {
+            //     if ($row->queue_status === 'processed') {
+            //         return "Selesai";
+            //     }
+            //     $currentQueue = UndurDiri::whereDate('created_at', today())
+            //                     ->where('queue_status', 'waiting')
+            //                     ->orderBy('queue_number', 'asc')
+            //                     ->first();
                 
-                $position = $row->queue_number;
-                $current = $currentQueue ? $currentQueue->queue_number : 0;
+            //     $position = $row->queue_number;
+            //     $current = $currentQueue ? $currentQueue->queue_number : 0;
                 
-                return "Antrian $position (Sekarang: $current)";
-            })
+            //     return "Antrian $position (Sekarang: $current)";
+            // })
             ->rawColumns(['action', 'tanggal_ambil', 'tahun_akademik', 'status_id'])
             ->toJson();
     }
@@ -408,24 +408,22 @@ class UndurDiriController extends Controller
             $file = 'UndurDiri' . '_' . Auth::user()->nim . '_' . Str::of(Auth::user()->name)->replace(' ','') . '_' . time() . '.pdf';
             $request->file('file')->storeAs('undur/upload/', $file, 'public');
 
-            // Generate nomor antrian terlepas dari siapa yang mengajukan
-            $lastQueue = UndurDiri::whereDate('created_at', today())
-                            ->orderBy('queue_number', 'desc')
-                            ->first();
+            // // Generate nomor antrian terlepas dari siapa yang mengajukan
+            // $lastQueue = UndurDiri::whereDate('created_at', today())
+            //                 ->orderBy('queue_number', 'desc')
+            //                 ->first();
 
-            $queueNumber = $lastQueue ? $lastQueue->queue_number + 1 : 1;
+            // $queueNumber = $lastQueue ? $lastQueue->queue_number + 1 : 1;
 
             UndurDiri::create([
                 'user_id' => Auth::user()->id,
                 'status_id' => '1',
                 'semester_id' => $request->semester_id,
                 'tahun_akademik_id' => $request->tahun_akademik_id,
-                'queue_number' => $queueNumber,
-                'queue_status' => 'waiting',
                 'file' => $file,
             ]);
         } catch (\Throwable $th) {
-            return response()->json(['status' => false, 'message' => 'Terjadi Kesalahan', 'queue_number' => $queueNumber], 500);
+            return response()->json(['status' => false, 'message' => 'Terjadi Kesalahan'], 500);
         }
         return response()->json(['status' => true, 'message' => 'Ajuan Berhasil Ditambahkan!'], 200);
     }
@@ -568,11 +566,11 @@ class UndurDiriController extends Controller
                 }
     
                 // Handle status 5 dan 6
-                $updateQueues = false;
+                // $updateQueues = false;
                 if (in_array($request->status_id, ['5', '6'])) {
                     Storage::disk('public')->delete('undur/upload/' . $ajuan->file);
-                    $data_update['queue_status'] = 'processed';
-                    $updateQueues = true;
+                    // $data_update['queue_status'] = 'processed';
+                    // $updateQueues = true;
                 }
     
                 // Upload ke GDrive jika status = 6 dan file tersedia
@@ -619,11 +617,11 @@ class UndurDiriController extends Controller
                 $ajuan->update($data_update);
     
                 // Hitung antrian yang tersisa
-                $waitingCount = UndurDiri::where('queue_status', 'waiting')
-                    ->whereDate('created_at', today())
-                    ->count();
+                // $waitingCount = UndurDiri::where('queue_status', 'waiting')
+                //     ->whereDate('created_at', today())
+                //     ->count();
     
-                $return['waiting_count'] = $waitingCount;
+                // $return['waiting_count'] = $waitingCount;
             } catch (\Throwable $th) {
                 $return['status'] = false;
                 $return['message'] = 'Terjadi Kesalahan!';
@@ -657,80 +655,80 @@ class UndurDiriController extends Controller
     }
 }
 
-    private function generateQueueNumber()
-    {
-        $lastQueue = UndurDiri::whereDate('created_at', today())
-                        ->orderBy('queue_number', 'desc')
-                        ->first();
+//     private function generateQueueNumber()
+//     {
+//         $lastQueue = UndurDiri::whereDate('created_at', today())
+//                         ->orderBy('queue_number', 'desc')
+//                         ->first();
         
-        return $lastQueue ? $lastQueue->queue_number + 1 : 1;
-    }
+//         return $lastQueue ? $lastQueue->queue_number + 1 : 1;
+//     }
 
-    public function updateQueue()
-    {
-        try {
-            // Ambil semua antrian hari ini yang masih waiting, diurutkan berdasarkan queue_number
-            $waitingQueues = UndurDiri::whereDate('created_at', today())
-                            ->where('queue_status', 'waiting')
-                            ->orderBy('queue_number', 'asc')
-                            ->get();
+//     public function updateQueue()
+//     {
+//         try {
+//             // Ambil semua antrian hari ini yang masih waiting, diurutkan berdasarkan queue_number
+//             $waitingQueues = UndurDiri::whereDate('created_at', today())
+//                             ->where('queue_status', 'waiting')
+//                             ->orderBy('queue_number', 'asc')
+//                             ->get();
             
-            $newQueueNumber = 1;
+//             $newQueueNumber = 1;
             
-            // Update nomor antrian untuk semua yang waiting
-            foreach ($waitingQueues as $queue) {
-                $queue->update(['queue_number' => $newQueueNumber++]);
-            }
+//             // Update nomor antrian untuk semua yang waiting
+//             foreach ($waitingQueues as $queue) {
+//                 $queue->update(['queue_number' => $newQueueNumber++]);
+//             }
             
-            $totalWaiting = UndurDiri::whereDate('created_at', today())
-                            ->where('queue_status', 'waiting')
-                            ->count();
+//             $totalWaiting = UndurDiri::whereDate('created_at', today())
+//                             ->where('queue_status', 'waiting')
+//                             ->count();
             
-            return response()->json([
-                'status' => true,
-                'total_waiting' => $totalWaiting,
-                'current_queue' => $waitingQueues->first()->queue_number ?? null
-            ]);
+//             return response()->json([
+//                 'status' => true,
+//                 'total_waiting' => $totalWaiting,
+//                 'current_queue' => $waitingQueues->first()->queue_number ?? null
+//             ]);
             
-        } catch (\Throwable $th) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Gagal mengupdate antrian'
-            ], 500);
-        }
-    }
+//         } catch (\Throwable $th) {
+//             return response()->json([
+//                 'status' => false,
+//                 'message' => 'Gagal mengupdate antrian'
+//             ], 500);
+//         }
+//     }
 
-    public function queueStatus()
-{
-    $userQueue = UndurDiri::where('user_id', Auth::id())
-                    ->whereDate('created_at', today())
-                    ->where('queue_status', 'waiting')
-                    ->first();
+//     public function queueStatus()
+// {
+//     $userQueue = UndurDiri::where('user_id', Auth::id())
+//                     ->whereDate('created_at', today())
+//                     ->where('queue_status', 'waiting')
+//                     ->first();
     
-    // Get the current queue number (lowest waiting)
-    $currentQueue = UndurDiri::whereDate('created_at', today())
-                    ->where('queue_status', 'waiting')
-                    ->orderBy('queue_number', 'asc')
-                    ->first();
+//     // Get the current queue number (lowest waiting)
+//     $currentQueue = UndurDiri::whereDate('created_at', today())
+//                     ->where('queue_status', 'waiting')
+//                     ->orderBy('queue_number', 'asc')
+//                     ->first();
     
-    $totalWaiting = UndurDiri::whereDate('created_at', today())
-                    ->where('queue_status', 'waiting')
-                    ->count();
+//     $totalWaiting = UndurDiri::whereDate('created_at', today())
+//                     ->where('queue_status', 'waiting')
+//                     ->count();
     
-    return response()->json([
-        'status' => true,
-        'user_queue' => $userQueue ? $userQueue->queue_number : null,
-        'total_waiting' => $totalWaiting,
-        'current_queue' => $currentQueue ? $currentQueue->queue_number : null
-    ]);
-}
+//     return response()->json([
+//         'status' => true,
+//         'user_queue' => $userQueue ? $userQueue->queue_number : null,
+//         'total_waiting' => $totalWaiting,
+//         'current_queue' => $currentQueue ? $currentQueue->queue_number : null
+//     ]);
+// }
 
-    private function getQueueInfo($queueNumber)
-    {
-        $totalWaiting = UndurDiri::whereDate('created_at', today())
-                        ->where('queue_status', 'waiting')
-                        ->count();
+//     private function getQueueInfo($queueNumber)
+//     {
+//         $totalWaiting = UndurDiri::whereDate('created_at', today())
+//                         ->where('queue_status', 'waiting')
+//                         ->count();
         
-        return "Antrian $queueNumber dari $totalWaiting";
-    }
+//         return "Antrian $queueNumber dari $totalWaiting";
+//     }
 }

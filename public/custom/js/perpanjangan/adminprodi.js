@@ -22,10 +22,10 @@ const initializeDataTable = (status_table, year, prodi_table) => {
             { data: "user.nim" },
             { data: "user.prodis.name" },
             { data: "tanggal_ambil" },
-            { 
-                data: "queue_number",
-                className: "queue-info"
-            },
+            // { 
+            //     data: "queue_number",
+            //     className: "queue-info"
+            // },
             { data: "catatan" },
         ],
         columnDefs: [
@@ -81,30 +81,16 @@ $(".prodi-menu").on("click", function (e) {
     table = initializeDataTable(status_table, year, selectedProdi);
 });
 
-setInterval(function() {
-    if ($('#modalDetail').is(':visible')) {
-        $.ajax({
-            url: window.Laravel.queueStatus,
-            type: "GET",
-            success: function(res) {
-                if (res.status) {
-                    $("#detail-queue-number").text(res.user_queue);
-                    $("#detail-total-queue").text(res.total_waiting);
-                    
-                    // Update juga di tabel
-                    table.ajax.reload(null, false);
-                }
-            }
-        });
-    }
-}, 30000); // 30 detik
+setInterval(function () {
+    table.ajax.reload(null, false); // user paging is not reset on reload
+}, 300000);
 
 $("#show_data").on("click", ".btn-proses", function () {
     let id = $(this).data("id");
     action = window.Laravel.update.replace(":id", id);
     $("form#form-proses").attr("action", action);
     $("#form-proses textarea").val("");
-    $("#detail-antrian").html(": " + res.data.queue_number);
+    // $("#detail-antrian").html(": " + res.data.queue_number);
     $("#modalProses").modal("show");
 });
 

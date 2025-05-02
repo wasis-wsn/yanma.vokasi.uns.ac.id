@@ -11,10 +11,10 @@ var table = $("#suket-datatable").DataTable({
         // { data: "tempat" },
         { data: "mulai_kegiatan" },
         { data: "status_id" },
-        { 
-            data: "queue_number",
-            className: "queue-info"
-        },
+        // { 
+        //     data: "queue_number",
+        //     className: "queue-info"
+        // },
         { data: "catatan" },
         { data: "id" },
     ],
@@ -31,23 +31,9 @@ var table = $("#suket-datatable").DataTable({
     ],
 });
 
-setInterval(function() {
-    if ($('#modalDetail').is(':visible')) {
-        $.ajax({
-            url: window.Laravel.queueStatus,
-            type: "GET",
-            success: function(res) {
-                if (res.status) {
-                    $("#detail-queue-number").text(res.user_queue);
-                    $("#detail-total-queue").text(res.total_waiting);
-                    
-                    // Update juga di tabel
-                    table.ajax.reload(null, false);
-                }
-            }
-        });
-    }
-}, 30000); // 30 detik
+setInterval(function () {
+    table.ajax.reload(null, false); // user paging is not reset on reload
+}, 300000);
 
 $(".selesai_kegiatan").change(function () {
     let selesai = $(this).val();
@@ -85,7 +71,7 @@ $("#show_data").on("click", ".btn-edit", function () {
                 $("#edit_nip_dospem").val(res.data.nip_dospem);
                 $("#edit_nidn_dospem").val(res.data.nidn_dospem);
                 $("#edit_unit_dospem").val(res.data.unit_dospem);
-                $("#detail-antrian").html(": " + res.data.queue_number);
+                // $("#detail-antrian").html(": " + res.data.queue_number);
                 $("#form-edit input[type='file']").val("");
                 if (res.data.catatan == '' || res.data.catatan == undefined) {
                     $("#form-edit input[type='file']").attr('disabled', true);
@@ -372,19 +358,19 @@ $("#form-edit").submit(function (e) {
     });
 });
 
-function updateQueueNumbers() {
-    $.ajax({
-        url: '/st/update-queue',
-        type: 'GET',
-        success: function(res) {
-            if (res.status) {
-                table.ajax.reload(null, false);
-                if ($('#modalDetail').is(':visible')) {
-                    // Update juga di modal detail jika terbuka
-                    $("#detail-queue-number").text(res.user_queue);
-                    $("#detail-total-queue").text(res.total_waiting);
-                }
-            }
-        }
-    });
-}
+// function updateQueueNumbers() {
+//     $.ajax({
+//         url: '/st/update-queue',
+//         type: 'GET',
+//         success: function(res) {
+//             if (res.status) {
+//                 table.ajax.reload(null, false);
+//                 if ($('#modalDetail').is(':visible')) {
+//                     // Update juga di modal detail jika terbuka
+//                     $("#detail-queue-number").text(res.user_queue);
+//                     $("#detail-total-queue").text(res.total_waiting);
+//                 }
+//             }
+//         }
+//     });
+// }

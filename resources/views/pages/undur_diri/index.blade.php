@@ -132,7 +132,7 @@
                                             <th hidden>created_at</th>
                                             <th>No</th>
                                             <th>Status</th>
-                                            <th>Antrian</th>
+                                            <!-- <th>Antrian</th> -->
                                             <th>Catatan</th>
                                             <th>Tanggal Submit</th>
                                             <th>Tanggal Proses</th>
@@ -151,7 +151,7 @@
                                             <th>Prodi</th>
                                             <th>No Surat</th>
                                             <th>Status</th>
-                                            <th>Antrian</th>
+                                            <!-- <th>Antrian</th> -->
                                             <th>Catatan</th>
                                             <th>Aksi</th>
                                         @endcanany
@@ -161,7 +161,7 @@
                                             <th>Status</th>
                                             <th>Nama</th>
                                             <th>NIM</th>
-                                            <th>Antrian</th>
+                                            <!-- <th>Antrian</th> -->
                                             <th>Prodi</th>
                                             <th>No Surat</th>
                                             <th>Tanggal Ambil</th>

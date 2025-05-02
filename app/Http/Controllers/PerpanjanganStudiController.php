@@ -82,20 +82,20 @@ class PerpanjanganStudiController extends Controller
             ->editColumn('status_id', function ($row) {
                 return '<button type="button" class="btn ' . $row->status->color . ' btn-sm" disabled>' . $row->status->name . '</button>';
             })
-            ->editColumn('queue_number', function ($row) {
-                if ($row->queue_status === 'processed') {
-                    return "Selesai";
-                }
-                $currentQueue = PerpanjanganStudi::whereDate('created_at', today())
-                                ->where('queue_status', 'waiting')
-                                ->orderBy('queue_number', 'asc')
-                                ->first();
+            // ->editColumn('queue_number', function ($row) {
+            //     if ($row->queue_status === 'processed') {
+            //         return "Selesai";
+            //     }
+            //     $currentQueue = PerpanjanganStudi::whereDate('created_at', today())
+            //                     ->where('queue_status', 'waiting')
+            //                     ->orderBy('queue_number', 'asc')
+            //                     ->first();
 
-                $position = $row->queue_number;
-                $current = $currentQueue ? $currentQueue->queue_number : 0;
+            //     $position = $row->queue_number;
+            //     $current = $currentQueue ? $currentQueue->queue_number : 0;
 
-                return "Antrian $position (Sekarang: $current)";
-            })
+            //     return "Antrian $position (Sekarang: $current)";
+            // })
             ->editColumn('catatan', function ($row) {
                 return wordwrap($row->catatan, 30, "<br>");
             })
@@ -112,14 +112,6 @@ class PerpanjanganStudiController extends Controller
                 $q->where('prodi', $request->prodi);
             });
         }
-
-        $totalWaiting = PerpanjanganStudi::whereDate('created_at', today())
-                ->where('queue_status', 'waiting')
-                ->count();
-
-        $list->each(function($item) use ($totalWaiting) {
-            $item->total_waiting = $totalWaiting;
-        });
 
         return DataTables::of($list)
             ->addIndexColumn()
@@ -164,24 +156,10 @@ class PerpanjanganStudiController extends Controller
             ->editColumn('nama_prodi', function ($row) {
                 return wordwrap($row->user->prodis->name, 20, "<br>");
             })
-            ->editColumn('queue_number', function ($row) {
-                if ($row->queue_status === 'processed') {
-                    return "Selesai";
-                }
-                $currentQueue = PerpanjanganStudi::whereDate('created_at', today())
-                                ->where('queue_status', 'waiting')
-                                ->orderBy('queue_number', 'asc')
-                                ->first();
-
-                $position = $row->queue_number;
-                $current = $currentQueue ? $currentQueue->queue_number : 0;
-
-                return "Antrian $position (Sekarang: $current)";
-            })
             ->editColumn('catatan', function ($row) {
                 return wordwrap($row->catatan, 30, "<br>");
             })
-            ->rawColumns(['id', 'action', 'tanggal_submit', 'tahun_akademik', 'status_id', 'nama_prodi', 'catatan', 'queue_number'])
+            ->rawColumns(['id', 'action', 'tanggal_submit', 'tahun_akademik', 'status_id', 'nama_prodi', 'catatan'])
             ->toJson();
 
         }
@@ -196,13 +174,6 @@ class PerpanjanganStudiController extends Controller
         }
         $list = $list->orderBy('created_at', 'desc')->get();
 
-        $totalWaiting = PerpanjanganStudi::whereDate('created_at', today())
-                ->where('queue_status', 'waiting')
-                ->count();
-
-        $list->each(function($item) use ($totalWaiting) {
-            $item->total_waiting = $totalWaiting;
-        });
 
         return DataTables::of($list)
             ->addIndexColumn()
@@ -226,21 +197,7 @@ class PerpanjanganStudiController extends Controller
             ->editColumn('status_id', function ($row) {
                 return '<button type="button" class="btn ' . $row->status->color . ' btn-sm" disabled>' . $row->status->name . '</button>';
             })
-            ->editColumn('queue_number', function ($row) {
-                if ($row->queue_status === 'processed') {
-                    return "Selesai";
-                }
-                $currentQueue = PerpanjanganStudi::whereDate('created_at', today())
-                                ->where('queue_status', 'waiting')
-                                ->orderBy('queue_number', 'asc')
-                                ->first();
-
-                $position = $row->queue_number;
-                $current = $currentQueue ? $currentQueue->queue_number : 0;
-
-                return "Antrian $position (Sekarang: $current)";
-            })
-            ->rawColumns(['action', 'tanggal_ambil', 'tahun_akademik', 'status_id', 'queue_number'])
+            ->rawColumns(['action', 'tanggal_ambil', 'tahun_akademik', 'status_id'])
             ->toJson();
     }
 
@@ -255,13 +212,7 @@ class PerpanjanganStudiController extends Controller
         }
         $list = $list->orderBy('created_at', 'desc')->get();
 
-        $totalWaiting = PerpanjanganStudi::whereDate('created_at', today())
-                ->where('queue_status', 'waiting')
-                ->count();
-
-        $list->each(function($item) use ($totalWaiting) {
-            $item->total_waiting = $totalWaiting;
-        });
+        
 
         return DataTables::of($list)
             ->addIndexColumn()
@@ -288,20 +239,6 @@ class PerpanjanganStudiController extends Controller
             ->editColumn('nama_prodi', function ($row) {
                 return wordwrap($row->user->prodis->name, 20, "<br>");
             })
-            ->editColumn('queue_number', function ($row) {
-                if ($row->queue_status === 'processed') {
-                    return "Selesai";
-                }
-                $currentQueue = PerpanjanganStudi::whereDate('created_at', today())
-                                ->where('queue_status', 'waiting')
-                                ->orderBy('queue_number', 'asc')
-                                ->first();
-
-                $position = $row->queue_number;
-                $current = $currentQueue ? $currentQueue->queue_number : 0;
-
-                return "Antrian $position (Sekarang: $current)";
-            })
             ->editColumn('catatan', function ($row) {
                 return wordwrap($row->catatan, 30, "<br>");
             })
@@ -320,13 +257,6 @@ class PerpanjanganStudiController extends Controller
         }
         $list = $list->orderBy('created_at', 'desc')->get();
 
-        $totalWaiting = PerpanjanganStudi::whereDate('created_at', today())
-                ->where('queue_status', 'waiting')
-                ->count();
-
-        $list->each(function($item) use ($totalWaiting) {
-            $item->total_waiting = $totalWaiting;
-        });
 
         return DataTables::of($list)
             ->addIndexColumn()
@@ -350,21 +280,7 @@ class PerpanjanganStudiController extends Controller
             ->editColumn('status_id', function ($row) {
                 return '<button type="button" class="btn ' . $row->status->color . ' btn-sm" disabled>' . $row->status->name . '</button>';
             })
-            ->editColumn('queue_number', function ($row) {
-                if ($row->queue_status === 'processed') {
-                    return "Selesai";
-                }
-                $currentQueue = PerpanjanganStudi::whereDate('created_at', today())
-                                ->where('queue_status', 'waiting')
-                                ->orderBy('queue_number', 'asc')
-                                ->first();
-
-                $position = $row->queue_number;
-                $current = $currentQueue ? $currentQueue->queue_number : 0;
-
-                return "Antrian $position (Sekarang: $current)";
-            })
-            ->rawColumns(['action', 'tanggal_ambil', 'tahun_akademik', 'status_id', 'queue_number'])
+            ->rawColumns(['action', 'tanggal_ambil', 'tahun_akademik', 'status_id'])
             ->toJson();
     }
 
@@ -432,11 +348,6 @@ class PerpanjanganStudiController extends Controller
             $request->file('file')->storeAs('perpanjangan/upload/', $fileName, 'public');
 
             // Generate nomor antrian terlepas dari siapa yang mengajukan
-            $lastQueue = PerpanjanganStudi::whereDate('created_at', today())
-                            ->orderBy('queue_number', 'desc')
-                            ->first();
-
-            $queueNumber = $lastQueue ? $lastQueue->queue_number + 1 : 1;
 
             PerpanjanganStudi::create([
                 'user_id' => $user->id,
@@ -445,11 +356,9 @@ class PerpanjanganStudiController extends Controller
                 'perpanjangan_ke' => $request->perpanjangan_ke,
                 'semester_id' => $request->semester_id,
                 'tahun_akademik_id' => $request->tahun_akademik_id,
-                'queue_number' => $queueNumber,
-                'queue_status' => 'waiting'
             ]);
         } catch (\Throwable $th) {
-            return response()->json(['status' => false, 'message' => 'Terjadi Kesalahan', 'queue_number' => $queueNumber], 500);
+            return response()->json(['status' => false, 'message' => 'Terjadi Kesalahan'], 500);
         }
         return response()->json(['status' => true, 'message' => 'Ajuan Berhasil Ditambahkan!'], 200);
     }
@@ -604,7 +513,6 @@ class PerpanjanganStudiController extends Controller
 
                 if (in_array($request->status_id, ['5', '6'])) {
                     Storage::disk('public')->delete('perpanjangan/upload/' . $ajuan->file);
-                    $data_update['queue_status'] = 'processed'; // Update status antrian
                 }
 
                 if ($request->status_id == '7') { // surat diambil
@@ -651,16 +559,16 @@ class PerpanjanganStudiController extends Controller
         }
 
         // Hitung antrian yang tersisa setelah semua proses
-        $waitingCount = PerpanjanganStudi::where('queue_status', 'waiting')
-                            ->whereDate('created_at', today())
-                            ->count();
+        // $waitingCount = PerpanjanganStudi::where('queue_status', 'waiting')
+        //                     ->whereDate('created_at', today())
+        //                     ->count();
 
         return response()->json([
             'status' => true,
             'message' => count($allIds) > 1
                 ? 'Semua ajuan berhasil diproses!'
                 : ($return['message'] ?? 'Ajuan berhasil diproses!'),
-            'waiting_count' => $waitingCount,
+            
         ]);
 
     } catch (\Throwable $th) {
@@ -676,79 +584,79 @@ class PerpanjanganStudiController extends Controller
     }
 }
 
-    private function generateQueueNumber()
-    {
-        $lastQueue = PerpanjanganStudi::whereDate('created_at', today())
-                        ->orderBy('queue_number', 'desc')
-                        ->first();
+//     private function generateQueueNumber()
+//     {
+//         $lastQueue = PerpanjanganStudi::whereDate('created_at', today())
+//                         ->orderBy('queue_number', 'desc')
+//                         ->first();
 
-        return $lastQueue ? $lastQueue->queue_number + 1 : 1;
-    }
+//         return $lastQueue ? $lastQueue->queue_number + 1 : 1;
+//     }
 
-    public function updateQueue()
-{
-    try {
-        $waitingQueues = PerpanjanganStudi::whereDate('created_at', today())
-                        ->where('queue_status', 'waiting')
-                        ->orderBy('queue_number', 'asc')
-                        ->get();
+//     public function updateQueue()
+// {
+//     try {
+//         $waitingQueues = PerpanjanganStudi::whereDate('created_at', today())
+//                         ->where('queue_status', 'waiting')
+//                         ->orderBy('queue_number', 'asc')
+//                         ->get();
 
-        $newQueueNumber = 1;
+//         $newQueueNumber = 1;
 
-        foreach ($waitingQueues as $queue) {
-            $queue->update(['queue_number' => $newQueueNumber++]);
-        }
+//         foreach ($waitingQueues as $queue) {
+//             $queue->update(['queue_number' => $newQueueNumber++]);
+//         }
 
-        $totalWaiting = PerpanjanganStudi::whereDate('created_at', today())
-                        ->where('queue_status', 'waiting')
-                        ->count();
+//         $totalWaiting = PerpanjanganStudi::whereDate('created_at', today())
+//                         ->where('queue_status', 'waiting')
+//                         ->count();
 
-        return response()->json([
-            'status' => true,
-            'total_waiting' => $totalWaiting,
-            'current_queue' => $waitingQueues->first()->queue_number ?? null
-        ]);
+//         return response()->json([
+//             'status' => true,
+//             'total_waiting' => $totalWaiting,
+//             'current_queue' => $waitingQueues->first()->queue_number ?? null
+//         ]);
 
-    } catch (\Throwable $th) {
-        return response()->json([
-            'status' => false,
-            'message' => 'Gagal mengupdate antrian'
-        ], 500);
-    }
-}
+//     } catch (\Throwable $th) {
+//         return response()->json([
+//             'status' => false,
+//             'message' => 'Gagal mengupdate antrian'
+//         ], 500);
+//     }
+// }
 
-    public function queueStatus()
-{
-    $userQueue = PerpanjanganStudi::where('user_id', Auth::id())
-                    ->whereDate('created_at', today())
-                    ->where('queue_status', 'waiting')
-                    ->first();
+//     public function queueStatus()
+// {
+//     $userQueue = PerpanjanganStudi::where('user_id', Auth::id())
+//                     ->whereDate('created_at', today())
+//                     ->where('queue_status', 'waiting')
+//                     ->first();
 
-    // Get the current queue number (lowest waiting)
-    $currentQueue = PerpanjanganStudi::whereDate('created_at', today())
-                    ->where('queue_status', 'waiting')
-                    ->orderBy('queue_number', 'asc')
-                    ->first();
+//     // Get the current queue number (lowest waiting)
+//     $currentQueue = PerpanjanganStudi::whereDate('created_at', today())
+//                     ->where('queue_status', 'waiting')
+//                     ->orderBy('queue_number', 'asc')
+//                     ->first();
 
-    $totalWaiting = PerpanjanganStudi::whereDate('created_at', today())
-                    ->where('queue_status', 'waiting')
-                    ->count();
+//     $totalWaiting = PerpanjanganStudi::whereDate('created_at', today())
+//                     ->where('queue_status', 'waiting')
+//                     ->count();
 
-    return response()->json([
-        'status' => true,
-        'user_queue' => $userQueue ? $userQueue->queue_number : null,
-        'total_waiting' => $totalWaiting,
-        'current_queue' => $currentQueue ? $currentQueue->queue_number : null
-    ]);
-}
+//     return response()->json([
+//         'status' => true,
+//         'user_queue' => $userQueue ? $userQueue->queue_number : null,
+//         'total_waiting' => $totalWaiting,
+//         'current_queue' => $currentQueue ? $currentQueue->queue_number : null
+//     ]);
+// }
 
-    private function getQueueInfo($queueNumber)
-    {
-        $totalWaiting = PerpanjanganStudi::whereDate('created_at', today())
-                        ->where('queue_status', 'waiting')
-                        ->count();
+//     private function getQueueInfo($queueNumber)
+//     {
+//         $totalWaiting = PerpanjanganStudi::whereDate('created_at', today())
+//                         ->where('queue_status', 'waiting')
+//                         ->count();
 
-        return "Antrian $queueNumber dari $totalWaiting";
-    }
+//         return "Antrian $queueNumber dari $totalWaiting";
+//     }
 }
 

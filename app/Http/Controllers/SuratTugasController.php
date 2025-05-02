@@ -74,20 +74,20 @@ class SuratTugasController extends Controller
             ->editColumn('status_id', function ($row) {
                 return '<button type="button" class="btn ' . $row->status->color . ' btn-sm" disabled>' . $row->status->name . '</button>';
             })
-            ->editColumn('queue_number', function ($row) {
-                if ($row->queue_status === 'processed') {
-                    return "Selesai";
-                }
-                $currentQueue = SuratTugas::whereDate('created_at', today())
-                                ->where('queue_status', 'waiting')
-                                ->orderBy('queue_number', 'asc')
-                                ->first();
+            // ->editColumn('queue_number', function ($row) {
+            //     if ($row->queue_status === 'processed') {
+            //         return "Selesai";
+            //     }
+            //     $currentQueue = SuratTugas::whereDate('created_at', today())
+            //                     ->where('queue_status', 'waiting')
+            //                     ->orderBy('queue_number', 'asc')
+            //                     ->first();
                 
-                $position = $row->queue_number;
-                $current = $currentQueue ? $currentQueue->queue_number : 0;
+            //     $position = $row->queue_number;
+            //     $current = $currentQueue ? $currentQueue->queue_number : 0;
                 
-                return "Antrian $position (Sekarang: $current)";
-            })
+            //     return "Antrian $position (Sekarang: $current)";
+            // })
             ->editColumn('catatan', function ($row) {
                 return wordwrap($row->catatan, 20, '<br>');
             })
@@ -104,13 +104,13 @@ class SuratTugasController extends Controller
         if ($request->status != 'all') $list = $list->where('status_id', $request->status);
         $list = $list->orderBy('created_at', 'desc')->get();
 
-        $totalWaiting = SuratTugas::whereDate('created_at', today())
-                ->where('queue_status', 'waiting')
-                ->count();
+        // $totalWaiting = SuratTugas::whereDate('created_at', today())
+        //         ->where('queue_status', 'waiting')
+        //         ->count();
 
-        $list->each(function($item) use ($totalWaiting) {
-            $item->total_waiting = $totalWaiting;
-        });
+        // $list->each(function($item) use ($totalWaiting) {
+        //     $item->total_waiting = $totalWaiting;
+        // });
 
         return DataTables::of($list)
             ->addIndexColumn()
@@ -151,20 +151,20 @@ class SuratTugasController extends Controller
             ->editColumn('status_id', function ($row) {
                 return '<button type="button" class="btn ' . $row->status->color . ' btn-sm" disabled>' . $row->status->name . '</button>';
             })
-            ->editColumn('queue_number', function ($row) {
-                if ($row->queue_status === 'processed') {
-                    return "Selesai";
-                }
-                $currentQueue = SuratTugas::whereDate('created_at', today())
-                                ->where('queue_status', 'waiting')
-                                ->orderBy('queue_number', 'asc')
-                                ->first();
+            // ->editColumn('queue_number', function ($row) {
+            //     if ($row->queue_status === 'processed') {
+            //         return "Selesai";
+            //     }
+            //     $currentQueue = SuratTugas::whereDate('created_at', today())
+            //                     ->where('queue_status', 'waiting')
+            //                     ->orderBy('queue_number', 'asc')
+            //                     ->first();
                 
-                $position = $row->queue_number;
-                $current = $currentQueue ? $currentQueue->queue_number : 0;
+            //     $position = $row->queue_number;
+            //     $current = $currentQueue ? $currentQueue->queue_number : 0;
                 
-                return "Antrian $position (Sekarang: $current)";
-            })
+            //     return "Antrian $position (Sekarang: $current)";
+            // })
             ->editColumn('catatan', function ($row) {
                 return wordwrap($row->catatan, 20, '<br>');
             })
@@ -181,13 +181,13 @@ class SuratTugasController extends Controller
         if ($request->status != 'all') $list = $list->where('status_id', $request->status);
         $list = $list->orderBy('created_at', 'desc')->get();
 
-        $totalWaiting = SuratTugas::whereDate('created_at', today())
-                ->where('queue_status', 'waiting')
-                ->count();
+        // $totalWaiting = SuratTugas::whereDate('created_at', today())
+        //         ->where('queue_status', 'waiting')
+        //         ->count();
 
-        $list->each(function($item) use ($totalWaiting) {
-            $item->total_waiting = $totalWaiting;
-        });
+        // $list->each(function($item) use ($totalWaiting) {
+        //     $item->total_waiting = $totalWaiting;
+        // });
 
         return DataTables::of($list)
             ->addIndexColumn()
@@ -213,20 +213,20 @@ class SuratTugasController extends Controller
             ->editColumn('status_id', function ($row) {
                 return '<button type="button" class="btn ' . $row->status->color . ' btn-sm" disabled>' . $row->status->name . '</button>';
             })
-            ->editColumn('queue_number', function ($row) {
-                if ($row->queue_status === 'processed') {
-                    return "Selesai";
-                }
-                $currentQueue = SuratTugas::whereDate('created_at', today())
-                                ->where('queue_status', 'waiting')
-                                ->orderBy('queue_number', 'asc')
-                                ->first();
+            // ->editColumn('queue_number', function ($row) {
+            //     if ($row->queue_status === 'processed') {
+            //         return "Selesai";
+            //     }
+            //     $currentQueue = SuratTugas::whereDate('created_at', today())
+            //                     ->where('queue_status', 'waiting')
+            //                     ->orderBy('queue_number', 'asc')
+            //                     ->first();
                 
-                $position = $row->queue_number;
-                $current = $currentQueue ? $currentQueue->queue_number : 0;
+            //     $position = $row->queue_number;
+            //     $current = $currentQueue ? $currentQueue->queue_number : 0;
                 
-                return "Antrian $position (Sekarang: $current)";
-            })
+            //     return "Antrian $position (Sekarang: $current)";
+            // })
             ->editColumn('catatan', function ($row) {
                 return wordwrap($row->catatan, 20, '<br>');
             })
@@ -248,13 +248,13 @@ class SuratTugasController extends Controller
         }
         $list = $list->orderBy('created_at', 'desc')->get();
 
-        $totalWaiting = SuratTugas::whereDate('created_at', today())
-                ->where('queue_status', 'waiting')
-                ->count();
+        // $totalWaiting = SuratTugas::whereDate('created_at', today())
+        //         ->where('queue_status', 'waiting')
+        //         ->count();
 
-        $list->each(function($item) use ($totalWaiting) {
-            $item->total_waiting = $totalWaiting;
-        });
+        // $list->each(function($item) use ($totalWaiting) {
+        //     $item->total_waiting = $totalWaiting;
+        // });
 
         return DataTables::of($list)
             ->addIndexColumn()
@@ -283,20 +283,20 @@ class SuratTugasController extends Controller
             ->editColumn('status_id', function ($row) {
                 return '<button type="button" class="btn ' . $row->status->color . ' btn-sm" disabled>' . $row->status->name . '</button>';
             })
-            ->editColumn('queue_number', function ($row) {
-                if ($row->queue_status === 'processed') {
-                    return "Selesai";
-                }
-                $currentQueue = SuratTugas::whereDate('created_at', today())
-                                ->where('queue_status', 'waiting')
-                                ->orderBy('queue_number', 'asc')
-                                ->first();
+            // ->editColumn('queue_number', function ($row) {
+            //     if ($row->queue_status === 'processed') {
+            //         return "Selesai";
+            //     }
+            //     $currentQueue = SuratTugas::whereDate('created_at', today())
+            //                     ->where('queue_status', 'waiting')
+            //                     ->orderBy('queue_number', 'asc')
+            //                     ->first();
                 
-                $position = $row->queue_number;
-                $current = $currentQueue ? $currentQueue->queue_number : 0;
+            //     $position = $row->queue_number;
+            //     $current = $currentQueue ? $currentQueue->queue_number : 0;
                 
-                return "Antrian $position (Sekarang: $current)";
-            })
+            //     return "Antrian $position (Sekarang: $current)";
+            // })
             ->editColumn('catatan', function ($row) {
                 return wordwrap($row->catatan, 20, '<br>');
             })
@@ -365,11 +365,11 @@ class SuratTugasController extends Controller
             $request->file->storeAs('surat_tugas/upload/', $fileName, 'public');
 
             // Generate nomor antrian terlepas dari siapa yang mengajukan
-            $lastQueue = SuratTugas::whereDate('created_at', today())
-                            ->orderBy('queue_number', 'desc')
-                            ->first();
+            // $lastQueue = SuratTugas::whereDate('created_at', today())
+            //                 ->orderBy('queue_number', 'desc')
+            //                 ->first();
 
-            $queueNumber = $lastQueue ? $lastQueue->queue_number + 1 : 1;
+            // $queueNumber = $lastQueue ? $lastQueue->queue_number + 1 : 1;
 
             SuratTugas::create([
                 'user_id' => Auth::user()->id,
@@ -386,11 +386,9 @@ class SuratTugasController extends Controller
                 'nidn_dospem' => $request->nidn_dospem,
                 'unit_dospem' => $request->unit_dospem,
                 'file' => $fileName,
-                'queue_number' => $queueNumber,
-                'queue_status' => 'waiting'
             ]);
         } catch (\Throwable $th) {
-            return response()->json(['status' => false, 'message' => 'Terjadi Kesalahan', 'queue_number' => $queueNumber], 500);
+            return response()->json(['status' => false, 'message' => 'Terjadi Kesalahan'], 500);
         }
         return response()->json(['status' => true, 'message' => 'Ajuan Berhasil Ditambahkan!'], 200);
     }
@@ -543,7 +541,7 @@ class SuratTugasController extends Controller
             // ajuan diproses
             if (in_array($request->status_id, ['5', '6'])) {
                 $data_update['no_surat'] = $request->no_surat;
-                $data_update['queue_status'] = 'processed'; // Update status antrian
+                // $data_update['queue_status'] = 'processed'; // Update status antrian
                 $return['message'] = 'Ajuan Berhasil Diproses!';
             } elseif (in_array($request->status_id, ['7', '8'])) { //status ditolak
                 // Hapus file upload jika ajuan ditolak
@@ -556,7 +554,7 @@ class SuratTugasController extends Controller
                 $fileName = $ajuan->user->nim . '-' . $ajuan->user->name . '-ST' . time() . '.pdf';
                 $request->file->storeAs('surat_tugas/hasil/', $fileName, 'public');
                 $data_update['surat_hasil'] = $fileName;
-                $data_update['queue_status'] = 'processed'; // Update status antrian
+                // $data_update['queue_status'] = 'processed'; // Update status antrian
                 $return['message'] = 'Ajuan telah selesai!';
 
                 Lpj::create([
@@ -568,11 +566,11 @@ class SuratTugasController extends Controller
             $ajuan->update($data_update);
 
             // Hitung antrian yang tersisa
-            $waitingCount = SuratTugas::where('queue_status', 'waiting')
-            ->whereDate('created_at', today())
-            ->count();
+            // $waitingCount = SuratTugas::where('queue_status', 'waiting')
+            // ->whereDate('created_at', today())
+            // ->count();
 
-            $return['waiting_count'] = $waitingCount;
+            // $return['waiting_count'] = $waitingCount;
         } catch (\Throwable $th) {
             $return['status'] = false;
             $return['message'] = 'Terjadi Kesalahan!';
@@ -617,80 +615,80 @@ class SuratTugasController extends Controller
         return response()->download($docFile)->deleteFileAfterSend(true);
     }
 
-    private function generateQueueNumber()
-    {
-        $lastQueue = SuratTugas::whereDate('created_at', today())
-                        ->orderBy('queue_number', 'desc')
-                        ->first();
+    // private function generateQueueNumber()
+    // {
+    //     $lastQueue = SuratTugas::whereDate('created_at', today())
+    //                     ->orderBy('queue_number', 'desc')
+    //                     ->first();
         
-        return $lastQueue ? $lastQueue->queue_number + 1 : 1;
-    }
+    //     return $lastQueue ? $lastQueue->queue_number + 1 : 1;
+    // }
 
-    public function updateQueue()
-    {
-        try {
-            // Ambil semua antrian hari ini yang masih waiting, diurutkan berdasarkan queue_number
-            $waitingQueues = SuratTugas::whereDate('created_at', today())
-                            ->where('queue_status', 'waiting')
-                            ->orderBy('queue_number', 'asc')
-                            ->get();
+    // public function updateQueue()
+    // {
+    //     try {
+    //         // Ambil semua antrian hari ini yang masih waiting, diurutkan berdasarkan queue_number
+    //         $waitingQueues = SuratTugas::whereDate('created_at', today())
+    //                         ->where('queue_status', 'waiting')
+    //                         ->orderBy('queue_number', 'asc')
+    //                         ->get();
             
-            $newQueueNumber = 1;
+    //         $newQueueNumber = 1;
             
-            // Update nomor antrian untuk semua yang waiting
-            foreach ($waitingQueues as $queue) {
-                $queue->update(['queue_number' => $newQueueNumber++]);
-            }
+    //         // Update nomor antrian untuk semua yang waiting
+    //         foreach ($waitingQueues as $queue) {
+    //             $queue->update(['queue_number' => $newQueueNumber++]);
+    //         }
             
-            $totalWaiting = SuratTugas::whereDate('created_at', today())
-                            ->where('queue_status', 'waiting')
-                            ->count();
+    //         $totalWaiting = SuratTugas::whereDate('created_at', today())
+    //                         ->where('queue_status', 'waiting')
+    //                         ->count();
             
-            return response()->json([
-                'status' => true,
-                'total_waiting' => $totalWaiting,
-                'current_queue' => $waitingQueues->first()->queue_number ?? null
-            ]);
+    //         return response()->json([
+    //             'status' => true,
+    //             'total_waiting' => $totalWaiting,
+    //             'current_queue' => $waitingQueues->first()->queue_number ?? null
+    //         ]);
             
-        } catch (\Throwable $th) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Gagal mengupdate antrian'
-            ], 500);
-        }
-    }
+    //     } catch (\Throwable $th) {
+    //         return response()->json([
+    //             'status' => false,
+    //             'message' => 'Gagal mengupdate antrian'
+    //         ], 500);
+    //     }
+    // }
 
-    public function queueStatus()
-    {
-        $userQueue = SuratTugas::where('user_id', Auth::id())
-                        ->whereDate('created_at', today())
-                        ->where('queue_status', 'waiting')
-                        ->first();
+    // public function queueStatus()
+    // {
+    //     $userQueue = SuratTugas::where('user_id', Auth::id())
+    //                     ->whereDate('created_at', today())
+    //                     ->where('queue_status', 'waiting')
+    //                     ->first();
         
-        // Get the current queue number (lowest waiting)
-        $currentQueue = SuratTugas::whereDate('created_at', today())
-                        ->where('queue_status', 'waiting')
-                        ->orderBy('queue_number', 'asc')
-                        ->first();
+    //     // Get the current queue number (lowest waiting)
+    //     $currentQueue = SuratTugas::whereDate('created_at', today())
+    //                     ->where('queue_status', 'waiting')
+    //                     ->orderBy('queue_number', 'asc')
+    //                     ->first();
         
-        $totalWaiting = SuratTugas::whereDate('created_at', today())
-                        ->where('queue_status', 'waiting')
-                        ->count();
+    //     $totalWaiting = SuratTugas::whereDate('created_at', today())
+    //                     ->where('queue_status', 'waiting')
+    //                     ->count();
         
-        return response()->json([
-            'status' => true,
-            'user_queue' => $userQueue ? $userQueue->queue_number : null,
-            'total_waiting' => $totalWaiting,
-            'current_queue' => $currentQueue ? $currentQueue->queue_number : null
-        ]);
-    }
+    //     return response()->json([
+    //         'status' => true,
+    //         'user_queue' => $userQueue ? $userQueue->queue_number : null,
+    //         'total_waiting' => $totalWaiting,
+    //         'current_queue' => $currentQueue ? $currentQueue->queue_number : null
+    //     ]);
+    // }
 
-    private function getQueueInfo($queueNumber)
-    {
-        $totalWaiting = SuratTugas::whereDate('created_at', today())
-                        ->where('queue_status', 'waiting')
-                        ->count();
+    // private function getQueueInfo($queueNumber)
+    // {
+    //     $totalWaiting = SuratTugas::whereDate('created_at', today())
+    //                     ->where('queue_status', 'waiting')
+    //                     ->count();
         
-        return "Antrian $queueNumber dari $totalWaiting";
-    }
+    //     return "Antrian $queueNumber dari $totalWaiting";
+    // }
 }

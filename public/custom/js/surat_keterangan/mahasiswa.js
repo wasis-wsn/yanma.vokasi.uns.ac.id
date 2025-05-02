@@ -8,10 +8,10 @@ var table = $("#suket-datatable").DataTable({
         { data: "keperluan" },
         { data: "created_at" },
         { data: "status_id" },
-        { 
-            data: "queue_number",
-            className: "queue-info"
-        },
+        // { 
+        //     data: "queue_number",
+        //     className: "queue-info"
+        // },
         { data: "catatan" },
         { data: "tanggal_proses" },
         { data: "action" },
@@ -25,23 +25,9 @@ var table = $("#suket-datatable").DataTable({
     ],
 });
 
-setInterval(function() {
-    if ($('#modalDetail').is(':visible')) {
-        $.ajax({
-            url: window.Laravel.queueStatus,
-            type: "GET",
-            success: function(res) {
-                if (res.status) {
-                    $("#detail-queue-number").text(res.user_queue);
-                    $("#detail-total-queue").text(res.total_waiting);
-                    
-                    // Update juga di tabel
-                    table.ajax.reload(null, false);
-                }
-            }
-        });
-    }
-}, 30000); // 30 detik
+setInterval(function () {
+    table.ajax.reload(null, false); // user paging is not reset on reload
+}, 300000);
 
 $("#show_data").on("click", ".btn-edit", function () {
     let id = $(this).data("id");
@@ -58,7 +44,7 @@ $("#show_data").on("click", ".btn-edit", function () {
         success: function (res) {
             if (res.status) {
                 $("form#form-edit").attr("action", action);
-                $("#detail-antrian").html(": " + res.data.queue_number);
+                // $("#detail-antrian").html(": " + res.data.queue_number);
                 $("#form-edit textarea#keperluan-revisi").val(
                     res.data.keperluan
                 );

@@ -7,10 +7,10 @@ var table = $("#suket-datatable").DataTable({
         { data: "created_at", visible: false },
         { data: "DT_RowIndex" },
         { data: "status_id" },
-        { 
-            data: "queue_number",
-            className: "queue-info"
-        },
+        // { 
+        //     data: "queue_number",
+        //     className: "queue-info"
+        // },
         { data: "catatan" },
         { data: "tanggal_submit" },
         { data: "tanggal_proses" },
@@ -27,23 +27,23 @@ var table = $("#suket-datatable").DataTable({
     order: [[0, "desc"]],
 });
 
-setInterval(function() {
-    if ($('#modalDetail').is(':visible')) {
-        $.ajax({
-            url: window.Laravel.queueStatus,
-            type: "GET",
-            success: function(res) {
-                if (res.status) {
-                    $("#detail-queue-number").text(res.user_queue);
-                    $("#detail-total-queue").text(res.total_waiting);
+// setInterval(function() {
+//     if ($('#modalDetail').is(':visible')) {
+//         $.ajax({
+//             url: window.Laravel.queueStatus,
+//             type: "GET",
+//             success: function(res) {
+//                 if (res.status) {
+//                     $("#detail-queue-number").text(res.user_queue);
+//                     $("#detail-total-queue").text(res.total_waiting);
                     
-                    // Update juga di tabel
-                    table.ajax.reload(null, false);
-                }
-            }
-        });
-    }
-}, 30000); // 30 detik
+//                     // Update juga di tabel
+//                     table.ajax.reload(null, false);
+//                 }
+//             }
+//         });
+//     }
+// }, 30000); // 30 detik
 
 $("#show_data").on("click", ".btn-edit", function () {
     let id = $(this).data("id");
@@ -64,7 +64,7 @@ $("#show_data").on("click", ".btn-edit", function () {
                 $("#edit_semester").val(res.data.semester.semester);
                 $("#edit_alasan").val(res.data.alasan);
                 $("#catatan-revisi").val(res.data.catatan);
-                $("#detail-antrian").html(": " + res.data.queue_number);
+                // $("#detail-antrian").html(": " + res.data.queue_number);
                 $("#form-edit input[type='file']").val("");
 
                 $("#modalEdit").modal("show");
@@ -107,7 +107,7 @@ $("#show_data").on("click", ".btn-detail", function () {
                 $("#detail-prodi").html(": " + res.data.user.prodis.name);
                 $("#detail-tahun-akademik").html(": " + res.data.tahun_akademik.tahun_akademik + ' - ' + res.data.semester.semester);
                 $("#detail-alasan").html(": " + res.data.alasan);
-                $("#detail-antrian").html(": " + res.data.queue_number);
+                // $("#detail-antrian").html(": " + res.data.queue_number);
                 $("#detail-file").attr(
                     "href",
                     `${window.Laravel.baseUrl}/storage/undur/upload/${res.data.file}`

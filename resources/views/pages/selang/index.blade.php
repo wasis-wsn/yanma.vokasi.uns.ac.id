@@ -183,11 +183,11 @@
                                             <th>NIM</th>
                                             <th>Prodi</th>
                                             <th>No Surat</th>
+                                            <th>Tanggal Ambil</th>
                                             @cannot('adminprodi')
                                                 <th>Aksi</th>
                                             @endcannot
                                             <!-- <th>Antrian</th> -->
-                                            <th>Tanggal Ambil</th>
                                             <th>Catatan</th>
                                         @endcan
                                     </tr>

@@ -12,10 +12,10 @@ const initializeDataTable = (status, year) => {
             { data: "user.nim" },
             { data: "no_surat" },
             { data: "status_id" },
-            { 
-                data: "queue_number",
-                className: "queue-info"
-            },
+            // { 
+            //     data: "queue_number",
+            //     className: "queue-info"
+            // },
             { data: "catatan" },
             { data: "action" },
         ],
@@ -64,28 +64,9 @@ $(".status-menu").click(function () {
     table = initializeDataTable(status_table, year);
 });
 
-// Cek update antrian setiap 30 detik
-setInterval(function() {
-    if ($('#modalDetail').is(':visible') || $('.dataTables_filter input').is(':focus')) {
-        $.ajax({
-            url: '/skmk/queue-status',
-            type: "GET",
-            success: function(res) {
-                if (res.status) {
-                    // Update tabel
-                    table.ajax.reload(null, false);
-                    
-                    // Update modal detail jika terbuka
-                    if ($('#modalDetail').is(':visible')) {
-                        $("#detail-queue-number").text(res.user_queue);
-                        $("#detail-total-queue").text(res.total_waiting);
-                    }
-                }
-            }
-        });
-    }
-}, 30000);
-
+setInterval(function () {
+    table.ajax.reload(null, false); // user paging is not reset on reload
+}, 300000);
 
 $("#show_data").on("click", ".btn-detail", function () {
     let id = $(this).data("id");
@@ -104,7 +85,7 @@ $("#show_data").on("click", ".btn-detail", function () {
                 $("#detail-nim").html(": " + res.data.user.nim);
                 $("#detail-prodi").html(": " + res.data.user.prodis.name);
                 $("#detail-semester").html(": " + res.data.semester_romawi);
-                $("#detail-antrian").html(": " + res.data.queue_number);
+                // $("#detail-antrian").html(": " + res.data.queue_number);
                 $("#detail-tahun_akademik").html(
                     ": " + res.data.tahun_akademik.tahun_akademik + ' - ' + res.data.semester.semester
                 );
@@ -147,19 +128,19 @@ $("#show_data").on("click", ".btn-detail", function () {
     });
 });
 
-function updateQueueNumbers() {
-    $.ajax({
-        url: '/skmk/update-queue',
-        type: 'GET',
-        success: function(res) {
-            if (res.status) {
-                table.ajax.reload(null, false);
-                if ($('#modalDetail').is(':visible')) {
-                    // Update juga di modal detail jika terbuka
-                    $("#detail-queue-number").text(res.user_queue);
-                    $("#detail-total-queue").text(res.total_waiting);
-                }
-            }
-        }
-    });
-}
+// function updateQueueNumbers() {
+//     $.ajax({
+//         url: '/skmk/update-queue',
+//         type: 'GET',
+//         success: function(res) {
+//             if (res.status) {
+//                 table.ajax.reload(null, false);
+//                 if ($('#modalDetail').is(':visible')) {
+//                     // Update juga di modal detail jika terbuka
+//                     $("#detail-queue-number").text(res.user_queue);
+//                     $("#detail-total-queue").text(res.total_waiting);
+//                 }
+//             }
+//         }
+//     });
+// }

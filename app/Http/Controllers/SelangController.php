@@ -83,20 +83,20 @@ class SelangController extends Controller
             ->editColumn('status_id', function ($row) {
                 return '<button type="button" class="btn ' . $row->status->color . ' btn-sm" disabled>' . $row->status->name . '</button>';
             })
-            ->editColumn('queue_number', function ($row) {
-                if ($row->queue_status === 'processed') {
-                    return "Selesai";
-                }
-                $currentQueue = SelangCuti::whereDate('created_at', today())
-                                ->where('queue_status', 'waiting')
-                                ->orderBy('queue_number', 'asc')
-                                ->first();
+            // ->editColumn('queue_number', function ($row) {
+            //     if ($row->queue_status === 'processed') {
+            //         return "Selesai";
+            //     }
+            //     $currentQueue = SelangCuti::whereDate('created_at', today())
+            //                     ->where('queue_status', 'waiting')
+            //                     ->orderBy('queue_number', 'asc')
+            //                     ->first();
                 
-                $position = $row->queue_number;
-                $current = $currentQueue ? $currentQueue->queue_number : 0;
+            //     $position = $row->queue_number;
+            //     $current = $currentQueue ? $currentQueue->queue_number : 0;
                 
-                return "Antrian $position (Sekarang: $current)";
-            })
+            //     return "Antrian $position (Sekarang: $current)";
+            // })
             ->editColumn('catatan', function ($row) {
                 return wordwrap($row->catatan, 30, "<br>");
             })
@@ -115,13 +115,13 @@ class SelangController extends Controller
             });
         }
 
-        $totalWaiting = SelangCuti::whereDate('created_at', today())
-                ->where('queue_status', 'waiting')
-                ->count();
+        // $totalWaiting = SelangCuti::whereDate('created_at', today())
+        //         ->where('queue_status', 'waiting')
+        //         ->count();
 
-        $list->each(function($item) use ($totalWaiting) {
-            $item->total_waiting = $totalWaiting;
-        });
+        // $list->each(function($item) use ($totalWaiting) {
+        //     $item->total_waiting = $totalWaiting;
+        // });
 
         return DataTables::of($list)
             ->addIndexColumn()
@@ -166,20 +166,20 @@ class SelangController extends Controller
             ->editColumn('nama_prodi', function ($row) {
                 return wordwrap($row->user->prodis->name, 20, "<br>");
             })
-            ->editColumn('queue_number', function ($row) {
-                if ($row->queue_status === 'processed') {
-                    return "Selesai";
-                }
-                $currentQueue = SelangCuti::whereDate('created_at', today())
-                                ->where('queue_status', 'waiting')
-                                ->orderBy('queue_number', 'asc')
-                                ->first();
+            // ->editColumn('queue_number', function ($row) {
+            //     if ($row->queue_status === 'processed') {
+            //         return "Selesai";
+            //     }
+            //     $currentQueue = SelangCuti::whereDate('created_at', today())
+            //                     ->where('queue_status', 'waiting')
+            //                     ->orderBy('queue_number', 'asc')
+            //                     ->first();
                 
-                $position = $row->queue_number;
-                $current = $currentQueue ? $currentQueue->queue_number : 0;
+            //     $position = $row->queue_number;
+            //     $current = $currentQueue ? $currentQueue->queue_number : 0;
                 
-                return "Antrian $position (Sekarang: $current)";
-            })
+            //     return "Antrian $position (Sekarang: $current)";
+            // })
             ->editColumn('catatan', function ($row) {
                 return wordwrap($row->catatan, 30, "<br>");
             })
@@ -198,13 +198,13 @@ class SelangController extends Controller
         }
         $list = $list->orderBy('created_at', 'desc')->get();
 
-        $totalWaiting = SelangCuti::whereDate('created_at', today())
-                ->where('queue_status', 'waiting')
-                ->count();
+        // $totalWaiting = SelangCuti::whereDate('created_at', today())
+        //         ->where('queue_status', 'waiting')
+        //         ->count();
 
-        $list->each(function($item) use ($totalWaiting) {
-            $item->total_waiting = $totalWaiting;
-        });
+        // $list->each(function($item) use ($totalWaiting) {
+        //     $item->total_waiting = $totalWaiting;
+        // });
 
         return DataTables::of($list)
             ->addIndexColumn()
@@ -228,20 +228,20 @@ class SelangController extends Controller
             ->editColumn('status_id', function ($row) {
                 return '<button type="button" class="btn ' . $row->status->color . ' btn-sm" disabled>' . $row->status->name . '</button>';
             })
-            ->editColumn('queue_number', function ($row) {
-                if ($row->queue_status === 'processed') {
-                    return "Selesai";
-                }
-                $currentQueue = SelangCuti::whereDate('created_at', today())
-                                ->where('queue_status', 'waiting')
-                                ->orderBy('queue_number', 'asc')
-                                ->first();
+            // ->editColumn('queue_number', function ($row) {
+            //     if ($row->queue_status === 'processed') {
+            //         return "Selesai";
+            //     }
+            //     $currentQueue = SelangCuti::whereDate('created_at', today())
+            //                     ->where('queue_status', 'waiting')
+            //                     ->orderBy('queue_number', 'asc')
+            //                     ->first();
                 
-                $position = $row->queue_number;
-                $current = $currentQueue ? $currentQueue->queue_number : 0;
+            //     $position = $row->queue_number;
+            //     $current = $currentQueue ? $currentQueue->queue_number : 0;
                 
-                return "Antrian $position (Sekarang: $current)";
-            })
+            //     return "Antrian $position (Sekarang: $current)";
+            // })
             ->rawColumns(['action', 'tanggal_ambil', 'tahun_akademik', 'status_id'])
             ->toJson();
     }
@@ -257,13 +257,13 @@ class SelangController extends Controller
         }
         $list = $list->orderBy('created_at', 'desc')->get();
 
-        $totalWaiting = SelangCuti::whereDate('created_at', today())
-                ->where('queue_status', 'waiting')
-                ->count();
+        // $totalWaiting = SelangCuti::whereDate('created_at', today())
+        //         ->where('queue_status', 'waiting')
+        //         ->count();
 
-        $list->each(function($item) use ($totalWaiting) {
-            $item->total_waiting = $totalWaiting;
-        });
+        // $list->each(function($item) use ($totalWaiting) {
+        //     $item->total_waiting = $totalWaiting;
+        // });
 
         return DataTables::of($list)
             ->addIndexColumn()
@@ -293,20 +293,20 @@ class SelangController extends Controller
             ->editColumn('status_id', function ($row) {
                 return '<button type="button" class="btn ' . $row->status->color . ' btn-sm" disabled>' . $row->status->name . '</button>';
             })
-            ->editColumn('queue_number', function ($row) {
-                if ($row->queue_status === 'processed') {
-                    return "Selesai";
-                }
-                $currentQueue = SelangCuti::whereDate('created_at', today())
-                                ->where('queue_status', 'waiting')
-                                ->orderBy('queue_number', 'asc')
-                                ->first();
+            // ->editColumn('queue_number', function ($row) {
+            //     if ($row->queue_status === 'processed') {
+            //         return "Selesai";
+            //     }
+            //     $currentQueue = SelangCuti::whereDate('created_at', today())
+            //                     ->where('queue_status', 'waiting')
+            //                     ->orderBy('queue_number', 'asc')
+            //                     ->first();
                 
-                $position = $row->queue_number;
-                $current = $currentQueue ? $currentQueue->queue_number : 0;
+            //     $position = $row->queue_number;
+            //     $current = $currentQueue ? $currentQueue->queue_number : 0;
                 
-                return "Antrian $position (Sekarang: $current)";
-            })
+            //     return "Antrian $position (Sekarang: $current)";
+            // })
             ->rawColumns(['action', 'tanggal_ambil', 'tanggal_submit', 'nama_prodi', 'tahun_akademik', 'status_id'])
             ->toJson();
     }
@@ -328,13 +328,13 @@ class SelangController extends Controller
             });
         }
 
-        $totalWaiting = SelangCuti::whereDate('created_at', today())
-                ->where('queue_status', 'waiting')
-                ->count();
+        // $totalWaiting = SelangCuti::whereDate('created_at', today())
+        //         ->where('queue_status', 'waiting')
+        //         ->count();
 
-        $list->each(function($item) use ($totalWaiting) {
-            $item->total_waiting = $totalWaiting;
-        });
+        // $list->each(function($item) use ($totalWaiting) {
+        //     $item->total_waiting = $totalWaiting;
+        // });
 
         return DataTables::of($list)
             ->addIndexColumn()
@@ -365,20 +365,20 @@ class SelangController extends Controller
             ->editColumn('nama_prodi', function ($row) {
                 return $row->user->prodis->name ?? '-';
             })
-            ->editColumn('queue_number', function ($row) {
-                if ($row->queue_status === 'processed') {
-                    return "Selesai";
-                }
-                $currentQueue = SelangCuti::whereDate('created_at', today())
-                                ->where('queue_status', 'waiting')
-                                ->orderBy('queue_number', 'asc')
-                                ->first();
+            // ->editColumn('queue_number', function ($row) {
+            //     if ($row->queue_status === 'processed') {
+            //         return "Selesai";
+            //     }
+            //     $currentQueue = SelangCuti::whereDate('created_at', today())
+            //                     ->where('queue_status', 'waiting')
+            //                     ->orderBy('queue_number', 'asc')
+            //                     ->first();
                 
-                $position = $row->queue_number;
-                $current = $currentQueue ? $currentQueue->queue_number : 0;
+            //     $position = $row->queue_number;
+            //     $current = $currentQueue ? $currentQueue->queue_number : 0;
                 
-                return "Antrian $position (Sekarang: $current)";
-            })
+            //     return "Antrian $position (Sekarang: $current)";
+            // })
             ->editColumn('catatan', function ($row) {
                 return wordwrap($row->catatan ?? '', 30, "<br>");
             })
@@ -449,11 +449,11 @@ class SelangController extends Controller
             $file = 'Selang' . '_' . $user->nim . '_' . Str::of($user->name)->replace(' ', '') . '_' . time() . '.pdf';
             $request->file('file')->storeAs('selang/upload/', $file, 'public');
 
-            $lastQueue = SelangCuti::whereDate('created_at', today())
-                            ->orderBy('queue_number', 'desc')
-                            ->first();
+            // $lastQueue = SelangCuti::whereDate('created_at', today())
+            //                 ->orderBy('queue_number', 'desc')
+            //                 ->first();
 
-            $queueNumber = $lastQueue ? $lastQueue->queue_number + 1 : 1;
+            // $queueNumber = $lastQueue ? $lastQueue->queue_number + 1 : 1;
 
             SelangCuti::create([
                 'user_id' => $user->id,
@@ -461,12 +461,10 @@ class SelangController extends Controller
                 'alasan' => $request->alasan,
                 'semester_id' => $request->semester_id,
                 'tahun_akademik_id' => $request->tahun_akademik_id,
-                'queue_number' => $queueNumber,
-                'queue_status' => 'waiting',
                 'file' => $file,
             ]);
         } catch (\Throwable $th) {
-            return response()->json(['status' => false, 'message' => 'Terjadi Kesalahan', 'queue_number' => $queueNumber], 500);
+            return response()->json(['status' => false, 'message' => 'Terjadi Kesalahan'], 500);
         }
         return response()->json(['status' => true, 'message' => 'Ajuan Berhasil Ditambahkan!'], 200);
     }
@@ -648,8 +646,6 @@ class SelangController extends Controller
                 // Jika status 5/6, hapus file via Laravel storage
                 if (in_array($request->status_id, ['5', '6'])) {
                     Storage::disk('public')->delete('selang/upload/' . $ajuan->file);
-                    $data_update['queue_status'] = 'processed'; // Update status antrian
-                    $updateQueues = true; // Flag to update queue numbers
                 }
     
                 if ($request->status_id == '7') { // surat diambil
@@ -660,11 +656,11 @@ class SelangController extends Controller
                 $ajuan->update($data_update);
     
                 // Hitung antrian yang tersisa
-                $waitingCount = SelangCuti::where('queue_status', 'waiting')
-                    ->whereDate('created_at', today())
-                    ->count();
+                // $waitingCount = SelangCuti::where('queue_status', 'waiting')
+                //     ->whereDate('created_at', today())
+                //     ->count();
     
-                $return['waiting_count'] = $waitingCount;
+                // $return['waiting_count'] = $waitingCount;
             } catch (\Throwable $th) {
                 $return['status'] = false;
                 $return['message'] = 'Terjadi Kesalahan!';
@@ -693,80 +689,80 @@ class SelangController extends Controller
     }
 }
 
-    private function generateQueueNumber()
-    {
-        $lastQueue = SelangCuti::whereDate('created_at', today())
-                        ->orderBy('queue_number', 'desc')
-                        ->first();
+    // private function generateQueueNumber()
+    // {
+    //     $lastQueue = SelangCuti::whereDate('created_at', today())
+    //                     ->orderBy('queue_number', 'desc')
+    //                     ->first();
         
-        return $lastQueue ? $lastQueue->queue_number + 1 : 1;
-    }
+    //     return $lastQueue ? $lastQueue->queue_number + 1 : 1;
+    // }
 
-    public function updateQueue()
-    {
-        try {
-            // Ambil semua antrian hari ini yang masih waiting, diurutkan berdasarkan queue_number
-            $waitingQueues = SelangCuti::whereDate('created_at', today())
-                            ->where('queue_status', 'waiting')
-                            ->orderBy('queue_number', 'asc')
-                            ->get();
+    // public function updateQueue()
+    // {
+    //     try {
+    //         // Ambil semua antrian hari ini yang masih waiting, diurutkan berdasarkan queue_number
+    //         $waitingQueues = SelangCuti::whereDate('created_at', today())
+    //                         ->where('queue_status', 'waiting')
+    //                         ->orderBy('queue_number', 'asc')
+    //                         ->get();
             
-            $newQueueNumber = 1;
+    //         $newQueueNumber = 1;
             
-            // Update nomor antrian untuk semua yang waiting
-            foreach ($waitingQueues as $queue) {
-                $queue->update(['queue_number' => $newQueueNumber++]);
-            }
+    //         // Update nomor antrian untuk semua yang waiting
+    //         foreach ($waitingQueues as $queue) {
+    //             $queue->update(['queue_number' => $newQueueNumber++]);
+    //         }
             
-            $totalWaiting = SelangCuti::whereDate('created_at', today())
-                            ->where('queue_status', 'waiting')
-                            ->count();
+    //         $totalWaiting = SelangCuti::whereDate('created_at', today())
+    //                         ->where('queue_status', 'waiting')
+    //                         ->count();
             
-            return response()->json([
-                'status' => true,
-                'total_waiting' => $totalWaiting,
-                'current_queue' => $waitingQueues->first()->queue_number ?? null
-            ]);
+    //         return response()->json([
+    //             'status' => true,
+    //             'total_waiting' => $totalWaiting,
+    //             'current_queue' => $waitingQueues->first()->queue_number ?? null
+    //         ]);
             
-        } catch (\Throwable $th) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Gagal mengupdate antrian'
-            ], 500);
-        }
-    }
+    //     } catch (\Throwable $th) {
+    //         return response()->json([
+    //             'status' => false,
+    //             'message' => 'Gagal mengupdate antrian'
+    //         ], 500);
+    //     }
+    // }
 
-    public function queueStatus()
-    {
-        $userQueue = SelangCuti::where('user_id', Auth::id())
-                        ->whereDate('created_at', today())
-                        ->where('queue_status', 'waiting')
-                        ->first();
+    // public function queueStatus()
+    // {
+    //     $userQueue = SelangCuti::where('user_id', Auth::id())
+    //                     ->whereDate('created_at', today())
+    //                     ->where('queue_status', 'waiting')
+    //                     ->first();
         
-        // Get the current queue number (lowest waiting)
-        $currentQueue = SelangCuti::whereDate('created_at', today())
-                        ->where('queue_status', 'waiting')
-                        ->orderBy('queue_number', 'asc')
-                        ->first();
+    //     // Get the current queue number (lowest waiting)
+    //     $currentQueue = SelangCuti::whereDate('created_at', today())
+    //                     ->where('queue_status', 'waiting')
+    //                     ->orderBy('queue_number', 'asc')
+    //                     ->first();
         
-        $totalWaiting = SelangCuti::whereDate('created_at', today())
-                        ->where('queue_status', 'waiting')
-                        ->count();
+    //     $totalWaiting = SelangCuti::whereDate('created_at', today())
+    //                     ->where('queue_status', 'waiting')
+    //                     ->count();
         
-        return response()->json([
-            'status' => true,
-            'user_queue' => $userQueue ? $userQueue->queue_number : null,
-            'total_waiting' => $totalWaiting,
-            'current_queue' => $currentQueue ? $currentQueue->queue_number : null
-        ]);
-    }
+    //     return response()->json([
+    //         'status' => true,
+    //         'user_queue' => $userQueue ? $userQueue->queue_number : null,
+    //         'total_waiting' => $totalWaiting,
+    //         'current_queue' => $currentQueue ? $currentQueue->queue_number : null
+    //     ]);
+    // }
 
-    private function getQueueInfo($queueNumber)
-    {
-        $totalWaiting = SelangCuti::whereDate('created_at', today())
-                        ->where('queue_status', 'waiting')
-                        ->count();
+    // private function getQueueInfo($queueNumber)
+    // {
+    //     $totalWaiting = SelangCuti::whereDate('created_at', today())
+    //                     ->where('queue_status', 'waiting')
+    //                     ->count();
         
-        return "Antrian $queueNumber dari $totalWaiting";
-    }
+    //     return "Antrian $queueNumber dari $totalWaiting";
+    // }
 }

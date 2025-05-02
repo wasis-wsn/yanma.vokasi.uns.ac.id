@@ -33,10 +33,10 @@ const initializeDataTable = (status_table, year, prodi_table) => {
             { data: "tahun_akademik" },
             { data: "perpanjangan_ke" },
             { data: "status_id" },
-            { 
-                data: "queue_number",
-                className: "queue-info",
-            },
+            // { 
+            //     data: "queue_number",
+            //     className: "queue-info",
+            // },
             { data: "catatan" },
             { data: "action" }
         ],
@@ -108,27 +108,9 @@ $(".prodi-menu").on("click", function (e) {
     table = initializeDataTable(status_table, year, selectedProdi);
 });
 
-// Cek update antrian setiap 30 detik
-setInterval(function() {
-    if ($('#modalDetail').is(':visible') || $('.dataTables_filter input').is(':focus')) {
-        $.ajax({
-            url: '/perpanjangan/queue-status',
-            type: "GET",
-            success: function(res) {
-                if (res.status) {
-                    // Update tabel
-                    table.ajax.reload(null, false);
-                    
-                    // Update modal detail jika terbuka
-                    if ($('#modalDetail').is(':visible')) {
-                        $("#detail-queue-number").text(res.user_queue);
-                        $("#detail-total-queue").text(res.total_waiting);
-                    }
-                }
-            }
-        });
-    }
-}, 30000);
+setInterval(function () {
+    table.ajax.reload(null, false); // user paging is not reset on reload
+}, 300000);
 
 $("#show_data").on("click", ".btn-detail", function () {
     let id = $(this).data("id");
@@ -149,16 +131,16 @@ $("#show_data").on("click", ".btn-detail", function () {
                 $("#detail-email").html(": " + res.data.user.email);
                 $("#detail-tahun-akademik").html(": " + res.data.tahun_akademik.tahun_akademik + ' - ' + res.data.semester.semester);
                 $("#detail-perpanjangan").html(": " + res.data.perpanjangan_ke);
-                $("#detail-queue-number").text(res.data.queue_number);
-                $.ajax({
-                    url: '/perpanjangan/queue-status',
-                    type: 'GET',
-                    success: function(queueRes) {
-                        if (queueRes.status) {
-                            $("#detail-total-queue").text(queueRes.total_waiting);
-                        }
-                    }
-                });
+                // $("#detail-queue-number").text(res.data.queue_number);
+                // $.ajax({
+                //     url: '/perpanjangan/queue-status',
+                //     type: 'GET',
+                //     success: function(queueRes) {
+                //         if (queueRes.status) {
+                //             $("#detail-total-queue").text(queueRes.total_waiting);
+                //         }
+                //     }
+                // });
                 $("#detail-file").attr(
                     "href",
                     `${window.Laravel.baseUrl}/storage/perpanjangan/upload/${res.data.file}`
@@ -458,9 +440,9 @@ $("#form-proses").submit(function (e) {
                     showConfirmButton: false,
                     timer: 1500,
                 });
-                if (res.status_id && [5,6,7].includes(parseInt(res.status_id))) {
-                    updateQueueNumbers();
-                }
+                // if (res.status_id && [5,6,7].includes(parseInt(res.status_id))) {
+                //     updateQueueNumbers();
+                // }
                 table.ajax.reload();
             } else {
                 Swal.fire({
@@ -484,25 +466,25 @@ $("#form-proses").submit(function (e) {
     });
 });
 
-function updateQueueNumbers() {
-    $.ajax({
-        url: window.Laravel.updateQueue, // Menggunakan route dari object Laravel
-        type: 'GET',
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-        },
-        success: function(res) {
-            if (res.status) {
-                table.ajax.reload(null, false);
-                if ($('#modalDetail').is(':visible')) {
-                    $("#detail-queue-number").text(res.current_queue);
-                    $("#detail-total-queue").text(res.total_waiting);
-                }
-            }
-        },
-        error: function(xhr) {
-            console.error('Error updating queue:', xhr.responseText);
-            toastr.error('Gagal memperbarui antrian');
-        }
-    });
-}
+// function updateQueueNumbers() {
+//     $.ajax({
+//         url: window.Laravel.updateQueue, // Menggunakan route dari object Laravel
+//         type: 'GET',
+//         headers: {
+//             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+//         },
+//         success: function(res) {
+//             if (res.status) {
+//                 table.ajax.reload(null, false);
+//                 if ($('#modalDetail').is(':visible')) {
+//                     $("#detail-queue-number").text(res.current_queue);
+//                     $("#detail-total-queue").text(res.total_waiting);
+//                 }
+//             }
+//         },
+//         error: function(xhr) {
+//             console.error('Error updating queue:', xhr.responseText);
+//             toastr.error('Gagal memperbarui antrian');
+//         }
+//     });
+// }

@@ -20,10 +20,10 @@ const initializeDataTable = (status_table, year, prodi_table) => {
             { data: "status_id" },
             { data: "user.name" },
             { data: "user.nim" },
-            { 
-                data: "queue_number",
-                className: "queue-info"
-            },
+            // { 
+            //     data: "queue_number",
+            //     className: "queue-info"
+            // },
             { data: "user.prodis.name" },
             { data: "no_surat" },
             { data: "tanggal_ambil" },
@@ -84,23 +84,9 @@ $(".prodi-menu").on("click", function (e) {
     table = initializeDataTable(status_table, year, selectedProdi);
 });
 
-setInterval(function() {
-    if ($('#modalDetail').is(':visible')) {
-        $.ajax({
-            url: window.Laravel.queueStatus,
-            type: "GET",
-            success: function(res) {
-                if (res.status) {
-                    $("#detail-queue-number").text(res.user_queue);
-                    $("#detail-total-queue").text(res.total_waiting);
-                    
-                    // Update juga di tabel
-                    table.ajax.reload(null, false);
-                }
-            }
-        });
-    }
-}, 30000); // 30 detik
+setInterval(function () {
+    table.ajax.reload(null, false); // user paging is not reset on reload
+}, 300000);
 
 $("#show_data").on("click", ".btn-proses", function () {
     let id = $(this).data("id");

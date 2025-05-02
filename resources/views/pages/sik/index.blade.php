@@ -124,7 +124,7 @@
                                             <!-- <th>Antrian</th> -->
                                             <th>Catatan</th>
                                             <th>Aksi</th>
-                                            @endcan
+                                        @endcan
                                             @canany(['staff','dekanat','subkoor','adminprodi'])
                                             <th hidden>created_at</th>
                                             <th>No</th>

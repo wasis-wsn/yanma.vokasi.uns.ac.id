@@ -31,10 +31,10 @@ const initializeDataTable = (status_table, year, prodi_table) => {
             { data: "nama_prodi" },
             { data: "no_surat" },
             { data: "status_id" },
-            { 
-                data: "queue_number",
-                className: "queue-info",
-            },
+            // { 
+            //     data: "queue_number",
+            //     className: "queue-info",
+            // },
             { data: "catatan" },
             { data: "action" }
         ],
@@ -105,27 +105,9 @@ $(".prodi-menu").on("click", function (e) {
     table = initializeDataTable(status_table, year, selectedProdi);
 });
 
-// Cek update antrian setiap 30 detik
-setInterval(function() {
-    if ($('#modalDetail').is(':visible') || $('.dataTables_filter input').is(':focus')) {
-        $.ajax({
-            url: '/undurDiri/queue-status',
-            type: "GET",
-            success: function(res) {
-                if (res.status) {
-                    // Update tabel
-                    table.ajax.reload(null, false);
-                    
-                    // Update modal detail jika terbuka
-                    if ($('#modalDetail').is(':visible')) {
-                        $("#detail-queue-number").text(res.user_queue);
-                        $("#detail-total-queue").text(res.total_waiting);
-                    }
-                }
-            }
-        });
-    }
-}, 30000);
+setInterval(function () {
+    table.ajax.reload(null, false); // user paging is not reset on reload
+}, 300000);
 
 $("#show_data").on("click", ".btn-detail", function () {
     let id = $(this).data("id");
@@ -147,16 +129,16 @@ $("#show_data").on("click", ".btn-detail", function () {
                 $("#detail-prodi").html(": " + res.data.user.prodis.name);
                 $("#detail-email").html(": " + res.data.user.email);
                 $("#detail-tahun-akademik").html(": " + res.data.tahun_akademik.tahun_akademik + ' - ' + res.data.semester.semester);
-                $("#detail-queue-number").text(res.data.queue_number);
-                $.ajax({
-                    url: '/perpanjangan/queue-status',
-                    type: 'GET',
-                    success: function(queueRes) {
-                        if (queueRes.status) {
-                            $("#detail-total-queue").text(queueRes.total_waiting);
-                        }
-                    }
-                });
+                // $("#detail-queue-number").text(res.data.queue_number);
+                // $.ajax({
+                //     url: '/perpanjangan/queue-status',
+                //     type: 'GET',
+                //     success: function(queueRes) {
+                //         if (queueRes.status) {
+                //             $("#detail-total-queue").text(queueRes.total_waiting);
+                //         }
+                //     }
+                // });
                 $("#detail-file").attr(
                     "href",
                     `${window.Laravel.baseUrl}/storage/undur/upload/${res.data.file}`
@@ -387,9 +369,9 @@ $("#form-proses").submit(function (e) {
                     showConfirmButton: false,
                     timer: 1500,
                 });
-                if (res.status_id && [5,6,7].includes(parseInt(res.status_id))) {
-                    updateQueueNumbers();
-                }
+                // if (res.status_id && [5,6,7].includes(parseInt(res.status_id))) {
+                //     updateQueueNumbers();
+                // }
                 table.ajax.reload();
             } else {
                 Swal.fire({
@@ -413,19 +395,19 @@ $("#form-proses").submit(function (e) {
     });
 });
 
-function updateQueueNumbers() {
-    $.ajax({
-        url: '/undurDiri/update-queue',
-        type: 'GET',
-        success: function(res) {
-            if (res.status) {
-                table.ajax.reload(null, false);
-                if ($('#modalDetail').is(':visible')) {
-                    // Update juga di modal detail jika terbuka
-                    $("#detail-queue-number").text(res.user_queue);
-                    $("#detail-total-queue").text(res.total_waiting);
-                }
-            }
-        }
-    });
-}
+// function updateQueueNumbers() {
+//     $.ajax({
+//         url: '/undurDiri/update-queue',
+//         type: 'GET',
+//         success: function(res) {
+//             if (res.status) {
+//                 table.ajax.reload(null, false);
+//                 if ($('#modalDetail').is(':visible')) {
+//                     // Update juga di modal detail jika terbuka
+//                     $("#detail-queue-number").text(res.user_queue);
+//                     $("#detail-total-queue").text(res.total_waiting);
+//                 }
+//             }
+//         }
+//     });
+// }
