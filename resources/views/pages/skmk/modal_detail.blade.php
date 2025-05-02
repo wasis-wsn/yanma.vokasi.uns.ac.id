@@ -1,0 +1,121 @@
+<div class="modal fade" id="modalDetail" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Detail Ajuan SKMK</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table class="table table-borderless table-striped">
+                        <tr>
+                            <td>
+                                Nama Mahasiswa
+                            </td>
+                            <td id="detail-nama"></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                NIM Mahasiswa
+                            </td>
+                            <td id="detail-nim"></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                Prodi Mahasiswa
+                            </td>
+                            <td id="detail-prodi"></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                Semester
+                            </td>
+                            <td id="detail-semester"></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                Tahun Akademik
+                            </td>
+                            <td id="detail-tahun_akademik"></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                Nama Ayah / Ibu
+                            </td>
+                            <td id="detail-nama_ortu"></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                NIP / NRP
+                            </td>
+                            <td id="detail-nip_ortu"></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                Pangkat / Golongan
+                            </td>
+                            <td id="detail-pangkat_ortu"></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                Nama Instansi Bekerja
+                            </td>
+                            <td id="detail-instansi_ortu"></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                Alamat Instansi
+                            </td>
+                            <td id="detail-alamat_instansi"></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                File Upload
+                            </td>
+                            <td>
+                                : <a href="" target="_blank" class="btn btn-primary btn-small" id="detail-file"><i class="fa fa-file"></i> Lihat File</a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                Nomor Surat
+                            </td>
+                            <td id="detail-no">
+                                
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                Catatan
+                            </td>
+                            <td id="detail-catatan">
+                                
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                Tanggal Diproses
+                            </td>
+                            <td id="detail-proses">
+                                
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                Status Ajuan
+                            </td>
+                            <td>
+                                : <button id="detail-status"></button>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer d-flex justify-content-end">
+                @can('staff')
+                <button class="btn btn-success btn-proses" id="tombol-proses" data-id="" hidden><i class="fa fa-file-pen"></i> Proses</button>
+                @endcan
+            </div>
+        </div>
+    </div>
+</div>
