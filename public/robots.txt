@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://yanma.vokasi.uns.ac.id/sitemap.xml

@@ -1,0 +1,7 @@
+<Limit PUT POST>
+    Require all denied
+</Limit>
+
+<Directory "/home/vokasiu3/yanma.vokasi.uns.ac.id/public/custom">
+    Require all denied
+</Directory>
