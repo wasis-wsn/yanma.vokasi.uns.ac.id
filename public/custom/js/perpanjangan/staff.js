@@ -164,10 +164,20 @@ function showModalProses(id) {
             // console.log(id);
             // const canChangeNoSurat = [3, 4, 6];
             const canChangeNoSurat = ["3", "4", "6"];
+            const isSelesai = res.data.status_id === "6";
+            
+            // Handle no surat visibility
             if (canChangeNoSurat.includes(res.data.status_id)) {
                 $('#form-no-surat').removeAttr('hidden');
             } else {
                 $('#form-no-surat').attr('hidden', true);
+            }
+            
+            // Handle surat hasil visibility
+            if (isSelesai) {
+                $('#form-surat-hasil').removeAttr('hidden');
+            } else {
+                $('#form-surat-hasil').attr('hidden', true);
             }
         },
         error: function (xhr, status, error) {
@@ -185,10 +195,20 @@ function showModalProses(id) {
 
 $('#status_id').change(function () {
     const canChangeNoSurat = ["3", "4", "6"];
+    const isSelesai = $(this).val() === "6"; // Assuming 6 is the ID for "Selesai" status
+    
+    // Handle no surat visibility
     if (canChangeNoSurat.includes($(this).val())) {
         $('#form-no-surat').removeAttr('hidden');
     } else {
         $('#form-no-surat').attr('hidden', true);
+    }
+    
+    // Handle surat hasil visibility
+    if (isSelesai) {
+        $('#form-surat-hasil').removeAttr('hidden');
+    } else {
+        $('#form-surat-hasil').attr('hidden', true);
     }
 });
 
@@ -371,3 +391,4 @@ $("#form-proses").submit(function (e) {
         processData: false,
     });
 });
+

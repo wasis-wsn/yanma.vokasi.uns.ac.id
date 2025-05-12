@@ -328,23 +328,23 @@ class UndurDiriController extends Controller
 
     public function proses(Request $request, $id)
     {
-        $request->validate([
+        $rules = [
             'status_id' => ['required'],
             'no_surat' => Rule::requiredIf(function () use ($request) {
                 return in_array($request->status_id, ['3', '4', '6']);
             }),
             'catatan' => Rule::requiredIf(function () use ($request) {
                 return in_array($request->status_id, ['2', '5']);
+            }),
+            'file' => Rule::requiredIf(function () use ($request) {
+                return $request->status_id == '6';
             })
-        ], [
-            'required' => ':attribute harus diisi!'
-        ]);
-
-        $return = [
-            'status' => true,
-            'message' => 'Ajuan Berhasil Diproses!',
         ];
-        $status_code = 200;
+
+        $request->validate($rules, [
+            'required' => ':attribute harus diisi!',
+            'file.required' => 'Surat hasil harus diupload!'
+        ]);
 
         try {
             $id = decodeId($id);
@@ -358,24 +358,31 @@ class UndurDiriController extends Controller
                 'tanggal_ambil' => $ajuan->tanggal_ambil,
             ];
 
-            if (in_array($request->status_id, ['3', '4', '6'])) { // ajuan diproses
+            if (in_array($request->status_id, ['3', '4', '6'])) {
                 $data_update['no_surat'] = $request->no_surat;
             }
-            if (in_array($request->status_id, ['5', '6'])) { // ajuan ditolak / Selesai
+
+            // Handle file upload for status "Selesai"
+            if ($request->status_id == '6' && $request->hasFile('file')) {
+                // Delete old file
                 Storage::disk('public')->delete('undur/upload/' . $ajuan->file);
+                
+                // Upload new file
+                $fileName = 'UndurDiri_' . $ajuan->user->nim . '_' . Str::of($ajuan->user->name)->replace(' ', '') . '_hasil_' . time() . '.pdf';
+                $request->file('file')->storeAs('undur/upload/', $fileName, 'public');
+                $data_update['file'] = $fileName;
             }
-            if ($request->status_id == '7') { // surat diambil
+
+            if ($request->status_id == '7') {
                 $data_update['tanggal_ambil'] = new \DateTime();
                 $return['message'] = 'Ajuan telah diambil!';
             }
 
             $ajuan->update($data_update);
-        } catch (\Throwable $th) {
-            $return['status'] = false;
-            $return['message'] = 'Terjadi Kesalahan!';
-            $status_code = 500;
-        }
+            return response()->json(['status' => true, 'message' => 'Ajuan Berhasil Diproses!'], 200);
 
-        return response()->json($return, $status_code);
+        } catch (\Throwable $th) {
+            return response()->json(['status' => false, 'message' => 'Terjadi Kesalahan!'], 500);
+        }
     }
 }

@@ -149,6 +149,7 @@ function showModalProses(p) {
     $("form#form-proses").attr("action", action);
     $("#form-proses textarea").val("");
     $("#form-proses input[type='text']").val("");
+    $("#form-proses input[type='file']").val("");
     $.ajax({
         url: window.Laravel.getData.replace(":id", id),
         type: "POST",
@@ -157,6 +158,14 @@ function showModalProses(p) {
         },
         success: function (res) {
             $("#form-proses select[name='status_id']").val(res.data.status_id);
+            const isSelesai = res.data.status_id === "6";
+            
+            // Handle surat hasil visibility
+            if (isSelesai) {
+                $('#form-surat-hasil').removeAttr('hidden');
+            } else {
+                $('#form-surat-hasil').attr('hidden', true);
+            }
         },
         error: function (xhr, status, error) {
             var err = JSON.parse(xhr.responseText);
@@ -178,6 +187,17 @@ $('#tahun_akademik').on('change', function() {
 $('#semester').on('change', function() {
     let value = $(this).val();
     $('input[name="semester_id"]').val(value);
+});
+
+$('#status_id').change(function () {
+    const isSelesai = $(this).val() === "6"; // Assuming 6 is the ID for "Selesai" status
+    
+    // Handle surat hasil visibility
+    if (isSelesai) {
+        $('#form-surat-hasil').removeAttr('hidden');
+    } else {
+        $('#form-surat-hasil').attr('hidden', true);
+    }
 });
 
 $("#form-setting").submit(function (e) {

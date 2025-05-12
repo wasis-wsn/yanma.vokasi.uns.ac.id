@@ -320,14 +320,19 @@ class PenundaanController extends Controller
 
     public function proses(Request $request, $id)
     {
-        $request->validate([
+        $rules = [
             'status_id' => ['required'],
-            // 'no_surat' => ['requiredif:status,3'],
             'catatan' => Rule::requiredIf(function () use ($request) {
                 return in_array($request->status_id, ['2', '5']);
+            }),
+            'file' => Rule::requiredIf(function () use ($request) {
+                return $request->status_id == '6';
             })
-        ], [
-            'required' => ':attribute harus diisi!'
+        ];
+
+        $request->validate($rules, [
+            'required' => ':attribute harus diisi!',
+            'file.required' => 'Surat hasil harus diupload!'
         ]);
 
         $return = [
@@ -341,14 +346,24 @@ class PenundaanController extends Controller
             $ajuan = Penundaan::where('id', $id)->with('user.prodis', 'status')->first();
 
             $data_update = [
-                // 'no_surat' => $ajuan->no_surat,
                 'status_id' => $request->status_id,
                 'catatan' => $request->catatan,
                 'tanggal_proses' => new \DateTime(),
             ];
 
-            if (in_array($request->status_id, ['5', '6'])) { // ajuan ditolak / Selesai
-                // Hapus file upload jika ajuan ditolak / selesai
+            // Handle file upload for status "Selesai"
+            if ($request->status_id == '6' && $request->hasFile('file')) {
+                // Delete old file
+                Storage::disk('public')->delete('penundaan/upload/' . $ajuan->file);
+                
+                // Upload new file
+                $fileName = 'Penundaan_' . Str::of($ajuan->user->name)->trim() . '_' . $ajuan->user->nim . '_hasil_' . time() . '.pdf';
+                $request->file('file')->storeAs('penundaan/upload/', $fileName, 'public');
+                $data_update['file'] = $fileName;
+            }
+
+            if ($request->status_id == '5') { // ajuan ditolak
+                // Hapus file jika ajuan ditolak
                 Storage::disk('public')->delete('penundaan/upload/' . $ajuan->file);
             }
 

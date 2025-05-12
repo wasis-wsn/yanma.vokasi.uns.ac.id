@@ -358,15 +358,20 @@ class PerpanjanganStudiController extends Controller
 
     public function proses(Request $request, $id)
     {
-        $request->validate([
+        $rules = [
             'status_id' => ['required'],
             'no_surat' => Rule::requiredIf(function () use ($request) {
                 return in_array($request->status_id, ['3', '4', '6']);
             }),
             'catatan' => Rule::requiredIf(function () use ($request) {
                 return in_array($request->status_id, ['2', '5']);
+            }),
+            'file' => Rule::requiredIf(function () use ($request) {
+                return $request->status_id == '6';
             })
-        ], [
+        ];
+
+        $request->validate($rules, [
             'required' => ':attribute harus diisi!',
             'requiredif' => ':attribute harus diisi!',
         ]);
@@ -389,13 +394,22 @@ class PerpanjanganStudiController extends Controller
                 'tanggal_ambil' => $ajuan->tanggal_ambil,
             ];
 
-            if (in_array($request->status_id, ['3', '4', '6'])) { // ajuan diproses
+            if (in_array($request->status_id, ['3', '4', '6'])) {
                 $data_update['no_surat'] = $request->no_surat;
             }
-            if (in_array($request->status_id, ['5', '6'])) { // ajuan ditolak / Selesai
+            
+            // Handle file upload for status "Selesai"
+            if ($request->status_id == '6' && $request->hasFile('file')) {
+                // Delete old file
                 Storage::disk('public')->delete('perpanjangan/upload/' . $ajuan->file);
+                
+                // Upload new file
+                $fileName = 'Perpanjangan_' . Str::of($ajuan->user->name)->trim() . '_' . $ajuan->user->nim . '_' . $ajuan->perpanjangan_ke . '_hasil_' . time() . '.pdf';
+                $request->file('file')->storeAs('perpanjangan/upload/', $fileName, 'public');
+                $data_update['file'] = $fileName;
             }
-            if ($request->status_id == '7') { // surat diambil
+
+            if ($request->status_id == '7') {
                 $data_update['tanggal_ambil'] = new \DateTime();
                 $return['message'] = 'Ajuan telah diambil!';
             }
