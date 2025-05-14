@@ -54,7 +54,7 @@
                                         @if($layanan->name != 'Verifikasi Wisuda')
                                             @canany($layanan->gate)
                                                 <li>
-                                                    <a href="{{in_array(auth()->user()->roles->gate_name, ['mahasiswa','ormawa']) ? $layanan->url_mhs : $layanan->url_staff}}">
+                                                    <a href="{{in_array(auth()->user()->roles->gate_name, ['mahasiswa','ormawa','adminprodi']) ? $layanan->url_mhs : $layanan->url_staff}}">
                                                         {{$layanan->name}}
                                                     </a>
                                                 </li>

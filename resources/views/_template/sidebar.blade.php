@@ -83,6 +83,7 @@
                 {{-- getLayanan() bisa ditemukan di app/Helpers/Helper.php --}}
                 @foreach (getLayanan() as $kategori)
                     <li class="nav-item nav-judul">
+                        @if($kategori->name != 'Alumni' || auth()->user()->roles->gate_name != 'adminprodi')
                         <a class="nav-link" data-bs-toggle="collapse" href="#{{$kategori->name}}-menu" role="button" aria-expanded="false" aria-controls="horizontal-menu">
                             {!! $kategori->icon !!}
                             <span class="item-name">{{$kategori->name}}</span>
@@ -92,13 +93,14 @@
                                 </svg>
                             </i>
                         </a>
+                        @endif
                         <ul class="sub-nav collapse" id="{{$kategori->name}}-menu" data-bs-parent="#sidebar-menu">
                         @foreach ($kategori->layanan as $layanan)
-                            @if($layanan->name != 'Verifikasi Wisuda')
+                            @if($layanan->name != 'Verifikasi Wisuda' || auth()->user()->roles->gate_name == 'staff')
                                 @canany($layanan->gate)
                                     <li class="nav-item">
                                         <a class="nav-link {{ (Request::url() == $layanan->url_mhs || Request::url() == $layanan->url_staff) ? 'active' : ''}}"
-                                            href="{{in_array(auth()->user()->roles->gate_name, ['mahasiswa','ormawa']) ? $layanan->url_mhs : $layanan->url_staff}}">
+                                            href="{{in_array(auth()->user()->roles->gate_name, ['mahasiswa','ormawa','adminprodi']) ? $layanan->url_mhs : $layanan->url_staff}}">
                                             <i class="icon">
                                                 <svg xmlns="http://www.w3.org/2000/svg" width="10" viewBox="0 0 24 24" fill="currentColor">
                                                     <g>

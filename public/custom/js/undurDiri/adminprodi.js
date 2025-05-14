@@ -2,6 +2,7 @@ $(document).ready(function() {
     let year = $("#tahunDropdown").html();
     let status_table = $("#statusDropdown").data('status') || 'all';
     let prodi_table = $("#prodiDropdown").data('prodi') || 'all';
+
     const initializeDataTable = (status, year, prodi) => {
         return $("#suket-datatable").DataTable({
             processing: true,
@@ -31,17 +32,9 @@ $(document).ready(function() {
                     targets: [4],
                 },
                 {
-                    className: "btn-group-vertical",
-                    targets: [9],
-                },
-                {
                     className: "text-wrap",
                     targets: [3],
                 },
-            ],
-            lengthMenu: [
-                [5, 10, 25, 50, -1],
-                [5, 10, 25, 50, 'All']
             ],
             order: [[0, "desc"]],
         });
@@ -80,11 +73,11 @@ $(document).ready(function() {
 
     $("#show_data").on("click", ".btn-detail", function () {
         let id = $(this).data("id");
-
+    
         let url = window.Laravel.getData.replace(":id", id);
-
+    
         $("#detail-izin-cuti").empty();
-
+    
         $.ajax({
             url: url,
             type: "POST",
@@ -96,6 +89,7 @@ $(document).ready(function() {
                     $("#detail-nama").html(": " + res.data.user.name);
                     $("#detail-nim").html(": " + res.data.user.nim);
                     $("#detail-prodi").html(": " + res.data.user.prodis.name);
+                    $("#detail-email").html(": " + res.data.user.email);
                     $("#detail-tahun-akademik").html(": " + res.data.tahun_akademik.tahun_akademik + ' - ' + res.data.semester.semester);
                     $("#detail-file").attr(
                         "href",
@@ -113,6 +107,13 @@ $(document).ready(function() {
                         "class",
                         `btn ${res.data.status.color} btn-small`
                     );
+                    let canProses = ["1", "3", "4"];
+                    if (canProses.includes(res.data.status_id)) {
+                        $("#tombol-proses").data("id", id);
+                        $("#tombol-proses").attr("hidden", false);
+                    } else {
+                        $("#tombol-proses").attr("hidden", true);
+                    }
                     $("#modalDetail").modal("show");
                 } else {
                     Swal.fire({

@@ -202,61 +202,65 @@ Route::middleware('auth')->group(function () {
     *                        *
     * * * * * * * * * * * * */
     Route::name('perpanjanganStudi.')->prefix('perpanjanganStudi')->group(function () {
-        Route::get('/', [PerpanjanganStudiController::class, 'index'])->name('index')->middleware(['role:mahasiswa,staff,dekanat,subkoor,fo']);
+        Route::get('/', [PerpanjanganStudiController::class, 'index'])->name('index')->middleware(['role:mahasiswa,staff,dekanat,subkoor,fo,adminprodi']);
         Route::get('/listMahasiswa', [PerpanjanganStudiController::class, 'listMahasiswa'])->name('listMahasiswa')->middleware('role:mahasiswa');
         Route::get('/listStaff', [PerpanjanganStudiController::class, 'listStaff'])->name('listStaff')->middleware('role:staff');
         Route::get('/listFo', [PerpanjanganStudiController::class, 'listFo'])->name('listFo')->middleware('role:fo');
         Route::get('/listDekanat', [PerpanjanganStudiController::class, 'listDekanat'])->name('listDekanat')->middleware('role:dekanat,subkoor');
+        Route::get('/listAdminProdi', [PerpanjanganStudiController::class, 'listAdminProdi'])->name('listAdminProdi')->middleware('role:adminprodi');
         Route::post('/setting/update', [PerpanjanganStudiController::class, 'setting'])->name('setting')->middleware('role:staff');
         Route::post('/store', [PerpanjanganStudiController::class, 'store'])->name('store')->middleware('role:mahasiswa,staff');
-        Route::post('/show/{id}', [PerpanjanganStudiController::class, 'show'])->name('show')->middleware('role:mahasiswa,staff,dekanat,subkoor,fo');
+        Route::post('/show/{id}', [PerpanjanganStudiController::class, 'show'])->name('show')->middleware('role:mahasiswa,staff,dekanat,subkoor,fo,adminprodi');
         Route::post('/revisi/{id}', [PerpanjanganStudiController::class, 'revisi'])->name('revisi')->middleware('role:mahasiswa');
         Route::delete('/{id}', [PerpanjanganStudiController::class, 'destroy'])->name('destroy')->middleware('role:mahasiswa');
-        Route::post('/export/data', [PerpanjanganStudiController::class, 'export'])->name('export')->middleware('role:staff,dekanat,subkoor');
+        Route::post('/export/data', [PerpanjanganStudiController::class, 'export'])->name('export')->middleware('role:staff,dekanat,subkoor,adminprodi');
         Route::post('/proses/{id}', [PerpanjanganStudiController::class, 'proses'])->name('proses')->middleware('role:staff,fo');
     });
     
     Route::name('penundaan.')->prefix('penundaan')->group(function () {
-        Route::get('/', [PenundaanController::class, 'index'])->name('index')->middleware('role:mahasiswa,staff,dekanat,subkoor');
+        Route::get('/', [PenundaanController::class, 'index'])->name('index')->middleware('role:mahasiswa,staff,dekanat,subkoor,adminprodi');
         Route::get('/listMahasiswa', [PenundaanController::class, 'listMahasiswa'])->name('listMahasiswa')->middleware('role:mahasiswa');
         Route::get('/listStaff', [PenundaanController::class, 'listStaff'])->name('listStaff')->middleware('role:staff');
         Route::get('/listDekanat', [PenundaanController::class, 'listDekanat'])->name('listDekanat')->middleware('role:dekanat,subkoor');
+        Route::get('/listAdminProdi', [PenundaanController::class, 'listAdminProdi'])->name('listAdminProdi')->middleware('role:adminprodi');
         Route::post('/setting/update', [PenundaanController::class, 'setting'])->name('setting')->middleware('role:staff');
-        Route::post('/export/data', [PenundaanController::class, 'export'])->name('export')->middleware('role:staff,dekanat,subkoor');
+        Route::post('/export/data', [PenundaanController::class, 'export'])->name('export')->middleware('role:staff,dekanat,subkoor,adminprodi');
         Route::post('/store', [PenundaanController::class, 'store'])->name('store')->middleware('role:mahasiswa,staff');
-        Route::post('/show/{id}', [PenundaanController::class, 'show'])->name('show')->middleware('role:mahasiswa,staff,dekanat,subkoor');
+        Route::post('/show/{id}', [PenundaanController::class, 'show'])->name('show')->middleware('role:mahasiswa,staff,dekanat,subkoor,admninprodi');
         Route::post('/revisi/{id}', [PenundaanController::class, 'revisi'])->name('revisi')->middleware('role:mahasiswa');
         Route::delete('/{id}', [PenundaanController::class, 'destroy'])->name('destroy')->middleware('role:mahasiswa');
         Route::post('/proses/{id}', [PenundaanController::class, 'proses'])->name('proses')->middleware('role:staff');
     });
     
     Route::name('selang.')->prefix('selang')->group(function () {
-        Route::get('/', [SelangController::class, 'index'])->name('index')->middleware('role:mahasiswa,staff,dekanat,subkoor,fo');
+        Route::get('/', [SelangController::class, 'index'])->name('index')->middleware('role:mahasiswa,staff,dekanat,subkoor,fo,adminprodi');
         Route::get('/listMahasiswa', [SelangController::class, 'listMahasiswa'])->name('listMahasiswa')->middleware('role:mahasiswa');
         Route::get('/listStaff', [SelangController::class, 'listStaff'])->name('listStaff')->middleware('role:staff');
         Route::get('/listFo', [SelangController::class, 'listFo'])->name('listFo')->middleware('role:fo');
         Route::get('/listDekanat', [SelangController::class, 'listDekanat'])->name('listDekanat')->middleware('role:dekanat,subkoor');
+        Route::get('/listAdminProdi', [SelangController::class, 'listAdminProdi'])->name('listAdminProdi')->middleware('role:adminprodi');
         Route::post('/setting/update', [SelangController::class, 'setting'])->name('setting')->middleware('role:staff');
         Route::post('/store', [SelangController::class, 'store'])->name('store')->middleware('role:mahasiswa,staff');
-        Route::post('/show/{id}', [SelangController::class, 'show'])->name('show')->middleware('role:mahasiswa,staff,dekanat,subkoor,fo');
+        Route::post('/show/{id}', [SelangController::class, 'show'])->name('show')->middleware('role:mahasiswa,staff,dekanat,subkoor,fo,adminprodi');
         Route::post('/revisi/{id}', [SelangController::class, 'revisi'])->name('revisi')->middleware('role:mahasiswa');
         Route::delete('/{id}', [SelangController::class, 'destroy'])->name('destroy')->middleware('role:mahasiswa');
-        Route::post('/export/data', [SelangController::class, 'export'])->name('export')->middleware('role:staff,dekanat,subkoor');
+        Route::post('/export/data', [SelangController::class, 'export'])->name('export')->middleware('role:staff,dekanat,subkoor,adminprodi');
         Route::post('/proses/{id}', [SelangController::class, 'proses'])->name('proses')->middleware('role:staff,fo');
     });
     
     Route::name('undurDiri.')->prefix('undurDiri')->group(function () {
-        Route::get('/', [UndurDiriController::class, 'index'])->name('index')->middleware('role:mahasiswa,staff,dekanat,subkoor,fo');
+        Route::get('/', [UndurDiriController::class, 'index'])->name('index')->middleware('role:mahasiswa,staff,dekanat,subkoor,fo,adminprodi');
         Route::get('/listMahasiswa', [UndurDiriController::class, 'listMahasiswa'])->name('listMahasiswa')->middleware('role:mahasiswa');
         Route::get('/listStaff', [UndurDiriController::class, 'listStaff'])->name('listStaff')->middleware('role:staff');
         Route::get('/listFo', [UndurDiriController::class, 'listFo'])->name('listFo')->middleware('role:fo');
         Route::get('/listDekanat', [UndurDiriController::class, 'listDekanat'])->name('listDekanat')->middleware('role:dekanat,subkoor');
+        Route::get('/listAdminProdi', [UndurDiriController::class, 'listAdminProdi'])->name('listAdminProdi')->middleware('role:adminprodi');
         Route::post('/setting/update', [UndurDiriController::class, 'setting'])->name('setting')->middleware('role:staff');
         Route::post('/store', [UndurDiriController::class, 'store'])->name('store')->middleware('role:mahasiswa,staff');
-        Route::post('/show/{id}', [UndurDiriController::class, 'show'])->name('show')->middleware('role:mahasiswa,staff,dekanat,subkoor,fo');
+        Route::post('/show/{id}', [UndurDiriController::class, 'show'])->name('show')->middleware('role:mahasiswa,staff,dekanat,subkoor,fo,adminprodi');
         Route::post('/revisi/{id}', [UndurDiriController::class, 'revisi'])->name('revisi')->middleware('role:mahasiswa');
         Route::delete('/{id}', [UndurDiriController::class, 'destroy'])->name('destroy')->middleware('role:mahasiswa');
-        Route::post('/export/data', [UndurDiriController::class, 'export'])->name('export')->middleware('role:staff,dekanat,subkoor');
+        Route::post('/export/data', [UndurDiriController::class, 'export'])->name('export')->middleware('role:staff,dekanat,subkoor,adminprodi');
         Route::post('/proses/{id}', [UndurDiriController::class, 'proses'])->name('proses')->middleware('role:staff,fo');
     });
     

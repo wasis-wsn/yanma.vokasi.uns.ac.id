@@ -105,11 +105,20 @@
                         @cannot('mahasiswa')
                             <div class="d-flex justify-content-end pb-4">
                                 <div class="dropdown mx-2">
-                                    <button class="btn btn-light btn-sm dropdown-toggle" type="button" id="statusDropdown" data-bs-toggle="dropdown" data-status="all" aria-expanded="false">Semua</button>
+                                    <button class="btn btn-light btn-sm dropdown-toggle" type="button" id="prodiDropdown" data-bs-toggle="dropdown" data-status="all" aria-expanded="false">Prodi</button>
+                                    <ul class="dropdown-menu" aria-labelledby="prodiDropdown">
+                                        <li><a class="dropdown-item prodi-menu" href="#" data-status="all">Semua</a></li>
+                                        @foreach ($prodis as $prodi)
+                                        <li><a class="dropdown-item prodi-menu" href="#" data-status="{{ $prodi->id }}">{{ $prodi->name }}</a></li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                                <div class="dropdown mx-2">
+                                    <button class="btn btn-light btn-sm dropdown-toggle" type="button" id="statusDropdown" data-bs-toggle="dropdown" data-status="all" aria-expanded="false">Semua Status</button>
                                     <ul class="dropdown-menu" aria-labelledby="statusDropdown">
                                         <li><a class="dropdown-item status-menu" href="#" data-status="all">Semua</a></li>
                                         @foreach ($status as $st)
-                                        <li><a class="dropdown-item status-menu" href="#" data-status="{{ $st->id }}">{{ $st->name }}</a></li>
+                                            <li><a class="dropdown-item status-menu" href="#" data-status="{{ $st->id }}">{{ $st->name }}</a></li>
                                         @endforeach
                                     </ul>
                                 </div>
@@ -117,7 +126,7 @@
                                     <button class="btn btn-light btn-sm dropdown-toggle" type="button" id="tahunDropdown" data-bs-toggle="dropdown" aria-expanded="false">{{ date('Y') }}</button>
                                     <ul class="dropdown-menu" aria-labelledby="tahunDropdown">
                                         @foreach ($tahuns as $tahun)
-                                        <li><a class="dropdown-item tahun-menu" href="#" data-year="{{ $tahun->tahun }}">{{ $tahun->tahun }}</a></li>
+                                            <li><a class="dropdown-item tahun-menu" href="#" data-year="{{ $tahun->tahun }}">{{ $tahun->tahun }}</a></li>
                                         @endforeach
                                     </ul>
                                 </div>
@@ -155,7 +164,7 @@
                                             <th>Catatan</th>
                                             <th>Aksi</th>
                                         @endcanany
-                                        @can('fo')
+                                        @canany(['fo','adminprodi'])
                                             <th hidden>created_at</th>
                                             <th>No</th>
                                             <th>Status</th>
@@ -163,7 +172,9 @@
                                             <th>NIM</th>
                                             <th>Prodi</th>
                                             <th>Tanggal Ambil</th>
-                                            <th>Aksi</th>
+                                            @cannot('adminprodi')
+                                                <th>Aksi</th>
+                                            @endcannot
                                             <th>Catatan</th>
                                         @endcan
                                     </tr>
@@ -219,6 +230,7 @@
         <script>
             var year = $("#tahunDropdown").html();
             var status_table = $("#statusDropdown").data('status');
+            var prodi_table = $("#prodiDropdown").data('prodi');
             window.Laravel = {!! json_encode([
                 'baseUrl' => url('/'),
                 'listData' => route('perpanjanganStudi.listFo'),
@@ -231,7 +243,7 @@
         <script>
             var year = $("#tahunDropdown").html();
             var status_table = $("#statusDropdown").data('status');
-
+            var prodi_table = $("#prodiDropdown").data('prodi');
             $(() => {
                 $('#mahasiswa').select2({
                     dropdownParent: $('#div_mahasiswa'),
@@ -291,6 +303,7 @@
         <script>
             var year = $("#tahunDropdown").html();
             var status_table = $("#statusDropdown").data('status');
+            var prodi_table = $("#prodiDropdown").data('prodi');
             window.Laravel = {!! json_encode([
                 'baseUrl' => url('/'),
                 'export' => route('perpanjanganStudi.export'),
@@ -300,4 +313,16 @@
         </script>
         <script src="{{ asset('custom/js/perpanjangan/dekanat.js') }}?q{{Str::random(5)}}"></script>
     @endcanany
+
+    @can('adminprodi')
+        <script>
+            window.Laravel = {!! json_encode([
+                'baseUrl' => url('/'),
+                'export' => route('perpanjanganStudi.export'),
+                'listData' => route('perpanjanganStudi.listAdminProdi'),
+                'getData' => route('perpanjanganStudi.show', ':id'),
+            ]) !!};
+        </script>
+        <script src="{{ asset('custom/js/perpanjangan/adminprodi.js') }}?q{{Str::random(5)}}"></script>
+    @endcan
 @endpush

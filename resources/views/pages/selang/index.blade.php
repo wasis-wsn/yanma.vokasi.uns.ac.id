@@ -109,8 +109,19 @@
                         @endcanany
                         @cannot('mahasiswa')
                             <div class="d-flex justify-content-end pb-4">
+                                
                                 <div class="dropdown mx-2">
-                                    <button class="btn btn-light btn-sm dropdown-toggle" type="button" id="statusDropdown" data-bs-toggle="dropdown" data-status="all" aria-expanded="false">Semua</button>
+                                    <button class="btn btn-light btn-sm dropdown-toggle" type="button" id="prodiDropdown" data-bs-toggle="dropdown" data-status="all" aria-expanded="false">Semua Prodi</button>
+                                    <ul class="dropdown-menu" aria-labelledby="prodiDropdown">
+                                        <li><a class="dropdown-item prodi-menu" href="#" data-status="all">Semua</a></li>
+                                        @foreach ($prodis as $prodi)
+                                        <li><a class="dropdown-item prodi-menu" href="#" data-status="{{ $prodi->id }}">{{ $prodi->name }}</a></li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+
+                                <div class="dropdown mx-2">
+                                    <button class="btn btn-light btn-sm dropdown-toggle" type="button" id="statusDropdown" data-bs-toggle="dropdown" data-status="all" aria-expanded="false">Semua Status</button>
                                     <ul class="dropdown-menu" aria-labelledby="statusDropdown">
                                         <li><a class="dropdown-item status-menu" href="#" data-status="all">Semua</a></li>
                                         @foreach ($status as $st)
@@ -118,6 +129,7 @@
                                         @endforeach
                                     </ul>
                                 </div>
+
                                 <div class="dropdown mx-2">
                                     <button class="btn btn-light btn-sm dropdown-toggle" type="button" id="tahunDropdown" data-bs-toggle="dropdown" aria-expanded="false">{{ date('Y') }}</button>
                                     <ul class="dropdown-menu" aria-labelledby="tahunDropdown">
@@ -158,7 +170,7 @@
                                             <th>Catatan</th>
                                             <th>Aksi</th>
                                         @endcan
-                                        @can('fo')
+                                        @can('fo','adminprodi')
                                             <th hidden>created_at</th>
                                             <th>No</th>
                                             <th>Status</th>
@@ -221,8 +233,9 @@
     @endcan
     @can('fo')
         <script>
-            var year = $("#tahunDropdown").html();
-            var status_table = $("#statusDropdown").data('status');
+            let year = $("#tahunDropdown").html();
+            let status_table = $("#statusDropdown").data('status');
+            let prodi_table = $("#prodiDropdown").data('prodi');
             window.Laravel = {!! json_encode([
                 'baseUrl' => url('/'),
                 'listData' => route('selang.listFo'),
@@ -233,9 +246,9 @@
     @endcan
     @can('staff')
         <script>
-            var year = $("#tahunDropdown").html();
-            var status_table = $("#statusDropdown").data('status');
-
+            let year = $("#tahunDropdown").html();
+            let status_table = $("#statusDropdown").data('status');
+            let prodi_table = $("#prodiDropdown").data('prodi');
             $(() => {
                 $('#mahasiswa').select2({
                     dropdownParent: $('#div_mahasiswa'),
@@ -293,8 +306,9 @@
 
     @canany(['dekanat','subkoor'])
         <script>
-            var year = $("#tahunDropdown").html();
-            var status_table = $("#statusDropdown").data('status');
+            let year = $("#tahunDropdown").html();
+            let status_table = $("#statusDropdown").data('status');
+            let prodi_table = $("#prodiDropdown").data('prodi');
             window.Laravel = {!! json_encode([
                 'baseUrl' => url('/'),
                 'export' => route('selang.export'),
@@ -304,4 +318,20 @@
         </script>
         <script src="{{ asset('custom/js/selang/dekanat.js') }}?q{{Str::random(5)}}"></script>
     @endcanany
+
+    @can('adminprodi')
+        <script>
+            let year = $("#tahunDropdown").html();
+            let status_table = $("#statusDropdown").data('status');
+            let prodi_table = $("#prodiDropdown").data('prodi');
+            
+            window.Laravel = {!! json_encode([
+                'baseUrl' => url('/'),
+                'export' => route('selang.export'),
+                'listData' => route('selang.listAdminProdi'),
+                'getData' => route('selang.show', ':id'),
+            ]) !!};
+        </script>
+        <script src="{{ asset('custom/js/selang/adminprodi.js') }}?q{{Str::random(5)}}"></script>
+    @endcan
 @endpush

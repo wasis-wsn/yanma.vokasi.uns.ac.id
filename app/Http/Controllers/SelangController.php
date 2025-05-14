@@ -7,6 +7,7 @@ use App\Models\Layanan;
 use App\Models\SelangCuti;
 use App\Models\Semester;
 use App\Models\StatusHeregistrasi;
+use App\Models\Prodi;
 use App\Models\Tahun;
 use App\Models\TahunAkademik;
 use App\Models\Template;
@@ -28,11 +29,12 @@ class SelangController extends Controller
         $selang = Layanan::where('url_mhs', $request->url())->orWhere('url_staff', $request->url())->first();
         $tahuns = Tahun::select('tahun')->orderBy('tahun', 'desc')->get();
         $status = StatusHeregistrasi::all();
+        $prodis = Prodi::all();
         $templates = Template::where('layanan_id', $selang->id)->get();
         $tahunAkademik = TahunAkademik::orderBy('tahun_akademik', 'desc')->limit('6')->get();
         $semester = Semester::all();
         session(['layanan' => $selang]);
-        return view('pages.selang.index', compact('selang', 'tanggal', 'tahuns', 'status', 'templates', 'tahunAkademik', 'semester'));
+        return view('pages.selang.index', compact('selang', 'tanggal', 'tahuns', 'status', 'prodis', 'templates', 'tahunAkademik', 'semester'));
     }
 
     public function listMahasiswa()
@@ -88,7 +90,14 @@ class SelangController extends Controller
     public function listStaff(Request $request)
     {
         $list = SelangCuti::with('user.prodis', 'status', 'tahunAkademik', 'semester')->whereYear('created_at', $request->year);
-        if ($request->status != 'all') $list = $list->where('status_id', $request->status);
+        if ($request->status != 'all') {
+            $list = $list->where('status_id', $request->status);
+        }
+        if ($request->prodi != 'all') {
+            $list = $list->whereHas('user', function($query) use ($request) {
+                $query->where('prodi', $request->prodi);
+            });
+        }
         $list = $list->orderBy('created_at', 'desc')->get();
 
         return DataTables::of($list)
@@ -133,7 +142,14 @@ class SelangController extends Controller
     public function listFo(Request $request)
     {
         $list = SelangCuti::with('user.prodis', 'status', 'tahunAkademik', 'semester')->whereYear('created_at', $request->year);
-        if ($request->status != 'all') $list = $list->where('status_id', $request->status);
+        if ($request->status != 'all') {
+            $list = $list->where('status_id', $request->status);
+        }
+        if ($request->prodi != 'all') {
+            $list = $list->whereHas('user', function($query) use ($request) {
+                $query->where('prodi', $request->prodi);
+            });
+        }
         $list = $list->orderBy('created_at', 'desc')->get();
 
         return DataTables::of($list)
@@ -163,7 +179,14 @@ class SelangController extends Controller
     public function listDekanat(Request $request)
     {
         $list = SelangCuti::with('user.prodis', 'status', 'tahunAkademik', 'semester')->whereYear('created_at', $request->year);
-        if ($request->status != 'all') $list = $list->where('status_id', $request->status);
+        if ($request->status != 'all') {
+            $list = $list->where('status_id', $request->status);
+        }
+        if ($request->prodi != 'all') {
+            $list = $list->whereHas('user', function($query) use ($request) {
+                $query->where('prodi', $request->prodi);
+            });
+        }
         $list = $list->orderBy('created_at', 'desc')->get();
 
         return DataTables::of($list)
@@ -176,6 +199,52 @@ class SelangController extends Controller
                             <i class="fa fa-eye"></i> Review
                         </button>';
                 return $aksi;
+            })
+            ->editColumn('tanggal_submit', function ($row) {
+                return Carbon::parse($row->created_at)->translatedFormat('d F Y') . '<br/>' . Carbon::parse($row->created_at)->translatedFormat('H:i:s');
+            })
+            ->editColumn('tahun_akademik', function ($row) {
+                return $row->tahunAkademik->tahun_akademik . ' - ' . $row->semester->semester;
+            })
+            ->editColumn('status_id', function ($row) {
+                return '<button type="button" class="btn ' . $row->status->color . ' btn-sm" disabled>' . $row->status->name . '</button>';
+            })
+            ->editColumn('nama_prodi', function ($row) {
+                return wordwrap($row->user->prodis->name, 20, "<br>");
+            })
+            ->editColumn('catatan', function ($row) {
+                return wordwrap($row->catatan, 30, "<br>");
+            })
+            ->rawColumns(['id', 'action', 'tanggal_submit', 'tahun_akademik', 'status_id', 'nama_prodi', 'catatan'])
+            ->toJson();
+    }
+
+    public function listAdminProdi(Request $request)
+    {
+        $list = SelangCuti::with('user.prodis', 'status', 'tahunAkademik', 'semester')
+            ->whereYear('created_at', $request->year);
+            
+        if ($request->status != 'all') {
+            $list = $list->where('status_id', $request->status);
+        }
+            
+        if ($request->prodi != 'all') {
+            $list = $list->whereHas('user', function($query) use ($request) {
+                $query->where('prodi', $request->prodi);
+            });
+        }
+            
+        $list = $list->orderBy('created_at', 'desc')->get();
+
+        return DataTables::of($list)
+            ->addIndexColumn()
+            ->editColumn('id', function ($row) {
+                return '<input class="form-check-input" type="checkbox" value="' . encodeId($row->id) . '" name="ids">';
+            })
+            ->addColumn('action', function ($row) {
+                return '<button type="button" class="btn btn-info btn-sm btn-detail" data-id="' . encodeId($row->id) . '">
+                            <i class="fa fa-eye"></i> Review
+                        </button>';
             })
             ->editColumn('tanggal_submit', function ($row) {
                 return Carbon::parse($row->created_at)->translatedFormat('d F Y') . '<br/>' . Carbon::parse($row->created_at)->translatedFormat('H:i:s');

@@ -2,6 +2,7 @@ $(document).ready(function() {
     let year = $("#tahunDropdown").html();
     let status_table = $("#statusDropdown").data('status') || 'all';
     let prodi_table = $("#prodiDropdown").data('prodi') || 'all';
+
     const initializeDataTable = (status, year, prodi) => {
         return $("#suket-datatable").DataTable({
             processing: true,
@@ -64,69 +65,4 @@ $(document).ready(function() {
     setInterval(function () {
         table.ajax.reload(null, false); // user paging is not reset on reload
     }, 300000);
-
-    $("#show_data").on("click", ".btn-proses", function () {
-        let id = $(this).data("id");
-
-        let action = window.Laravel.update.replace(":id", id);
-
-        $("form#form-proses").attr("action", action);
-        $("form#form-proses textarea").val("");
-        $("#modalProses").modal("show");
-    });
-
-    $("#form-proses").submit(function (e) {
-        e.preventDefault();
-        let form = this;
-        let formData = new FormData(this);
-
-        $.ajax({
-            url: $(this).attr("action"),
-            type: "POST",
-            headers: {
-                "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content"),
-            },
-            data: formData,
-            beforeSend: function () {
-                Swal.fire({
-                    title: "Mohon Tunggu",
-                    allowOutsideClick: false,
-                    didOpen: () => {
-                        Swal.showLoading();
-                    },
-                });
-            },
-            success: function (res) {
-                if (res.status) {
-                    form.reset();
-                    $("#modalAmbil").modal("hide");
-                    Swal.fire({
-                        title: "Berhasil!",
-                        text: res.message,
-                        icon: "success",
-                        showConfirmButton: false,
-                        timer: 1500,
-                    });
-                    table.ajax.reload();
-                } else {
-                    Swal.fire({
-                        title: "Gagal!",
-                        text: res.message,
-                        icon: "error",
-                    });
-                }
-            },
-            error: function (xhr, status, error) {
-                var err = JSON.parse(xhr.responseText);
-                Swal.fire({
-                    title: "Gagal!",
-                    text: err.message,
-                    icon: "error",
-                });
-            },
-            cache: false,
-            contentType: false,
-            processData: false,
-        });
-    });
 });

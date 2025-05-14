@@ -91,6 +91,7 @@
                             @include('pages.penundaan.modal_edit')
                         @endcan
                         @cannot('mahasiswa')
+                        @canany(['staff', 'dekanat', 'subkoor'])
                             <div class="d-flex justify-content-start pb-4">
                                 @can('staff')
                                     <button type="button" class="btn btn-warning mx-2" data-bs-toggle="modal" data-bs-target="#modalJadwal">Ubah Jadwal</button>
@@ -103,8 +104,24 @@
                                 @include('pages.penundaan.modal_tambah')
                                 @include('pages.penundaan.modal_ubah_jadwal')
                             @endcan
+                        @endcanany
                             @include('modals.export_semester')
                             <div class="d-flex justify-content-end pb-4">
+                                <div class="dropdown mx-2">
+                                    <button class="btn btn-light btn-sm dropdown-toggle" type="button" id="prodiDropdown" data-bs-toggle="dropdown" data-prodi="all" aria-expanded="false">
+                                        Semua Prodi
+                                    </button>
+                                    <ul class="dropdown-menu" aria-labelledby="prodiDropdown">
+                                        <li><a class="dropdown-item prodi-menu" href="#" data-prodi="all">Semua</a></li>
+                                        @foreach ($prodis as $prodi)
+                                            <li>
+                                                <a class="dropdown-item prodi-menu" href="#" data-prodi="{{ $prodi->id }}">
+                                                    {{ $prodi->name }}
+                                                </a>
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                </div>
                                 <div class="dropdown mx-2">
                                     <button class="btn btn-light btn-sm dropdown-toggle" type="button" id="statusDropdown" data-bs-toggle="dropdown" data-status="all" aria-expanded="false">Semua</button>
                                     <ul class="dropdown-menu" aria-labelledby="statusDropdown">
@@ -268,4 +285,16 @@
         </script>
         <script src="{{ asset('custom/js/penundaan/dekanat.js') }}?q{{Str::random(5)}}"></script>
     @endcanany
+
+    @can('adminprodi')
+        <script>
+            window.Laravel = {!! json_encode([
+                'baseUrl' => url('/'),
+                'export' => route('penundaan.export'),
+                'listData' => route('penundaan.listAdminProdi'),
+                'getData' => route('penundaan.show', ':id'),
+            ]) !!};
+        </script>
+        <script src="{{ asset('custom/js/penundaan/adminprodi.js') }}?q{{Str::random(5)}}"></script>
+    @endcan
 @endpush

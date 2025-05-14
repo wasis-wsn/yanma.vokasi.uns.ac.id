@@ -2,6 +2,7 @@ $(document).ready(function() {
     let year = $("#tahunDropdown").html();
     let status_table = $("#statusDropdown").data('status') || 'all';
     let prodi_table = $("#prodiDropdown").data('prodi') || 'all';
+
     const initializeDataTable = (status, year, prodi) => {
         return $("#suket-datatable").DataTable({
             processing: true,
@@ -15,7 +16,6 @@ $(document).ready(function() {
                 { data: "user.name" },
                 { data: "user.nim" },
                 { data: "nama_prodi" },
-                { data: "no_surat" },
                 { data: "status_id" },
                 { data: "catatan" },
                 { data: "action" }
@@ -25,19 +25,7 @@ $(document).ready(function() {
                     className: "text-center",
                     width: "3%",
                     targets: [1],
-                },
-                {
-                    width: "10%",
-                    targets: [4],
-                },
-                {
-                    className: "btn-group-vertical",
-                    targets: [9],
-                },
-                {
-                    className: "text-wrap",
-                    targets: [3],
-                },
+                }
             ],
             lengthMenu: [
                 [5, 10, 25, 50, -1],
@@ -52,6 +40,7 @@ $(document).ready(function() {
     $(".tahun-menu").click(function () {
         year = $(this).data("year");
         $("#tahunDropdown").html(year);
+        table.destroy();
         table = initializeDataTable(status_table, year, prodi_table);
     });
 
@@ -63,6 +52,7 @@ $(document).ready(function() {
     $(".status-menu").click(function () {
         status_table = $(this).data("status");
         $("#statusDropdown").html($(this).html());
+        table.destroy();
         table = initializeDataTable(status_table, year, prodi_table);
     });
 
@@ -75,7 +65,7 @@ $(document).ready(function() {
     });
 
     setInterval(function () {
-        table.ajax.reload(null, false); // user paging is not reset on reload
+        table.ajax.reload(null, false);
     }, 300000);
 
     $("#show_data").on("click", ".btn-detail", function () {
@@ -97,9 +87,10 @@ $(document).ready(function() {
                     $("#detail-nim").html(": " + res.data.user.nim);
                     $("#detail-prodi").html(": " + res.data.user.prodis.name);
                     $("#detail-tahun-akademik").html(": " + res.data.tahun_akademik.tahun_akademik + ' - ' + res.data.semester.semester);
+                    $("#detail-alasan").html(": " + res.data.alasan);
                     $("#detail-file").attr(
                         "href",
-                        `${window.Laravel.baseUrl}/storage/undur/upload/${res.data.file}`
+                        `${window.Laravel.baseUrl}/storage/penundaan/upload/${res.data.file}`
                     );
                     $("#detail-catatan").html(
                         res.data.catatan ? ": " + res.data.catatan : ":"

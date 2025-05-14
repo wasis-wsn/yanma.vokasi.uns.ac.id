@@ -89,6 +89,20 @@ class UserSeeder extends Seeder
                 'prodi' => '1',
                 'role' => '6',
             ],
+            [
+                'name' => 'Subkoor Akademik',
+                'email' => 'subkoor@staff.uns.ac.id',
+                'password' => Hash::make('subkoor321'),
+                'prodi' => '1',
+                'role' => '6',
+            ],
+            [
+                'name' => 'Admin Prodi',
+                'email' => 'adminprodi@staff.uns.ac.id',
+                'password' => Hash::make('adminprodi321'),
+                'prodi' => '1',
+                'role' => '7',
+            ],
         ];
 
         foreach ($data as $i) {
