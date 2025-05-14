@@ -46,20 +46,10 @@ $(document).ready(function() {
         table = initializeDataTable(status_table, year, prodi_table);
     });
 
-    $(".prodi-menu").on("click", function (e) {
-        e.preventDefault();
-
-        let selectedProdi = $(this).data("status");
-
-        if (!selectedProdi) {
-            selectedProdi = "all";
-        }
-
-        $("#prodiDropdown").text($(this).text());
-        $("#prodiDropdown").data("status", selectedProdi);
-
-        table.destroy();
-        table = initializeDataTable(status_table, year, selectedProdi);
+    $(".prodi-menu").click(function () {
+        prodi_table = $(this).data("prodi");
+        $("#prodiDropdown").html($(this).html());
+        table = initializeDataTable(status_table, year, prodi_table);
     });
 
     setInterval(function () {

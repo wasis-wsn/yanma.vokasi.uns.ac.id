@@ -55,31 +55,19 @@ $(document).ready(function() {
     $(".tahun-menu").click(function () {
         year = $(this).data("year");
         $("#tahunDropdown").html(year);
-        table.destroy();
         table = initializeDataTable(status_table, year, prodi_table);
     });
 
     $(".status-menu").click(function () {
         status_table = $(this).data("status");
         $("#statusDropdown").html($(this).html());
-        table.destroy();
         table = initializeDataTable(status_table, year, prodi_table);
     });
 
-    $(".prodi-menu").on("click", function (e) {
-        e.preventDefault();
-
-        var selectedProdi = $(this).data("status");
-
-        if (!selectedProdi) {
-            selectedProdi = "all";
-        }
-
-        $("#prodiDropdown").text($(this).text());
-        $("#prodiDropdown").data("status", selectedProdi);
-
-        table.destroy();
-        table = initializeDataTable(status_table, year, selectedProdi);
+    $(".prodi-menu").click(function () {
+        prodi_table = $(this).data("prodi");
+        $("#prodiDropdown").html($(this).html());
+        table = initializeDataTable(status_table, year, prodi_table);
     });
 
     $('#btn-export').click(function () {

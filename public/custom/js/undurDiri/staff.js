@@ -69,8 +69,6 @@ $(document).ready(function() {
     $(".prodi-menu").click(function () {
         prodi_table = $(this).data("prodi");
         $("#prodiDropdown").html($(this).html());
-        $("#prodiDropdown").data("prodi", prodi_table);
-        table.destroy();
         table = initializeDataTable(status_table, year, prodi_table);
     });
 

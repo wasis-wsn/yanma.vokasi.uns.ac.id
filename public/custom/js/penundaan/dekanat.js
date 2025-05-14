@@ -48,7 +48,6 @@ $(document).ready(function() {
     $(".tahun-menu").click(function () {
         year = $(this).data("year");
         $("#tahunDropdown").html(year);
-        table.destroy();
         table = initializeDataTable(status_table, year, prodi_table);
     });
 
@@ -60,15 +59,12 @@ $(document).ready(function() {
     $(".status-menu").click(function () {
         status_table = $(this).data("status");
         $("#statusDropdown").html($(this).html());
-        table.destroy();
         table = initializeDataTable(status_table, year, prodi_table);
     });
 
     $(".prodi-menu").click(function () {
         prodi_table = $(this).data("prodi");
         $("#prodiDropdown").html($(this).html());
-        $("#prodiDropdown").data("prodi", prodi_table);
-        table.destroy();
         table = initializeDataTable(status_table, year, prodi_table);
     });
 
