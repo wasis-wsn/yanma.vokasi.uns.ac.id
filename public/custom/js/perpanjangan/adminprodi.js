@@ -18,6 +18,7 @@ $(document).ready(function() {
                 { data: "user.nim" },
                 { data: "user.prodis.name" },
                 { data: "tanggal_ambil" },
+                { data: "action" },
                 { data: "catatan" },
             ],
             columnDefs: [
@@ -68,11 +69,65 @@ $(document).ready(function() {
         table.ajax.reload(null, false);
     }, 300000);
 
-    $("#show_data").on("click", ".btn-proses", function () {
+    $("#show_data").on("click", ".btn-detail", function () {
         let id = $(this).data("id");
-        action = window.Laravel.update.replace(":id", id);
-        $("form#form-proses").attr("action", action);
-        $("#form-proses textarea").val("");
+
+        let url = window.Laravel.getData.replace(":id", id);
+
+        $.ajax({
+            url: url,
+            type: "POST",
+            headers: {
+                "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content"),
+            },
+            success: function (res) {
+                if (res.status) {
+                    $("#detail-nama").html(": " + res.data.user.name);
+                    $("#detail-nim").html(": " + res.data.user.nim);
+                    $("#detail-prodi").html(": " + res.data.user.prodis.name);
+                    $("#detail-email").html(": " + res.data.user.email);
+                    $("#detail-tahun-akademik").html(": " + res.data.tahun_akademik.tahun_akademik + ' - ' + res.data.semester.semester);
+                    $("#detail-perpanjangan").html(": " + res.data.perpanjangan_ke);
+                    $("#detail-file").attr(
+                        "href",
+                        `${window.Laravel.baseUrl}/storage/perpanjangan/upload/${res.data.file}`
+                    );
+                    $("#detail-catatan").html(": " + res.data.catatan);
+                    $("#detail-proses").html(": " + res.data.tgl_proses);
+                    $("#detail-no").html(": " + res.data.no_surat);
+                    // $(".btn-tolak").attr("data-id", id);
+                    $("#detail-status").html(res.data.status.name);
+                    $("#detail-status").attr(
+                        "class",
+                        `btn ${res.data.status.color} btn-small`
+                    );
+                    // let canProses = [1, 3, 4];
+                    let canProses = ["1", "3", "4"];
+                    // console.log(id);
+                    if (canProses.includes(res.data.status_id)) {
+                        $("#tombol-proses").data("id", id);
+                        $("#tombol-proses").attr("hidden", false);
+                    } else {
+                        $("#tombol-proses").attr("hidden", true);
+                    }
+                    $("#modalDetail").modal("show");
+                } else {
+                    Swal.fire({
+                        title: "Error!",
+                        text: res.message,
+                        icon: "error",
+                    });
+                }
+            },
+            error: function (xhr, status, error) {
+                var err = JSON.parse(xhr.responseText);
+                Swal.fire({
+                    title: "Error!",
+                    text: err.message,
+                    icon: "error",
+                });
+            },
+        });
     });
 });
 

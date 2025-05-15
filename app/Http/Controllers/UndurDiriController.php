@@ -198,8 +198,8 @@ class UndurDiriController extends Controller
                         </button>';
                 return $aksi;
             })
-            ->editColumn('tanggal_submit', function ($row) {
-                return Carbon::parse($row->created_at)->translatedFormat('d F Y') . '<br/>' . Carbon::parse($row->created_at)->translatedFormat('H:i:s');
+            ->editColumn('tanggal_ambil', function ($row) {
+                return ($row->tanggal_ambil) ? Carbon::parse($row->tanggal_ambil)->translatedFormat('d F Y') . '<br/>' . Carbon::parse($row->tanggal_ambil)->translatedFormat('H:i:s') : '';
             })
             ->editColumn('tahun_akademik', function ($row) {
                 return $row->tahunAkademik->tahun_akademik . ' - ' . $row->semester->semester;
@@ -213,7 +213,7 @@ class UndurDiriController extends Controller
             ->editColumn('catatan', function ($row) {
                 return wordwrap($row->catatan, 30, "<br>");
             })
-            ->rawColumns(['id', 'action', 'tanggal_submit', 'tahun_akademik', 'status_id', 'nama_prodi', 'catatan'])
+            ->rawColumns(['id', 'action', 'tanggal_ambil', 'tahun_akademik', 'status_id', 'nama_prodi', 'catatan'])
             ->toJson();
     }
 

@@ -325,12 +325,12 @@ $("#form-proses-ta").submit(function (e) {
  *
  */
 
-const initializeDataTableSKL = (status, year) => {
+const initializeDataTableSKL = (status, year, prodi) => {
     return $("#skl-datatable").DataTable({
         processing: true,
         serverSide: true,
         destroy: true,
-        ajax: `${window.Laravel.skl.listData}?status=${status}&year=${year}`,
+        ajax: `${window.Laravel.skl.listData}?status=${status}&year=${year}&prodi=${prodi}`,
         columns: [
             { data: "DT_RowIndex" },
             { data: "user.name" },
@@ -370,18 +370,24 @@ const initializeDataTableSKL = (status, year) => {
     });
 };
 
-let table = initializeDataTableSKL(status_table, year);
+let table = initializeDataTableSKL(status_table, year, prodi_table);
 
 $(".tahun-menu").click(function () {
     year = $(this).data("year");
     $("#tahunDropdown").html(year);
-    table = initializeDataTableSKL(status_table, year);
+    table = initializeDataTableSKL(status_table, year, prodi_table);
 });
 
 $(".status-menu").click(function () {
     status_table = $(this).data("status");
     $("#statusDropdown").html($(this).html());
-    table = initializeDataTableSKL(status_table, year);
+    table = initializeDataTableSKL(status_table, year, prodi_table);
+});
+
+$(".prodi-menu").click(function () {
+    prodi_table = $(this).data("prodi");
+    $("#prodiDropdown").html($(this).html());
+    table = initializeDataTableSKL(status_table, year, prodi_table);
 });
 
 setInterval(function () {

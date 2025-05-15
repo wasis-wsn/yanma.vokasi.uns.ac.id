@@ -7,6 +7,7 @@ use App\Models\Layanan;
 use App\Models\SKL;
 use App\Models\StatusPengesahanTA;
 use App\Models\StatusSKL;
+use App\Models\Prodi;
 use App\Models\Tahun;
 use App\Models\Template;
 use Carbon\Carbon;
@@ -24,9 +25,10 @@ class SKLController extends Controller
         $layanan = Layanan::where('url_mhs', $request->url())->orWhere('url_staff', $request->url())->first();
         $tahuns = Tahun::select('tahun')->orderBy('tahun', 'desc')->get();
         $status = StatusSKL::all(); // status SKL
+        $prodis = Prodi::all();
         $status_ta = StatusPengesahanTA::all();
         $templates = Template::where('layanan_id', $layanan->id)->get();
-        return view('pages.skl.index', compact('tahuns', 'layanan', 'status', 'status_ta', 'templates'));
+        return view('pages.skl.index', compact('tahuns', 'layanan', 'status', 'prodis', 'status_ta', 'templates'));
     }
 
     public function listStaff(Request $request)
@@ -170,6 +172,53 @@ class SKLController extends Controller
                 return wordwrap($row->catatan, 20, "<br>");
             })
             ->rawColumns(['action', 'tanggal_submit', 'status_id', 'tanggal_proses', 'tanggal_ambil', 'nama_prodi', 'catatan'])
+            ->toJson();
+    }
+
+    public function listAdminProdi(Request $request)
+    {
+        $list = SKL::with('user.prodis', 'status')->whereYear('created_at', $request->year);
+        
+        if ($request->status != 'all') {
+            $list = $list->where('status_id', $request->status);
+        }
+        
+        if ($request->prodi != 'all') {
+            $list = $list->whereHas('user', function($query) use ($request) {
+                $query->where('prodi', $request->prodi);
+            });
+        }
+        
+        $list = $list->orderBy('created_at', 'desc');
+
+        return DataTables::of($list)
+            ->addIndexColumn()
+            ->addColumn('action', function ($row) {
+                return '<button type="button" class="btn btn-info btn-sm btn-detail" data-id="' . encodeId($row->id) . '">
+                            <i class="fa fa-eye"></i> Review
+                        </button>';
+            })
+            ->editColumn('tanggal_submit', function ($row) {
+                return Carbon::parse($row->created_at)->translatedFormat('d F Y') . '<br/>' . Carbon::parse($row->created_at)->translatedFormat('H:i:s') . ' WIB';
+            })
+            ->editColumn('tanggal_proses', function ($row) {
+                $tanggal_proses = $row->tanggal_proses;
+                if ($tanggal_proses) {
+                    $tanggal_proses = Carbon::parse($row->tanggal_proses)->translatedFormat('d F Y') . '<br/>' . Carbon::parse($row->tanggal_proses)->translatedFormat('H:i:s') . ' WIB';
+                }
+                return $tanggal_proses;
+            })
+            ->editColumn('status_id', function ($row) {
+                return '<button type="button" class="btn ' . $row->status->color . ' btn-sm" disabled>' . $row->status->name . '</button>';
+            })
+            ->editColumn('tanggal_ambil', function ($row) {
+                $tanggal_ambil = $row->tanggal_ambil;
+                if ($tanggal_ambil) {
+                    $tanggal_ambil = Carbon::parse($row->tanggal_ambil)->translatedFormat('d F Y') . '<br/>' . Carbon::parse($row->tanggal_ambil)->translatedFormat('H:i:s') . ' WIB';
+                }
+                return $tanggal_ambil;
+            })
+            ->rawColumns(['action', 'tanggal_submit', 'status_id', 'tanggal_proses', 'tanggal_ambil'])
             ->toJson();
     }
 

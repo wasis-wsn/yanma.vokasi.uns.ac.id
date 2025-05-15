@@ -55,16 +55,20 @@ $(".status-ta").click(function () {
 });
 
 setInterval(function () {
-    table_ta.ajax.reload(null, false); // user paging is not reset on reload
+    table_ta.ajax.reload(null, false);
 }, 300000);
 
-// Update in staff.js, fo.js and dekanat.js:
+/*
+ *
+ * Layanan SKL
+ *
+ */
 const initializeDataTableSKL = (status, year, prodi) => {
     return $("#skl-datatable").DataTable({
         processing: true,
         serverSide: true,
         destroy: true,
-        ajax: `${window.Laravel.listData}?status=${status}&year=${year}&prodi=${prodi}`,
+        ajax: `${window.Laravel.skl.listData}?status=${status}&year=${year}&prodi=${prodi}`,
         columns: [
             { data: "DT_RowIndex" },
             { data: "user.name" },
@@ -101,6 +105,7 @@ const initializeDataTableSKL = (status, year, prodi) => {
             [5, 10, 25, 50, -1],
             [5, 10, 25, 50, 'All']
         ],
+        order: [[0, "desc"]]
     });
 };
 
@@ -112,31 +117,20 @@ $(".tahun-menu").click(function () {
     table = initializeDataTableSKL(status_table, year, prodi_table);
 });
 
-$('#btn-export').click(function () {
-    $('#form-export').attr('action', window.Laravel.export);
-    $('#modalExport').modal('show');
-});
-
 $(".status-menu").click(function () {
     status_table = $(this).data("status");
     $("#statusDropdown").html($(this).html());
     table = initializeDataTableSKL(status_table, year, prodi_table);
 });
 
-// Add prodi filter handler
 $(".prodi-menu").click(function () {
-    prodi_table = $(this).data("prodi");
+    prodi_table = $(this).data("prodi"); 
     $("#prodiDropdown").html($(this).html());
     table = initializeDataTableSKL(status_table, year, prodi_table);
 });
 
-setInterval(function () {
-    table.ajax.reload(null, false); // user paging is not reset on reload
-}, 300000);
-
 $("#show_data_skl").on("click", ".btn-detail", function () {
     let id = $(this).data("id");
-
     let url = window.Laravel.skl.getData.replace(":id", id);
 
     $.ajax({
@@ -165,12 +159,6 @@ $("#show_data_skl").on("click", ".btn-detail", function () {
                     `btn ${res.data.status.color} btn-small`
                 );
                 $("#modalDetailSKL").modal("show");
-            } else {
-                Swal.fire({
-                    title: "Error!",
-                    text: res.message,
-                    icon: "error",
-                });
             }
         },
         error: function (xhr, status, error) {
@@ -183,3 +171,7 @@ $("#show_data_skl").on("click", ".btn-detail", function () {
         },
     });
 });
+
+setInterval(function () {
+    table.ajax.reload(null, false);
+}, 300000);

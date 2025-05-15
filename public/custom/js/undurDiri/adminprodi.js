@@ -12,14 +12,14 @@ $(document).ready(function() {
             columns: [
                 { data: "created_at", visible: false },
                 { data: "DT_RowIndex" },
-                { data: "tanggal_submit" },
+                { data: "status_id" },
                 { data: "user.name" },
                 { data: "user.nim" },
                 { data: "nama_prodi" },
                 { data: "no_surat" },
-                { data: "status_id" },
-                { data: "catatan" },
-                { data: "action" }
+                { data: "tanggal_ambil" },
+                { data: "action" },
+                { data: "catatan" }
             ],
             columnDefs: [
                 {

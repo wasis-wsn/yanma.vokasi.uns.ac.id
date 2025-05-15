@@ -156,7 +156,7 @@
                                         @endcan
                                         @canany(['staff', 'dekanat','subkoor'])
                                             <th hidden>created_at</th>
-                                            <th>#</th>
+                                            <th>No</th>
                                             <th>Tanggal Submit</th>
                                             <th>Nama</th>
                                             <th>NIM</th>
@@ -164,6 +164,17 @@
                                             <th>Status</th>
                                             <th>Catatan</th>
                                             <th>Aksi</th>
+                                        @endcanany
+                                        @canany('adminprodi')
+                                            <th hidden>created_at</th>
+                                            <th>No</th>
+                                            <th>Status</th>
+                                            <th>Nama</th>
+                                            <th>NIM</th>
+                                            <th>Prodi</th>
+                                            <th>Tanggal Submit</th>
+                                            <th>Aksi</th>
+                                            <th>Catatan</th>
                                         @endcanany
                                     </tr>
                                 </thead>

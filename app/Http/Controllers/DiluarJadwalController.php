@@ -14,6 +14,7 @@ use Yajra\DataTables\Facades\DataTables;
 use App\Exports\DiluarJadwalExport;
 use App\Models\Semester;
 use App\Models\StatusHeregistrasi;
+use App\Models\Prodi;
 use App\Models\TahunAkademik;
 use App\Models\Template;
 use App\Models\User;
@@ -28,11 +29,12 @@ class DiluarJadwalController extends Controller
         $diluarJadwal = Layanan::where('url_mhs', $request->url())->orWhere('url_staff', $request->url())->first();
         $tahuns = Tahun::select('tahun')->orderBy('tahun', 'desc')->get();
         $status = StatusHeregistrasi::all();
+        $prodis = Prodi::all();
         $templates = Template::where('layanan_id', $diluarJadwal->id)->get();
         $tahunAkademik = TahunAkademik::orderBy('tahun_akademik', 'desc')->limit('6')->get();
         $semester = Semester::all();
         session(['layanan' => $diluarJadwal]);
-        return view('pages.diluar_jadwal.index', compact('diluarJadwal', 'tanggal', 'tahuns', 'status', 'templates', 'tahunAkademik', 'semester'));
+        return view('pages.diluar_jadwal.index', compact('diluarJadwal', 'tanggal', 'tahuns', 'status', 'prodis', 'templates', 'tahunAkademik', 'semester'));
     }
 
     public function listMahasiswa()
@@ -90,7 +92,14 @@ class DiluarJadwalController extends Controller
     public function listStaff(Request $request)
     {
         $list = DiluarJadwal::with('user.prodis', 'status', 'tahunAkademik', 'semester')->whereYear('created_at', $request->year);
-        if ($request->status != 'all') $list = $list->where('status_id', $request->status);
+        if ($request->status != 'all') {
+            $list = $list->where('status_id', $request->status);
+        }
+        if ($request->prodi != 'all') {
+            $list = $list->whereHas('user', function($query) use ($request) {
+                $query->where('prodi', $request->prodi);
+            });
+        }
         $list = $list->orderBy('created_at', 'desc')->get();
 
         return DataTables::of($list)
@@ -137,7 +146,14 @@ class DiluarJadwalController extends Controller
     public function listFo(Request $request)
     {
         $list = DiluarJadwal::with('user.prodis', 'status', 'tahunAkademik', 'semester')->whereYear('created_at', $request->year);
-        if ($request->status != 'all') $list = $list->where('status_id', $request->status);
+        if ($request->status != 'all') {
+            $list = $list->where('status_id', $request->status);
+        }
+        if ($request->prodi != 'all') {
+            $list = $list->whereHas('user', function($query) use ($request) {
+                $query->where('prodi', $request->prodi);
+            });
+        }
         $list = $list->orderBy('created_at', 'desc')->get();
 
         return DataTables::of($list)
@@ -167,7 +183,14 @@ class DiluarJadwalController extends Controller
     public function listDekanat(Request $request)
     {
         $list = DiluarJadwal::with('user.prodis', 'status', 'tahunAkademik', 'semester')->whereYear('created_at', $request->year);
-        if ($request->status != 'all') $list = $list->where('status_id', $request->status);
+        if ($request->status != 'all') {
+            $list = $list->where('status_id', $request->status);
+        }
+        if ($request->prodi != 'all') {
+            $list = $list->whereHas('user', function($query) use ($request) {
+                $query->where('prodi', $request->prodi);
+            });
+        }
         $list = $list->orderBy('created_at', 'desc')->get();
 
         return DataTables::of($list)
@@ -178,8 +201,8 @@ class DiluarJadwalController extends Controller
                         </button>';
                 return $aksi;
             })
-            ->editColumn('tanggal_ambil', function ($row) {
-                return ($row->tanggal_ambil) ? Carbon::parse($row->tanggal_ambil)->translatedFormat('d F Y') . '<br/>' . Carbon::parse($row->tanggal_ambil)->translatedFormat('H:i:s') : '';
+            ->editColumn('tanggal_submit', function ($row) {
+                return Carbon::parse($row->created_at)->translatedFormat('d F Y') . '<br/>' . Carbon::parse($row->created_at)->translatedFormat('H:i:s');
             })
             ->editColumn('created_at', function ($row) {
                 return ($row->created_at) ? Carbon::parse($row->created_at)->translatedFormat('d F Y') . '<br/>' . Carbon::parse($row->created_at)->translatedFormat('H:i:s') : '';
@@ -203,7 +226,48 @@ class DiluarJadwalController extends Controller
             ->editColumn('catatan', function ($row) {
                 return wordwrap($row->catatan, 30, "<br>");
             })
-            ->rawColumns(['action', 'created_at', 'tanggal_ambil', 'tanggal_proses', 'tahun_akademik', 'status_id', 'nama_prodi', 'catatan'])
+            ->rawColumns(['action', 'created_at', 'tanggal_submit', 'tanggal_proses', 'tahun_akademik', 'status_id', 'nama_prodi', 'catatan'])
+            ->toJson();
+    }
+
+    public function listAdminProdi(Request $request)
+    {
+        $list = DiluarJadwal::with('user.prodis', 'status', 'tahunAkademik', 'semester')
+            ->whereYear('created_at', $request->year);
+            
+        if ($request->status != 'all') {
+            $list = $list->where('status_id', $request->status);
+        }
+            
+        if ($request->prodi != 'all') {
+            $list = $list->whereHas('user', function($query) use ($request) {
+                $query->where('prodi', $request->prodi);
+            });
+        }
+            
+        $list = $list->orderBy('created_at', 'desc')->get();
+
+        return DataTables::of($list)
+            ->addIndexColumn()
+            ->addColumn('action', function ($row) {
+                $aksi = '<button type="button" class="btn btn-info btn-sm btn-detail" data-id="' . encodeId($row->id) . '">
+                            <i class="fa fa-eye"></i> Review
+                        </button>';
+                return $aksi;
+            })
+            ->editColumn('tanggal_submit', function ($row) {
+                return Carbon::parse($row->created_at)->translatedFormat('d F Y') . '<br/>' . Carbon::parse($row->created_at)->translatedFormat('H:i:s');
+            })
+            ->editColumn('status_id', function ($row) {
+                return '<button type="button" class="btn ' . $row->status->color . ' btn-sm" disabled>' . $row->status->name . '</button>';
+            })
+            ->editColumn('nama_prodi', function ($row) {
+                return wordwrap($row->user->prodis->name, 20, "<br>");
+            })
+            ->editColumn('catatan', function ($row) {
+                return wordwrap($row->catatan, 30, "<br>"); 
+            })
+            ->rawColumns(['tanggal_submit', 'status_id', 'nama_prodi', 'catatan', 'action'])
             ->toJson();
     }
 

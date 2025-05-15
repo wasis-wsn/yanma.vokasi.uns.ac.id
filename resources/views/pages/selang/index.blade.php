@@ -170,7 +170,7 @@
                                             <th>Catatan</th>
                                             <th>Aksi</th>
                                         @endcan
-                                        @can('fo','adminprodi')
+                                        @canany(['fo','adminprodi'])
                                             <th hidden>created_at</th>
                                             <th>No</th>
                                             <th>Status</th>

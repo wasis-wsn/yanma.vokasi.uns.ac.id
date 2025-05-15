@@ -172,9 +172,7 @@
                                             <th>NIM</th>
                                             <th>Prodi</th>
                                             <th>Tanggal Ambil</th>
-                                            @cannot('adminprodi')
-                                                <th>Aksi</th>
-                                            @endcannot
+                                            <th>Aksi</th>
                                             <th>Catatan</th>
                                         @endcan
                                     </tr>

@@ -226,7 +226,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/setting/update', [PenundaanController::class, 'setting'])->name('setting')->middleware('role:staff');
         Route::post('/export/data', [PenundaanController::class, 'export'])->name('export')->middleware('role:staff,dekanat,subkoor,adminprodi');
         Route::post('/store', [PenundaanController::class, 'store'])->name('store')->middleware('role:mahasiswa,staff');
-        Route::post('/show/{id}', [PenundaanController::class, 'show'])->name('show')->middleware('role:mahasiswa,staff,dekanat,subkoor,admninprodi');
+        Route::post('/show/{id}', [PenundaanController::class, 'show'])->name('show')->middleware('role:mahasiswa,staff,dekanat,subkoor,adminprodi');
         Route::post('/revisi/{id}', [PenundaanController::class, 'revisi'])->name('revisi')->middleware('role:mahasiswa');
         Route::delete('/{id}', [PenundaanController::class, 'destroy'])->name('destroy')->middleware('role:mahasiswa');
         Route::post('/proses/{id}', [PenundaanController::class, 'proses'])->name('proses')->middleware('role:staff');
@@ -244,7 +244,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/show/{id}', [SelangController::class, 'show'])->name('show')->middleware('role:mahasiswa,staff,dekanat,subkoor,fo,adminprodi');
         Route::post('/revisi/{id}', [SelangController::class, 'revisi'])->name('revisi')->middleware('role:mahasiswa');
         Route::delete('/{id}', [SelangController::class, 'destroy'])->name('destroy')->middleware('role:mahasiswa');
-        Route::post('/export/data', [SelangController::class, 'export'])->name('export')->middleware('role:staff,dekanat,subkoor,adminprodi');
+        Route::post('/export/data', [SelangController::class, 'export'])->name('export')->middleware('role:staff,dekanat,subkoor');
         Route::post('/proses/{id}', [SelangController::class, 'proses'])->name('proses')->middleware('role:staff,fo');
     });
     
@@ -265,17 +265,18 @@ Route::middleware('auth')->group(function () {
     });
     
     Route::name('diluarJadwal.')->prefix('diluarJadwal')->group(function () {
-        Route::get('/', [DiluarJadwalController::class, 'index'])->name('index')->middleware('role:mahasiswa,staff,dekanat,subkoor,fo');
+        Route::get('/', [DiluarJadwalController::class, 'index'])->name('index')->middleware('role:mahasiswa,staff,dekanat,subkoor,fo,adminprodi');
         Route::get('/listMahasiswa', [DiluarJadwalController::class, 'listMahasiswa'])->name('listMahasiswa')->middleware('role:mahasiswa');
         Route::get('/listStaff', [DiluarJadwalController::class, 'listStaff'])->name('listStaff')->middleware('role:staff');
-        Route::get('/listFo', [DiluarJadwalController::class, 'listFo'])->name('listFo')->middleware('role:fo');
+        Route::get('/listFo', [DiluarJadwalController::class, 'listFo'])->name('listFo')->middleware('role:fo,adminprodi');
         Route::get('/listDekanat', [DiluarJadwalController::class, 'listDekanat'])->name('listDekanat')->middleware('role:dekanat,subkoor');
+        Route::get('/listAdminProdi', [DiluarJadwalController::class, 'listAdminProdi'])->name('listAdminProdi')->middleware('role:adminprodi');
         Route::post('/setting/update', [DiluarJadwalController::class, 'setting'])->name('setting')->middleware('role:staff');
         Route::post('/store', [DiluarJadwalController::class, 'store'])->name('store')->middleware('role:mahasiswa,staff');
-        Route::post('/show/{id}', [DiluarJadwalController::class, 'show'])->name('show')->middleware('role:mahasiswa,staff,dekanat,subkoor,fo');
+        Route::post('/show/{id}', [DiluarJadwalController::class, 'show'])->name('show')->middleware('role:mahasiswa,staff,dekanat,subkoor,fo,adminprodi');
         Route::post('/revisi/{id}', [DiluarJadwalController::class, 'revisi'])->name('revisi')->middleware('role:mahasiswa');
         Route::delete('/{id}', [DiluarJadwalController::class, 'destroy'])->name('destroy')->middleware('role:mahasiswa');
-        Route::post('/export/data', [DiluarJadwalController::class, 'export'])->name('export')->middleware('role:staff,dekanat,subkoor');
+        Route::post('/export/data', [DiluarJadwalController::class, 'export'])->name('export')->middleware('role:staff,dekanat,subkoor,adminprodi');
         Route::post('/proses/{id}', [DiluarJadwalController::class, 'proses'])->name('proses')->middleware('role:staff,fo');
     });
 
@@ -288,19 +289,20 @@ Route::middleware('auth')->group(function () {
     Route::name('TA.')->prefix('TA')->group(function () {
         Route::get('/', [LembarPengesahanTAController::class, 'listFo'])->name('listFo')->middleware('role:fo');
         Route::get('/listDekanat', [LembarPengesahanTAController::class, 'listDekanat'])->name('listDekanat')->middleware('role:dekanat,subkoor');
-        Route::post('/TA', [LembarPengesahanTAController::class, 'store'])->name('store')->middleware('role:mahasiswa,fo');
-        Route::get('/show/{id}', [LembarPengesahanTAController::class, 'showTA'])->name('show')->middleware('role:mahasiswa,staff,dekanat,subkoor,fo');
+        Route::post('/TA', [LembarPengesahanTAController::class, 'store'])->name('store')->middleware('role:mahasiswa,fo,adminprodi');
+        Route::get('/show/{id}', [LembarPengesahanTAController::class, 'showTA'])->name('show')->middleware('role:mahasiswa,staff,dekanat,subkoor,fo,adminprodi');
         Route::post('/proses/{id}', [LembarPengesahanTAController::class, 'proses'])->name('proses')->middleware('role:fo');
         Route::delete('/delete/{id}', [LembarPengesahanTAController::class, 'destroy'])->name('destroy')->middleware('role:fo');
     });
     Route::name('skl.')->prefix('skl')->group(function () {
-        Route::get('/', [SKLController::class, 'index'])->name('index')->middleware('role:mahasiswa,staff,dekanat,subkoor,fo');
+        Route::get('/', [SKLController::class, 'index'])->name('index')->middleware('role:mahasiswa,staff,dekanat,subkoor,fo,adminprodi');
         Route::get('/listStaff', [SKLController::class, 'listStaff'])->name('listStaff')->middleware('role:staff');
         Route::get('/listFo', [SKLController::class, 'listFo'])->name('listFo')->middleware('role:fo');
         Route::get('/listDekanat', [SKLController::class, 'listDekanat'])->name('listDekanat')->middleware('role:dekanat,subkoor');
-        Route::post('/export/data', [SKLController::class, 'export'])->name('export')->middleware('role:staff,dekanat,subkoor');
+        Route::get('/listAdminProdi', [SKLController::class, 'listAdminProdi'])->name('listAdminProdi')->middleware('role:adminprodi');
+        Route::post('/export/data', [SKLController::class, 'export'])->name('export')->middleware('role:staff,dekanat,subkoor,adminprodi');
         Route::post('/store', [SKLController::class, 'store'])->name('store')->middleware('role:mahasiswa');
-        Route::post('/show/{id}', [SKLController::class, 'show'])->name('show')->middleware('role:mahasiswa,staff,dekanat,subkoor,fo');
+        Route::post('/show/{id}', [SKLController::class, 'show'])->name('show')->middleware('role:mahasiswa,staff,dekanat,subkoor,fo,adminprodi');
         Route::post('/revisi/{id}', [SKLController::class, 'revisi'])->name('revisi')->middleware('role:mahasiswa');
         Route::post('/proses/{id}', [SKLController::class, 'proses'])->name('proses')->middleware('role:staff,fo');
     });

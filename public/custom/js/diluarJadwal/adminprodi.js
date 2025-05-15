@@ -19,7 +19,7 @@ $(document).ready(function() {
                 { data: "no_surat" },
                 { data: "tanggal_ambil" },
                 { data: "action" },
-                { data: "catatan" },
+                { data: "catatan" }
             ],
             columnDefs: [
                 {
@@ -27,8 +27,20 @@ $(document).ready(function() {
                     width: "3%",
                     targets: [1],
                 },
+                {
+                    width: "10%",
+                    targets: [4],
+                },
+                {
+                    className: "text-wrap",
+                    targets: [3],
+                }
             ],
-            order: [[2, "asc"]],
+            lengthMenu: [
+                [5, 10, 25, 50, -1],
+                [5, 10, 25, 50, "All"],
+            ],
+            order: [[0, "desc"]],
         });
     };
 
@@ -53,7 +65,7 @@ $(document).ready(function() {
     });
 
     setInterval(function () {
-        table.ajax.reload(null, false); // user paging is not reset on reload
+        table.ajax.reload(null, false);
     }, 300000);
 
     $("#show_data").on("click", ".btn-detail", function () {
@@ -75,12 +87,22 @@ $(document).ready(function() {
                     $("#detail-nim").html(": " + res.data.user.nim);
                     $("#detail-prodi").html(": " + res.data.user.prodis.name);
                     $("#detail-email").html(": " + res.data.user.email);
+                    $("#detail-semester").html(": " + res.data.semester_romawi);
                     $("#detail-tahun-akademik").html(": " + res.data.tahun_akademik.tahun_akademik + ' - ' + res.data.semester.semester);
                     $("#detail-alasan").html(": " + res.data.alasan);
-                    $("#detail-file").attr(
+                    $("#detail-bayar").html(": " + res.data.tgl_bayar);
+                    $("#detail-surat-permohonan").attr(
                         "href",
-                        `${window.Laravel.baseUrl}/storage/selang/upload/${res.data.file}`
+                        `${window.Laravel.baseUrl}/storage/diluar_jadwal/upload/surat_permohonan/${res.data.surat_permohonan}`
                     );
+                    $("#detail-bukti-bayar-ukt").attr(
+                        "href",
+                        `${window.Laravel.baseUrl}/storage/diluar_jadwal/upload/bukti_bayar_ukt/${res.data.bukti_bayar_ukt}`
+                    );
+                    let detail_izin_cuti = res.data.izin_cuti
+                        ? `: <a href="${window.Laravel.baseUrl}/storage/diluar_jadwal/upload/izin_cuti/${res.data.izin_cuti}" target="_blank" class="btn btn-primary btn-small"><i class="fa fa-file"></i> Lihat File</a>`
+                        : `: Tidak memiliki Izin Cuti`;
+                    $("#detail-izin-cuti").append(detail_izin_cuti);
                     $("#detail-catatan").html(
                         res.data.catatan ? ": " + res.data.catatan : ":"
                     );
@@ -94,7 +116,6 @@ $(document).ready(function() {
                         "class",
                         `btn ${res.data.status.color} btn-small`
                     );
-                    // let canProses = [1, 3, 4];
                     let canProses = ["1", "3", "4"];
                     if (canProses.includes(res.data.status_id)) {
                         $("#tombol-proses").data("id", id);
@@ -121,5 +142,4 @@ $(document).ready(function() {
             },
         });
     });
-
 });

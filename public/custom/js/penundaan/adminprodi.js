@@ -12,13 +12,13 @@ $(document).ready(function() {
             columns: [
                 { data: "created_at", visible: false },
                 { data: "DT_RowIndex" },
-                { data: "tanggal_submit" },
+                { data: "status_id" },
                 { data: "user.name" },
                 { data: "user.nim" },
                 { data: "nama_prodi" },
-                { data: "status_id" },
-                { data: "catatan" },
-                { data: "action" }
+                { data: "tanggal_submit" },
+                { data: "action" },
+                { data: "catatan" }
             ],
             columnDefs: [
                 {
