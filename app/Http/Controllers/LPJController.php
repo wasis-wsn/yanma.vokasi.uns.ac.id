@@ -200,6 +200,50 @@ class LPJController extends Controller
             ->toJson();
     }
 
+    public function listAdminProdi(Request $request)
+    {
+        $data = Lpj::with('suratTugas', 'sik', 'status');
+        if ($request->status != 'all') $data = $data->where('status_id', $request->status);
+        $data = $data->orderBy('created_at', 'desc')->get();
+
+        return DataTables::of($data)
+            ->addIndexColumn()
+            ->editColumn('id', function ($row) {
+                $aksi = '';
+                if ($row->file) { // status sudah upload, revisi
+                    $aksi .= '<a href="' . asset('storage/lpj/' . $row->file) . '" class="btn btn-success btn-sm" target="_blank">
+                                <i class="fa fa-file"></i> Lihat LPJ
+                            </a>';
+                }
+                return $aksi;
+            })
+            ->addColumn('no_surat', function ($row) {
+                if ($row->suratTugas) {
+                    $btn = '<a href="' . asset('storage/surat_tugas/hasil/' . $row->suratTugas->surat_hasil) . '" class="btn btn-primary btn-sm" target="_blank">
+                                <i class="fa fa-file"></i>
+                            </a>';
+                    return $row->suratTugas->no_surat . $btn;
+                } else {
+                    $btn = '<a href="' . asset('storage/sik/hasil/' . $row->sik->surat_hasil) . '" class="btn btn-primary btn-sm" target="_blank">
+                                <i class="fa fa-file"></i>
+                            </a>';
+                    return $row->sik->no_surat . $btn;
+                }
+            })
+            ->addColumn('nama_kegiatan', function ($row) {
+                if ($row->suratTugas) {
+                    return $row->suratTugas->nama_kegiatan;
+                } else {
+                    return $row->sik->nama_kegiatan;
+                }
+            })
+            ->editColumn('status_id', function ($row) {
+                return '<button type="button" class="btn ' . $row->status->color . ' btn-sm" disabled>' . $row->status->name . '</button>';
+            })
+            ->rawColumns(['id', 'no_surat', 'status_id'])
+            ->toJson();
+    }
+
     public function upload(Request $request, $id)
     {
         $request->validate([

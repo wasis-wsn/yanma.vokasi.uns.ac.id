@@ -74,7 +74,7 @@
                                 @can('mahasiswa')
                                     <h4 class="card-title">Layanan Surat Keterangan Lulus</h4>
                                 @endcan
-                                @canany(['dekanat','subkoor','fo'])
+                                @canany(['dekanat','subkoor','fo','adminprodi'])
                                     <h4 class="card-title">Pengajuan TTD TA</h4>
                                 @endcanany
                             </div>
@@ -143,7 +143,7 @@
                                     <button type="button" class="btn btn-primary mx-2" id="tambahTA">Tambah Ajuan</button>
                                 </div>
                             @endcan
-                            @canany(['dekanat','subkoor','fo'])
+                            @canany(['dekanat','subkoor','fo','adminprodi'])
                                 <div class="d-flex justify-content-end pb-4">
                                     <div class="dropdown mx-2">
                                         <button class="btn btn-light btn-sm dropdown-toggle" type="button" id="status_ta" data-bs-toggle="dropdown" data-status="all" aria-expanded="false">Semua</button>
@@ -295,14 +295,23 @@
                             </div>
                         </div>
                         <div class="card-body">
-                            @canany(['staff','dekanat','subkoor'])
+                            @canany(['staff','dekanat','subkoor','adminprodi'])
                                 <div class="d-flex justify-content-end pb-4 px-4">
                                     <button type="button" class="btn btn-success mx-2" id="btn-export">Export Data</button>
                                 </div>
                             @endcanany
                             <div class="d-flex justify-content-end pb-4">
                                 <div class="dropdown mx-2">
-                                    <button class="btn btn-light btn-sm dropdown-toggle" type="button" id="statusDropdown" data-bs-toggle="dropdown" data-status="all" aria-expanded="false">Semua</button>
+                                    <button class="btn btn-light btn-sm dropdown-toggle" type="button" id="prodiDropdown" data-bs-toggle="dropdown" data-prodi="all" aria-expanded="false">Prodi</button>
+                                    <ul class="dropdown-menu" aria-labelledby="prodiDropdown">
+                                        <li><a class="dropdown-item prodi-menu" href="#" data-prodi="all">Semua</a></li>
+                                        @foreach ($prodis as $prodi)
+                                        <li><a class="dropdown-item prodi-menu" href="#" data-prodi="{{ $prodi->id }}">{{ $prodi->name }}</a></li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                                <div class="dropdown mx-2">
+                                    <button class="btn btn-light btn-sm dropdown-toggle" type="button" id="statusDropdown" data-bs-toggle="dropdown" data-status="all" aria-expanded="false">Status</button>
                                     <ul class="dropdown-menu" aria-labelledby="statusDropdown">
                                         <li><a class="dropdown-item status-menu" href="#" data-status="all">Semua</a></li>
                                         @foreach ($status as $st)
@@ -323,9 +332,8 @@
                                 <table id="skl-datatable" class="table table-striped" width="100%">
                                     <thead>
                                         <tr>
-                                            @can('staff')
-                                                <th hidden>created_at</th>
-                                            @endcan
+                                            
+                                            <th hidden>created_at</th>
                                             <td>No</td>
                                             <td>Nama</td>
                                             <td>NIM</td>
@@ -389,7 +397,7 @@
         <script>
             var year = $("#tahunDropdown").html();
             var status_table = $("#statusDropdown").data('status');
-
+            var prodi_table = $("#prodiDropdown").data('prodi');
             window.Laravel = {};
             window.Laravel.skl = {!! json_encode([
                 'baseUrl' => url('/'),
@@ -401,12 +409,13 @@
         </script>
         <script src="{{ asset('custom/js/skl/staff.js') }}?q{{Str::random(5)}}"></script>
     @endcan
+    {{-- Front Office Scripts --}}
     @can('fo')
+        {{-- TA Scripts --}}
         <script>
-            var year_ta = $("#tahun_ta").html();
-            var status_table_ta = $("#status_ta").data('status');
-            var year = $("#tahunDropdown").html();
-            var status_table = $("#statusDropdown").data('status');
+            let year_ta = $("#tahun_ta").html();
+            let status_table_ta = $("#status_ta").data('status');
+            
             window.Laravel = {};
             window.Laravel.TA = {!! json_encode([
                 'listData' => route('TA.listFo'),
@@ -416,6 +425,15 @@
                 'routeShow' => route('TA.show', ':id'),
                 'deleteData' => route('TA.destroy', ':id'),
             ]) !!};
+        </script>
+        <script src="{{ asset('custom/js/ta/fo.js') }}?q{{Str::random(5)}}"></script>
+
+        {{-- SKL Scripts --}}
+        <script>
+            let year = $("#tahunDropdown").html();
+            let status_table = $("#statusDropdown").data('status');
+            let prodi_table = $("#prodiDropdown").data('prodi');
+            
             window.Laravel.skl = {!! json_encode([
                 'baseUrl' => url('/'),
                 'listData' => route('skl.listFo'),
@@ -425,17 +443,28 @@
         </script>
         <script src="{{ asset('custom/js/skl/fo.js') }}?q{{Str::random(5)}}"></script>
     @endcan
-    @canany(['dekanat','subkoor'])
+
+    {{-- Dekanat Scripts --}}
+    @canany(['dekanat','subkoor','adminprodi'])
+        {{-- TA Scripts --}}
         <script>
-            var year_ta = $("#tahun_ta").html();
-            var status_table_ta = $("#status_ta").data('status');
-            var year = $("#tahunDropdown").html();
-            var status_table = $("#statusDropdown").data('status');
+            let year_ta = $("#tahun_ta").html();
+            let status_table_ta = $("#status_ta").data('status');
+            
             window.Laravel = {};
             window.Laravel.TA = {!! json_encode([
                 'listData' => route('TA.listDekanat'),
                 'routeShow' => route('TA.show', ':id'),
             ]) !!};
+        </script>
+        <script src="{{ asset('custom/js/ta/dekanat.js') }}?q{{Str::random(5)}}"></script>
+
+        {{-- SKL Scripts --}}
+        <script>
+            let year = $("#tahunDropdown").html();
+            let status_table = $("#statusDropdown").data('status');
+            let prodi_table = $("#prodiDropdown").data('prodi');
+            
             window.Laravel.skl = {!! json_encode([
                 'baseUrl' => url('/'),
                 'export' => route('skl.export'),

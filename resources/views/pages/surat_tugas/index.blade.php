@@ -95,7 +95,7 @@
                             @include('pages.surat_tugas.modal_tambah')
                             @include('pages.surat_tugas.modal_edit')
                         @endcan
-                        @canany(['staff','dekanat','subkoor'])
+                        @canany(['staff','dekanat','subkoor','adminprodi'])
                             <div class="d-flex justify-content-start pb-4">
                                 <button type="button" class="btn btn-success mx-2" id="btn-export">Export Data</button>
                             </div>
@@ -138,7 +138,7 @@
                                             <th>Catatan</th>
                                             <th>Aksi</th>
                                         @endcan
-                                        @canany(['staff','dekanat','subkoor'])
+                                        @canany(['staff','dekanat','subkoor','adminprodi'])
                                             <th hidden>created_at</th>
                                             <th>No</th>
                                             <th>Nama</th>
@@ -275,4 +275,18 @@
         </script>
         <script src="{{ asset('custom/js/surat_tugas/dekanat.js') }}?q{{Str::random(5)}}"></script>
     @endcanany
+    @can('adminprodi')
+        <script>
+            var year = $("#tahunDropdown").html();
+            var status_table = $("#statusDropdown").data('status');
+            window.Laravel = {!! json_encode([
+                'baseUrl' => url('/'),
+                'export' => route('st.export'),
+                'listData' => route('st.listAdminProdi'),
+                'getData' => route('st.show', ':id'),
+                'routeProses' => route('st.proses', ':id'),
+            ]) !!};
+        </script>
+        <script src="{{ asset('custom/js/surat_tugas/adminprodi.js') }}?q{{Str::random(5)}}"></script>
+    @endcan
 @endpush

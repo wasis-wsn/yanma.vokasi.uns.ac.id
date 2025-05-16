@@ -34,8 +34,16 @@ class SKLController extends Controller
     public function listStaff(Request $request)
     {
         $list = SKL::with('user.prodis', 'status')->whereYear('created_at', $request->year);
-        if ($request->status != 'all') $list = $list->where('status_id', $request->status);
-        $list = $list->orderBy('created_at', 'desc')->get();
+        if ($request->status != 'all') {
+            $list = $list->where('status_id', $request->status);
+        }
+        
+        // Uncomment dan perbaiki filter prodi
+        if ($request->prodi != 'all') {
+            $list = $list->whereHas('user', function($query) use ($request) {
+                $query->where('prodi', $request->prodi);
+            });
+        }
 
         return DataTables::of($list)
             ->addIndexColumn()
@@ -86,9 +94,18 @@ class SKLController extends Controller
 
     public function listFo(Request $request)
     {
-        $list = SKL::with('user.prodis', 'status')->whereYear('created_at', $request->year);
-        if ($request->status != 'all') $list = $list->where('status_id', $request->status);
-        $list = $list->orderBy('created_at', 'desc')->get();
+        $list = SKL::with('user.prodis', 'status')
+            ->whereYear('created_at', $request->year);
+            
+        if ($request->status != 'all') {
+            $list = $list->where('status_id', $request->status);
+        }
+        
+        if ($request->prodi != 'all') {
+            $list = $list->whereHas('user', function($query) use ($request) {
+                $query->where('prodi', $request->prodi);
+            });
+        }
 
         return DataTables::of($list)
             ->addIndexColumn()
@@ -133,52 +150,9 @@ class SKLController extends Controller
 
     public function listDekanat(Request $request)
     {
-        $list = SKL::with('user.prodis', 'status')->whereYear('created_at', $request->year);
-        if ($request->status != 'all') $list = $list->where('status_id', $request->status);
-        $list = $list->orderBy('created_at', 'desc')->get();
-
-        return DataTables::of($list)
-            ->addIndexColumn()
-            ->addColumn('action', function ($row) {
-                $aksi = '<button type="button" class="btn btn-info btn-sm btn-detail" data-id="' . encodeId($row->id) . '">
-                            <i class="fa fa-eye"></i> Review
-                        </button>';
-                return $aksi;
-            })
-            ->editColumn('tanggal_submit', function ($row) {
-                return Carbon::parse($row->created_at)->translatedFormat('d F Y') . '<br/>' . Carbon::parse($row->created_at)->translatedFormat('H:i:s') . ' WIB';
-            })
-            ->editColumn('tanggal_proses', function ($row) {
-                $tanggal_proses = $row->tanggal_proses;
-                if ($tanggal_proses) {
-                    $tanggal_proses = Carbon::parse($row->tanggal_proses)->translatedFormat('d F Y') . '<br/>' . Carbon::parse($row->tanggal_proses)->translatedFormat('H:i:s') . ' WIB';
-                }
-                return $tanggal_proses;
-            })
-            ->editColumn('status_id', function ($row) {
-                return '<button type="button" class="btn ' . $row->status->color . ' btn-sm" disabled>' . $row->status->name . '</button>';
-            })
-            ->editColumn('tanggal_ambil', function ($row) {
-                $tanggal_ambil = $row->tanggal_ambil;
-                if ($tanggal_ambil) {
-                    $tanggal_ambil = Carbon::parse($row->tanggal_ambil)->translatedFormat('d F Y') . '<br/>' . Carbon::parse($row->tanggal_ambil)->translatedFormat('H:i:s') . ' WIB';
-                }
-                return $tanggal_ambil;
-            })
-            ->addColumn('nama_prodi', function ($row) {
-                return wordwrap($row->user->prodis->name, 20, "<br>");
-            })
-            ->editColumn('catatan', function ($row) {
-                return wordwrap($row->catatan, 20, "<br>");
-            })
-            ->rawColumns(['action', 'tanggal_submit', 'status_id', 'tanggal_proses', 'tanggal_ambil', 'nama_prodi', 'catatan'])
-            ->toJson();
-    }
-
-    public function listAdminProdi(Request $request)
-    {
-        $list = SKL::with('user.prodis', 'status')->whereYear('created_at', $request->year);
-        
+        $list = SKL::with('user.prodis', 'status')
+            ->whereYear('created_at', $request->year);
+            
         if ($request->status != 'all') {
             $list = $list->where('status_id', $request->status);
         }
@@ -188,8 +162,6 @@ class SKLController extends Controller
                 $query->where('prodi', $request->prodi);
             });
         }
-        
-        $list = $list->orderBy('created_at', 'desc');
 
         return DataTables::of($list)
             ->addIndexColumn()
@@ -218,7 +190,13 @@ class SKLController extends Controller
                 }
                 return $tanggal_ambil;
             })
-            ->rawColumns(['action', 'tanggal_submit', 'status_id', 'tanggal_proses', 'tanggal_ambil'])
+            ->addColumn('nama_prodi', function ($row) {
+                return wordwrap($row->user->prodis->name, 20, "<br>");
+            })
+            ->editColumn('catatan', function ($row) {
+                return wordwrap($row->catatan, 20, "<br>");
+            })
+            ->rawColumns(['action', 'tanggal_submit', 'status_id', 'tanggal_proses', 'tanggal_ambil', 'nama_prodi', 'catatan'])
             ->toJson();
     }
 

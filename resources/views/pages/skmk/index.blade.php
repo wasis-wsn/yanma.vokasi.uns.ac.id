@@ -61,7 +61,7 @@
                             @include('pages.skmk.modal_tambah')
                             @include('pages.skmk.modal_edit')
                         @endcan
-                        @canany(['staff','dekanat','subkoor'])
+                        @canany(['staff','dekanat','subkoor','adminprodi'])
                             <div class="d-flex justify-content-start pb-4">
                                 <button type="button" class="btn btn-success mx-2" id="btn-export">Export Data</button>
                             </div>
@@ -101,7 +101,7 @@
                                             <th>Catatan</th>
                                             <th>Aksi</th>
                                         @endcan
-                                        @canany(['staff','dekanat','subkoor'])
+                                        @canany(['staff','dekanat','subkoor','adminprodi'])
                                             <th hidden>created_at</th>
                                             <th>No</th>
                                             <th>Tanggal Submit</th>
@@ -178,5 +178,19 @@
             ]) !!};
         </script>
         <script src="{{ asset('custom/js/skmk/dekanat.js') }}?q{{Str::random(5)}}"></script>
+    @endcanany
+
+    @canany(['adminprodi'])
+        <script>
+            var year = $("#tahunDropdown").html();
+            var status_table = $("#statusDropdown").data('status');
+            window.Laravel = {!! json_encode([
+                'baseUrl' => url('/'),
+                'export' => route('skmk.export'),
+                'listData' => route('skmk.listAdminProdi'),
+                'getData' => route('skmk.show', ':id'),
+            ]) !!};
+        </script>
+        <script src="{{ asset('custom/js/skmk/adminprodi.js') }}?q{{Str::random(5)}}"></script>
     @endcanany
 @endpush

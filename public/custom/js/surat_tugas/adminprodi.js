@@ -1,55 +1,55 @@
-const initializeDataTableSKL = (status, year, prodi) => {
-    return $("#skl-datatable").DataTable({
+const initializeDataTable = (status, year) => {
+    return $("#suket-datatable").DataTable({
         processing: true,
         serverSide: true,
         destroy: true,
-        ajax: `${window.Laravel.skl.listData}?status=${status}&year=${year}&prodi=${prodi}`, // Perbaiki path
+        ajax: `${window.Laravel.listData}?status=${status}&year=${year}`,
         columns: [
             { data: "created_at", visible: false },
             { data: "DT_RowIndex" },
             { data: "user.name" },
             { data: "user.nim" },
-            { data: "user.prodis.name" },
             { data: "tanggal_submit" },
             { data: "tanggal_proses" },
-            { data: "status_id" },
+            { data: "nama_kegiatan" },
+            { data: "mulai_kegiatan" },
             { data: "no_surat" },
-            { data: "action" },
-            { data: "tanggal_ambil" },
+            { data: "status_id" },
             { data: "catatan" },
+            { data: "action" },
         ],
         columnDefs: [
             {
                 className: "text-center",
                 width: "3%",
-                targets: [0],
-            },
-            {
-                width: "5%",
-                targets: [3],
-            },
-            {
-                className: "btn-group-vertical",
-                targets: [8],
+                targets: [1],
             },
             {
                 className: "text-wrap",
-                targets: [1, 3],
+                targets: [2],
+            },
+            {
+                className: "btn-group-vertical",
+                targets: [11],
+                orderable: false,
+                searchable: false,
             },
         ],
         lengthMenu: [
             [5, 10, 25, 50, -1],
             [5, 10, 25, 50, 'All']
         ],
+        order: [[0, "desc"]],
     });
 };
 
-let table = initializeDataTableSKL(status_table, year, prodi_table);
+let table = initializeDataTable(status_table, year);
 
 $(".tahun-menu").click(function () {
     year = $(this).data("year");
     $("#tahunDropdown").html(year);
-    table = initializeDataTableSKL(status_table, year, prodi_table);
+    refreshCount();
+    table = initializeDataTable(status_table, year);
 });
 
 $('#btn-export').click(function () {
@@ -60,24 +60,18 @@ $('#btn-export').click(function () {
 $(".status-menu").click(function () {
     status_table = $(this).data("status");
     $("#statusDropdown").html($(this).html());
-    table = initializeDataTableSKL(status_table, year, prodi_table);
-});
-
-// Add prodi filter handler
-$(".prodi-menu").click(function () {
-    prodi_table = $(this).data("prodi");
-    $("#prodiDropdown").html($(this).html());
-    table = initializeDataTableSKL(status_table, year, prodi_table);
+    table = initializeDataTable(status_table, year);
 });
 
 setInterval(function () {
+    refreshCount();
     table.ajax.reload(null, false); // user paging is not reset on reload
 }, 300000);
 
-$("#show_data_skl").on("click", ".btn-detail", function () {
+$("#show_data").on("click", ".btn-detail", function () {
     let id = $(this).data("id");
 
-    let url = window.Laravel.skl.getData.replace(":id", id);
+    let url = window.Laravel.getData.replace(":id", id);
 
     $.ajax({
         url: url,
@@ -87,24 +81,35 @@ $("#show_data_skl").on("click", ".btn-detail", function () {
         },
         success: function (res) {
             if (res.status) {
+                $("#detail-kegiatan").html(": " + res.data.nama_kegiatan);
                 $("#detail-nama").html(": " + res.data.user.name);
                 $("#detail-nim").html(": " + res.data.user.nim);
                 $("#detail-prodi").html(": " + res.data.user.prodis.name);
-                $("#detail-lembar-persetujuan").attr(
-                    "href",
-                    `${window.Laravel.skl.baseUrl}/storage/skl/upload/${res.data.lembar_revisi}`
+                $("#detail-no-wa").html(": " + res.data.user.no_wa);
+                $("#detail-tanggal-kegiatan").html(
+                    ": " + res.data.tanggal_kegiatan
                 );
-                $("#detail-ss-bukti").attr(
+                $("#detail-penyelenggara").html(": " + res.data.penyelenggara);
+                $("#detail-tempat-kegiatan").html(": " + res.data.tempat);
+                $("#detail-delegasi").html(": " + res.data.delegasi);
+                $("#detail-peserta").html(": " + res.data.jumlah_peserta);
+                $("#detail-dospem").html(": " + res.data.dospem);
+                $("#detail-nip-dospem").html(": " + res.data.nip_dospem);
+                $("#detail-nidn-dospem").html(": " + res.data.nidn_dospem);
+                $("#detail-unit-dospem").html(": " + res.data.unit_dospem);
+                $("#detail-file").attr(
                     "href",
-                    `${window.Laravel.skl.baseUrl}/storage/skl/upload/${res.data.ss_ajuan_skl}`
+                    `${window.Laravel.baseUrl}/storage/surat_tugas/upload/${res.data.file}`
                 );
-                $("#detail-catatan").html(": " + res.data.catatan);
+                $("#detail-no").html(res.data.no_surat ? res.data.no_surat : ':');
+                $("#detail-catatan").html(res.data.catatan ? res.data.catatan : ':');
+                $("#detail-proses").html(res.data.tanggal_proses ? res.data.tanggal_proses : ':');
                 $("#detail-status").html(res.data.status.name);
                 $("#detail-status").attr(
                     "class",
                     `btn ${res.data.status.color} btn-small`
                 );
-                $("#modalDetailSKL").modal("show");
+                $("#modalDetail").modal("show");
             } else {
                 Swal.fire({
                     title: "Error!",

@@ -204,6 +204,54 @@ class SIKController extends Controller
             ->toJson();
     }
 
+    public function listAdminProdi(Request $request)
+    {
+        $list = SIK::with('ketua.prodis', 'status', 'ormawa.pembina')->whereYear('created_at', $request->year);
+        if ($request->status != 'all') $list = $list->where('status_id', $request->status);
+        $list = $list->orderBy('created_at', 'desc')->get();
+
+        return DataTables::of($list)
+            ->addIndexColumn()
+            ->addColumn('id', function ($row) {
+                $aksi = '<button type="button" class="btn btn-info btn-sm btn-detail" data-id="' . encodeId($row->id) . '">
+                            <i class="fa fa-eye"></i> Review
+                        </button>';
+                return $aksi;
+            })
+            ->editColumn('tanggal_submit', function ($row) {
+                return Carbon::parse($row->created_at)->translatedFormat('d F Y') . '<br/>' . Carbon::parse($row->created_at)->translatedFormat('H:i:s');
+            })
+            ->editColumn('tanggal_proses', function ($row) {
+                $tanggal_proses = $row->tanggal_proses;
+                if ($tanggal_proses) {
+                    $tanggal_proses = Carbon::parse($row->tanggal_proses)->translatedFormat('d F Y') . '<br/>' 
+                    . Carbon::parse($row->tanggal_proses)->translatedFormat('H:i:s') . ' WIB';
+                }
+                return $tanggal_proses;
+            })
+            ->editColumn('mulai_kegiatan', function ($row) {
+                return Carbon::parse($row->mulai_kegiatan)->translatedFormat('d F Y H:i') . ' -<br/>' . Carbon::parse($row->selesai_kegiatan)->translatedFormat('d F Y H:i') . ' WIB';
+            })
+            ->editColumn('status_id', function ($row) {
+                return '<button type="button" class="btn ' . $row->status->color . ' btn-sm" disabled>' . $row->status->name . '</button>';
+            })
+            ->editColumn('is_dana', function ($row) {
+                $jenis = $row->is_dana == '0' ? 'Non Dana' : 'Dana';
+                return $jenis;
+            })
+            ->editColumn('nama_kegiatan', function ($row) {
+                return wordwrap($row->nama_kegiatan, 20, '<br>');
+            })
+            ->editColumn('tempat', function ($row) {
+                return wordwrap($row->tempat, 20, '<br>');
+            })
+            ->editColumn('catatan', function ($row) {
+                return wordwrap($row->catatan, 20, '<br>');
+            })
+            ->rawColumns(['id', 'tanggal_submit', 'tanggal_proses', 'status_id', 'mulai_kegiatan', 'is_dana', 'nama_kegiatan', 'tempat', 'catatan'])
+            ->toJson();
+    }
+
     public function store(Request $request)
     {
         $request->validate([

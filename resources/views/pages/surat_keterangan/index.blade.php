@@ -111,7 +111,7 @@
                                             <th>Tanggal Proses</th>
                                             <th>Aksi</th>
                                         @endcan
-                                        @canany(['staff','dekanat','subkoor'])
+                                        @canany(['staff','dekanat','subkoor','adminprodi'])
                                             <th hidden>created_at</th>
                                             <th>No</th>
                                             <th>Nama</th>
@@ -189,5 +189,18 @@
             ]) !!};
         </script>
         <script src="{{ asset('custom/js/surat_keterangan/dekanat.js') }}?q{{Str::random(5)}}"></script>
+    @endcanany
+    @canany('adminprodi')
+        <script>
+            var year = $("#tahunDropdown").html();
+            var status_table = $("#statusDropdown").data('status');
+            window.Laravel = {!! json_encode([
+                'baseUrl' => url('/'),
+                'export' => route('suket.export'),
+                'listData' => route('suket.listAdminProdi'),
+                'getData' => route('suket.show', ':id'),
+            ]) !!};
+        </script>
+        <script src="{{ asset('custom/js/surat_keterangan/adminprodi.js') }}?q{{Str::random(5)}}"></script>
     @endcanany
 @endpush

@@ -177,6 +177,46 @@ class SuratTugasController extends Controller
             ->toJson();
     }
 
+    public function listAdminProdi(Request $request)
+    {
+        $list = SuratTugas::with('user.prodis', 'status')->whereYear('created_at', $request->year);
+        if ($request->status != 'all') $list = $list->where('status_id', $request->status);
+        $list = $list->orderBy('created_at', 'desc')->get();
+
+        return DataTables::of($list)
+            ->addIndexColumn()
+            ->addColumn('action', function ($row) {
+                $aksi = '<button type="button" class="btn btn-info btn-sm btn-detail" data-id="' . encodeId($row->id) . '">
+                            <i class="fa fa-eye"></i> Review
+                        </button>';
+                return $aksi;
+            })
+            ->addColumn('tanggal_submit', function ($row) {
+                return Carbon::parse($row->created_at)->translatedFormat('d F Y') . '<br>' . Carbon::parse($row->created_at)->translatedFormat('H:i:s');
+            })
+            ->editColumn('tanggal_proses', function ($row) {
+                $tanggal_proses = $row->tanggal_proses;
+                if ($tanggal_proses) {
+                    $tanggal_proses = Carbon::parse($row->tanggal_proses)->translatedFormat('d F Y') . '<br>' . Carbon::parse($row->tanggal_proses)->translatedFormat('H:i:s');
+                }
+                return $tanggal_proses;
+            })
+            ->editColumn('mulai_kegiatan', function ($row) {
+                return Carbon::parse($row->mulai_kegiatan)->translatedFormat('d F Y') . ' -<br/>' . Carbon::parse($row->selesai_kegiatan)->translatedFormat('d F Y');
+            })
+            ->editColumn('status_id', function ($row) {
+                return '<button type="button" class="btn ' . $row->status->color . ' btn-sm" disabled>' . $row->status->name . '</button>';
+            })
+            ->editColumn('catatan', function ($row) {
+                return wordwrap($row->catatan, 20, '<br>');
+            })
+            ->editColumn('nama_kegiatan', function ($row) {
+                return wordwrap($row->nama_kegiatan, 20, '<br>');
+            })
+            ->rawColumns(['action', 'tanggal_submit', 'tanggal_proses', 'mulai_kegiatan', 'status_id', 'catatan', 'nama_kegiatan'])
+            ->toJson();
+    }
+
     public function store(Request $request)
     {
         $request->validate([

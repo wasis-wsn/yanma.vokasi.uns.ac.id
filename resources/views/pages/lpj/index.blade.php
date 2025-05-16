@@ -56,7 +56,7 @@
                             @endif
                             @include('pages.lpj.modal_upload')
                         @endcanany
-                        @canany(['staff', 'dekanat','subkoor'])
+                        @canany(['staff', 'dekanat','subkoor','adminprodi'])
                             @can('staff')
                                 @include('modals.proses')
                             @endcan
@@ -93,7 +93,7 @@
                                             <th>Catatan</th>
                                             <th>Aksi</th>
                                         @endcan
-                                        @canany(['staff', 'dekanat','subkoor'])
+                                        @canany(['staff', 'dekanat','subkoor','adminprodi'])
                                             <th hidden>created_at</th>
                                             <th>No</th>
                                             <th>Nomor SIK / ST</th>
@@ -162,7 +162,16 @@
             ]) !!};
         </script>
     @endcanany
-    @canany(['staff','dekanat','subkoor'])
+    @can('adminprodi')
+        <script>
+            window.Laravel = {!! json_encode([
+                'baseUrl' => url('/'),
+                'listData' => route('lpj.listAdminProdi'),
+                'routeProses' => route('lpj.proses', ':id'),
+            ]) !!};
+        </script>
+    @endcan
+    @canany(['staff','dekanat','subkoor','adminprodi'])
         <script src="{{ asset('custom/js/lpj/staff.js') }}?q{{Str::random(5)}}"></script>
     @endcanany
 @endpush

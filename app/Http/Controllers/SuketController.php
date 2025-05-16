@@ -172,6 +172,42 @@ class SuketController extends Controller
             ->rawColumns(['action', 'tanggal_submit', 'keperluan', 'tanggal_proses', 'status_id', 'catatan'])
             ->toJson();
     }
+    public function listAdminProdi(Request $request)
+    {
+        $list = SuratKeterangan::with('user.prodis', 'status')->whereYear('created_at', $request->year);
+        if ($request->status != 'all') $list = $list->where('status_id', $request->status);
+        $list = $list->orderBy('created_at', 'desc')->get();
+
+        return DataTables::of($list)
+            ->addIndexColumn()
+            ->addColumn('action', function ($row) {
+                $aksi = '<button type="button" class="btn btn-info btn-sm btn-detail" data-id="' . encodeId($row->id) . '">
+                            <i class="fa fa-eye"></i> Review
+                        </button>';
+                return $aksi;
+            })
+            ->editColumn('tanggal_submit', function ($row) {
+                return Carbon::parse($row->created_at)->translatedFormat('d F Y') . '<br>' . Carbon::parse($row->created_at)->translatedFormat('H:i:s');
+            })
+            ->editColumn('keperluan', function ($row) {
+                return Str::of($row->keperluan)->limit(20); 
+            })
+            ->editColumn('tanggal_proses', function ($row) {
+                $tanggal_proses = $row->tanggal_proses;
+                if ($tanggal_proses) {
+                    $tanggal_proses = Carbon::parse($row->tanggal_proses)->translatedFormat('d F Y') . '<br>' . Carbon::parse($row->tanggal_proses)->translatedFormat('H:i:s');
+                }
+                return $tanggal_proses;
+            })
+            ->editColumn('status_id', function ($row) {
+                return '<button type="button" class="btn ' . $row->status->color . ' btn-sm" disabled>' . $row->status->name . '</button>';
+            })
+            ->editColumn('catatan', function ($row) {
+                return wordwrap($row->catatan, 20, '<br>');
+            })
+            ->rawColumns(['action', 'tanggal_submit', 'keperluan', 'tanggal_proses', 'status_id', 'catatan'])
+            ->toJson();
+    }
 
     public function store(Request $request)
     {

@@ -1,86 +1,87 @@
-const initializeDataTableSKL = (status, year, prodi) => {
-    return $("#skl-datatable").DataTable({
+let year = $("#tahunDropdown").html();
+let status_table = $("#statusDropdown").data('status');
+const initializeDataTable = (status, year) => {
+    return $("#suket-datatable").DataTable({
         processing: true,
         serverSide: true,
         destroy: true,
-        ajax: `${window.Laravel.skl.listData}?status=${status}&year=${year}&prodi=${prodi}`,
+        ajax: `${window.Laravel.listData}?status=${status}&year=${year}`,
         columns: [
             { data: "created_at", visible: false },
             { data: "DT_RowIndex" },
-            { data: "user.name" },
-            { data: "user.nim" },
-            { data: "user.prodis.name" },
-            { data: "created_at" },
-            { data: "tanggal_proses" },
-            { data: "status_id" },
             { data: "no_surat" },
-            { data: "action" },
-            { data: "tanggal_ambil" },
+            { data: "nama_kegiatan"},
+            { data: "status_id" },
             { data: "catatan" },
+            { data: "id" },
         ],
         columnDefs: [
             {
                 className: "text-center",
                 width: "3%",
-                targets: [0],
-            },
-            {
-                width: "5%",
-                targets: [3],
+                targets: [1],
             },
             {
                 className: "btn-group-vertical",
-                targets: [8],
-            },
-            {
-                className: "text-wrap",
-                targets: [1, 3],
+                targets: [6],
+                orderable: false,
+                searchable: false,
             },
         ],
         lengthMenu: [
             [5, 10, 25, 50, -1],
             [5, 10, 25, 50, 'All']
         ],
+        order: [[0, "desc"]],
     });
 };
 
-let table = initializeDataTableSKL(status_table, year, prodi_table);
+let table = initializeDataTable(status_table, year);
 
 $(".tahun-menu").click(function () {
     year = $(this).data("year");
     $("#tahunDropdown").html(year);
-    table = initializeDataTableSKL(status_table, year, prodi_table);
+    refreshCount();
+    table = initializeDataTable(status_table, year);
 });
 
 $(".status-menu").click(function () {
     status_table = $(this).data("status");
     $("#statusDropdown").html($(this).html());
-    table = initializeDataTableSKL(status_table, year, prodi_table);
-});
-
-$(".prodi-menu").click(function () {
-    prodi_table = $(this).data("prodi");
-    $("#prodiDropdown").html($(this).html());
-    table = initializeDataTableSKL(status_table, year, prodi_table);
+    $("#statusDropdown").data('status', status_table);
+    table = initializeDataTable(status_table, year);
 });
 
 setInterval(function () {
+    refreshCount();
     table.ajax.reload(null, false); // user paging is not reset on reload
 }, 300000);
 
-$("#show_data_skl").on("click", ".btn-proses", function () {
-    let id = $(this).data("id");
+$("#show_data").on("click", ".btn-validasi", function () {
+    showModalProses(this);
+});
 
-    let action = window.Laravel.skl.routeProses.replace(":id", id);
+// $("#tombol-proses").on("click", function () {
+//     $("#modalDetail").modal("hide");
+//     showModalProses(this);
+// });
 
-    $("#form-proses").attr("action", action);
+function showModalProses(p) {
+    let id = $(p).data("id");
+
+    action = window.Laravel.routeProses.replace(":id", id);
+
+    $("form#form-proses").attr("action", action);
+    $("#form-proses textarea").val("");
+    $("#form-proses input[type='text']").val("");
 
     $("#modalProses").modal("show");
-});
+};
 
 $("#form-proses").submit(function (e) {
     e.preventDefault();
     let formData = new FormData(this);
+    let form = this;
     $.ajax({
         url: $(this).attr("action"),
         type: "POST",
@@ -99,6 +100,9 @@ $("#form-proses").submit(function (e) {
         },
         success: function (res) {
             if (res.status) {
+                $('#form-no-surat').attr('hidden', true);
+                $('#form-surat-hasil').attr('hidden', true);
+                form.reset();
                 $("#modalProses").modal("hide");
                 Swal.fire({
                     title: "Berhasil!",
@@ -108,6 +112,12 @@ $("#form-proses").submit(function (e) {
                     timer: 1500,
                 });
                 table.ajax.reload();
+                if (res.file) {
+                    window.open(
+                        window.Laravel.baseUrl + "/storage/surat_tugas/hasil/" + res.file,
+                        "_blank"
+                    );
+                }
             } else {
                 Swal.fire({
                     title: "Gagal!",

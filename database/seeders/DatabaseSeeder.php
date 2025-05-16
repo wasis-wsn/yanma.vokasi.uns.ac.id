@@ -26,8 +26,8 @@ class DatabaseSeeder extends Seeder
             // LayananSeeder::class,
             // ProdiSeeder::class,
             // PembinaOrmawaSeeder::class,
-            RoleSeeder::class,
-            LayananRoleSeeder::class,
+            // RoleSeeder::class,
+            // LayananRoleSeeder::class,
             // StatusHeregistrasiSeeder::class,
             // StatusKemahasiswaanSeeder::class,
             // StatusLegalisirSeeder::class,
@@ -37,7 +37,8 @@ class DatabaseSeeder extends Seeder
             // StatusWisudaSeeder::class,
             // StatusSKLSeeder::class,
             // SemesterSeeder::class,
-            UserSeeder::class,
+            // UserSeeder::class,
+            BeritaSeeder::class,
         ]);
     }
 }
