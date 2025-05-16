@@ -92,6 +92,10 @@
                                     <button type="button" class="btn btn-primary mx-2" data-bs-toggle="modal" data-bs-target="#modalTambah">Tambah Ajuan</button>
                                 @endcan
                                 <button type="button" class="btn btn-success mx-2" id="btn-export">Export Data</button>
+                                <!-- Add bulk action button -->
+                                <button type="button" class="btn btn-secondary mx-2" id="btn-bulk-action" disabled>
+                                    <i class="fa fa-tasks"></i> Proses Terpilih
+                                </button>
                             </div>
                             @include('modals.export_semester')
                             @can('staff')
@@ -132,7 +136,6 @@
                                 </div>
                             </div>
                         @endcannot
-                        @include('pages.perpanjangan.modal_detail')
                         
                         <div class="table-responsive">
                             <table id="suket-datatable" class="table table-striped" width="100%">
@@ -152,7 +155,8 @@
                                         @endcan
                                         @canany(['staff', 'dekanat', 'subkoor'])
                                             <th hidden>created_at</th>
-                                            <th>#</th>
+                                            <th><input type="checkbox" id="select-all" class="form-check-input"></th>
+                                            <th>No</th>
                                             <th>Tanggal <br>Submit</th>
                                             <th>Nama</th>
                                             <th>NIM</th>
@@ -189,6 +193,45 @@
 
 </div>
 
+<!-- Modal section -->
+@include('modals.export_semester')
+@include('modals.proses')
+@include('pages.perpanjangan.modal_detail')
+
+<!-- Add bulk process modal here -->
+<div class="modal fade" id="modalBulkProcess" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Proses Data Terpilih</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="form-bulk-process">
+                @csrf
+                <div class="modal-body">
+                    <div class="form-group mb-3">
+                        <label>Status</label>
+                        <select name="status_id" class="form-select" required>
+                            <option value="">Pilih Status</option>
+                            @foreach ($status as $st)
+                                <option value="{{ $st->id }}">{{ $st->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Catatan</label>
+                        <textarea name="catatan" rows="3" class="form-control"></textarea>
+                    </div>
+                    <input type="hidden" name="selected_ids">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary">Proses</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('js')
@@ -291,7 +334,7 @@
                 'listData' => route('perpanjanganStudi.listStaff'),
                 'getData' => route('perpanjanganStudi.show', ':id'),
                 'routeProses' => route('perpanjanganStudi.proses', ':id'),
-                // Anda dapat menambahkan lebih banyak URL di sini sesuai kebutuhan
+                'bulkProcess' => route('perpanjanganStudi.bulkProcess'),
             ]) !!};
         </script>
         <script src="{{ asset('custom/js/perpanjangan/staff.js') }}?q{{Str::random(5)}}"></script>

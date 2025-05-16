@@ -106,7 +106,7 @@ class PerpanjanganStudiController extends Controller
         return DataTables::of($list)
             ->addIndexColumn()
             ->editColumn('id', function ($row) {
-                return '<input class="form-check-input" type="checkbox" value="' . encodeId($row->id) . '" name="ids">';
+                return encodeId($row->id);
             })
             ->addColumn('action', function ($row) {
                 $aksi = '<button type="button" class="btn btn-info btn-sm btn-detail" data-id="' . encodeId($row->id) . '">
@@ -437,70 +437,160 @@ class PerpanjanganStudiController extends Controller
         return Excel::download(new PerpanjanganExport($tahun, $semester), $name . '.xlsx');
     }
 
-    public function proses(Request $request, $id)
+    public function proses(Request $request, $id = null)
     {
+        // Validate request
         $rules = [
             'status_id' => ['required'],
-            'no_surat' => Rule::requiredIf(function () use ($request) {
-                return in_array($request->status_id, ['3', '4', '6']);
-            }),
-            'catatan' => Rule::requiredIf(function () use ($request) {
-                return in_array($request->status_id, ['2', '5']);
-            }),
-            'file' => Rule::requiredIf(function () use ($request) {
-                return $request->status_id == '6';
-            })
+            'no_surat' => Rule::requiredIf(fn () => in_array($request->status_id, ['3', '4', '6'])),
+            'catatan' => Rule::requiredIf(fn () => in_array($request->status_id, ['2', '5'])),
+            'file' => Rule::requiredIf(fn () => $request->status_id == '6'),
+            'selected_ids' => ['nullable', 'string']
         ];
 
         $request->validate($rules, [
             'required' => ':attribute harus diisi!',
-            'requiredif' => ':attribute harus diisi!',
+            'requiredif' => ':attribute harus diisi!'
         ]);
 
-        $return = [
-            'status' => true,
-            'message' => 'Ajuan Berhasil Diproses!',
-        ];
-        $status_code = 200;
-
         try {
-            $id = decodeId($id);
-            $ajuan = PerpanjanganStudi::where('id', $id)->with('user.prodis', 'status')->first();
-
-            $data_update = [
-                'no_surat' => $ajuan->no_surat,
-                'status_id' => $request->status_id,
-                'catatan' => $request->catatan,
-                'tanggal_proses' => new \DateTime(),
-                'tanggal_ambil' => $ajuan->tanggal_ambil,
-            ];
-
-            if (in_array($request->status_id, ['3', '4', '6'])) {
-                $data_update['no_surat'] = $request->no_surat;
+            // Determine IDs to process
+            $ids = [];
+            if ($id) {
+                $ids[] = decodeId($id);
+            } elseif ($request->selected_ids) {
+                $ids = array_filter(
+                    explode(',', $request->selected_ids),
+                    fn($id) => is_numeric($id) && $id > 0
+                );
             }
+
+            if (empty($ids)) {
+                throw new \Exception('Tidak ada data yang dipilih');
+            }
+
+            \Log::info('Processing IDs:', ['ids' => $ids]);
+
+            // Process each ID
+            foreach ($ids as $currentId) {
+                $ajuan = PerpanjanganStudi::where('id', $currentId)
+                    ->with('user.prodis', 'status')
+                    ->firstOrFail();
+
+                $data_update = [
+                    'status_id' => $request->status_id,
+                    'catatan' => $request->catatan,
+                    'tanggal_proses' => now(),
+                    'no_surat' => $ajuan->no_surat,
+                    'tanggal_ambil' => $ajuan->tanggal_ambil
+                ];
+
+                // Update no_surat if needed
+                if (in_array($request->status_id, ['3', '4', '6'])) {
+                    $data_update['no_surat'] = $request->no_surat;
+                }
+
+                // Handle file upload for status "Selesai"
+                if ($request->status_id == '6' && $request->hasFile('file')) {
+                    Storage::disk('public')->delete('perpanjangan/upload/' . $ajuan->file);
+                    
+                    $fileName = 'Perpanjangan_' . Str::of($ajuan->user->name)->trim() 
+                        . '_' . $ajuan->user->nim 
+                        . '_' . $ajuan->perpanjangan_ke 
+                        . '_hasil_' . time() . '.pdf';
+                        
+                    $request->file('file')->storeAs('perpanjangan/upload/', $fileName, 'public');
+                    $data_update['file'] = $fileName;
+                }
+
+                // Handle taken status
+                if ($request->status_id == '7') {
+                    $data_update['tanggal_ambil'] = now();
+                }
+
+                $ajuan->update($data_update);
+            }
+
+            $message = count($ids) > 1 
+                ? 'Semua ajuan berhasil diproses!'
+                : ($request->status_id == '7' ? 'Ajuan telah diambil!' : 'Ajuan berhasil diproses!');
+
+            return response()->json([
+                'status' => true,
+                'message' => $message
+            ], 200);
+
+        } catch (\Exception $e) {
+            \Log::error('Process error:', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
             
-            // Handle file upload for status "Selesai"
-            if ($request->status_id == '6' && $request->hasFile('file')) {
-                // Delete old file
-                Storage::disk('public')->delete('perpanjangan/upload/' . $ajuan->file);
-                
-                // Upload new file
-                $fileName = 'Perpanjangan_' . Str::of($ajuan->user->name)->trim() . '_' . $ajuan->user->nim . '_' . $ajuan->perpanjangan_ke . '_hasil_' . time() . '.pdf';
-                $request->file('file')->storeAs('perpanjangan/upload/', $fileName, 'public');
-                $data_update['file'] = $fileName;
-            }
-
-            if ($request->status_id == '7') {
-                $data_update['tanggal_ambil'] = new \DateTime();
-                $return['message'] = 'Ajuan telah diambil!';
-            }
-
-            $ajuan->update($data_update);
-        } catch (\Throwable $th) {
-            $return['status'] = false;
-            $return['message'] = 'Terjadi Kesalahan!';
-            $status_code = 500;
+            return response()->json([
+                'status' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
         }
-        return response()->json($return, $status_code);
+    }
+
+    public function bulkProcess(Request $request)
+    {
+        try {
+            $request->validate([
+                'status_id' => 'required',
+                'selected_ids' => 'required',
+                'catatan' => 'nullable',
+            ]);
+
+            $ids = explode(',', $request->selected_ids);
+
+            // Decode setiap ID terenkripsi
+            $decodedIds = array_map(function($id) {
+                return decodeId($id);
+            }, $ids);
+
+            // Filter hanya ID yang valid (numeric dan > 0)
+            $validIds = array_filter($decodedIds, function($id) {
+                return is_numeric($id) && $id > 0;
+            });
+
+            if (empty($validIds)) {
+                throw new \Exception('Tidak ada ID valid untuk diproses');
+            }
+
+            // Verify records exist
+            $records = PerpanjanganStudi::whereIn('id', $validIds)->get();
+            if ($records->isEmpty()) {
+                throw new \Exception('Data tidak ditemukan');
+            }
+
+            $result = PerpanjanganStudi::whereIn('id', $validIds)
+                ->update([
+                    'status_id' => $request->status_id,
+                    'catatan' => $request->catatan ?: null,
+                    'tanggal_proses' => now(),
+                ]);
+
+            \Log::info('Update result:', [
+                'processed_count' => $result,
+                'ids' => $validIds
+            ]);
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Data berhasil diproses'
+            ], 200);
+
+        } catch (\Exception $e) {
+            \Log::error('Bulk process error:', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 }
