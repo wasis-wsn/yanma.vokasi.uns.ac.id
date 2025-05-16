@@ -3,6 +3,7 @@
 use App\Http\Controllers\AkreditasiController;
 use App\Http\Controllers\auth\AuthController;
 use App\Http\Controllers\auth\UserController;
+use App\Http\Controllers\BeritaController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DiluarJadwalController;
@@ -42,10 +43,11 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', function () {
-    return view('landingpage.index');
+    $berita = \App\Models\Berita::latest()->paginate(6);
+    return view('landingpage.index', compact('berita'));
 })->name('home');
 
-/* * * * * * * * * * * * * * * * * 
+/* * * * * * * * * * * * * * * * *
 *                                *
 *   Login Email & Password       *
 *                                *
@@ -53,7 +55,7 @@ Route::get('/', function () {
 Route::get('/login', [AuthController::class, 'index'])->name('login');
 Route::post('/login', [AuthController::class, 'prosesLogin'])->middleware('throttle:5,1')->name('prosesLogin');
 
-/* * * * * * * * * * * * * * * * * 
+/* * * * * * * * * * * * * * * * *
 *                                *
 *   Login Email uns.ac.id        *
 *                                *
@@ -64,7 +66,7 @@ Route::post('/registrasi', [AuthController::class, 'register'])->name('register'
 Route::get('/auth/google/callback', [AuthController::class, 'callback']);
 Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
 
-/* * * * * * * * * * * * * * * * * 
+/* * * * * * * * * * * * * * * * *
 *                                *
 *   LandingPage Keringanan UKT   *
 *                                *
@@ -90,7 +92,7 @@ Route::name('legalisir.')->prefix('legalisir')->group(function () {
 Route::get('/akreditasi/lp', [AkreditasiController::class, 'landingPage'])->name('akreditasi.landingPage');
 Route::get('/akreditasi/lp/getData', [AkreditasiController::class, 'getAkreditasi'])->name('akreditasi.landingPage.getData');
 
-/* * * * * * * * * * * * * * * * * 
+/* * * * * * * * * * * * * * * * *
 *                                *
 *   LandingPage Kontak           *
 *                                *
@@ -98,7 +100,7 @@ Route::get('/akreditasi/lp/getData', [AkreditasiController::class, 'getAkreditas
 Route::get('/contact/lp', [ContactController::class, 'landingPage'])->name('contact.landingPage');
 
 Route::middleware('auth')->group(function () {
-    
+
     Route::get('/login/rahasia/ufytudgjgygkuhkhjhg/{email}', [AuthController::class, 'rahasia'])->name('rahasia')->middleware('role:staff');
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/search', [DashboardController::class, 'search'])->name('search');
@@ -120,7 +122,7 @@ Route::middleware('auth')->group(function () {
     Route::name('user.')->prefix('user')->group(function () {
         Route::get('/edit/{id}', [UserController::class, 'edit'])->name('edit');
         Route::put('/{id}', [UserController::class, 'update'])->name('update');
-    
+
         Route::middleware(['auth', 'role:staff'])->group(function () {
             Route::get('/', [UserController::class, 'index'])->name('index');
             Route::get('/list', [UserController::class, 'list'])->name('list');
@@ -152,7 +154,15 @@ Route::middleware('auth')->group(function () {
             Route::post('/{id}', [ContactController::class, 'update'])->name('update');
             Route::delete('/{id}', [ContactController::class, 'destroy'])->name('destroy');
         });
-
+        Route::name('berita.')->prefix('berita')->group(function () {
+            Route::get('/', [BeritaController::class, 'index'])->name('index');
+            Route::get('/list', [BeritaController::class, 'list'])->name('list');
+            Route::get('/create', [BeritaController::class, 'create'])->name('create');
+            Route::post('/', [BeritaController::class, 'store'])->name('store');
+            Route::get('/{id}/edit', [BeritaController::class, 'edit'])->name('edit');
+            Route::post('/{id}', [BeritaController::class, 'update'])->name('update');
+            Route::delete('/{id}', [BeritaController::class, 'destroy'])->name('destroy');
+        });
         Route::name('prodi.')->prefix('prodi')->group(function () {
             Route::get('/', [ProdiController::class, 'index'])->name('index');
             Route::get('/list', [ProdiController::class, 'list'])->name('list');
@@ -217,7 +227,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/proses/{id}', [PerpanjanganStudiController::class, 'proses'])->name('proses')->middleware('role:staff,fo');
         Route::post('/bulk-process', [PerpanjanganStudiController::class, 'bulkProcess'])->name('bulkProcess')->middleware('role:staff');
     });
-    
+
     Route::name('penundaan.')->prefix('penundaan')->group(function () {
         Route::get('/', [PenundaanController::class, 'index'])->name('index')->middleware('role:mahasiswa,staff,dekanat,subkoor,adminprodi');
         Route::get('/listMahasiswa', [PenundaanController::class, 'listMahasiswa'])->name('listMahasiswa')->middleware('role:mahasiswa');
@@ -231,8 +241,9 @@ Route::middleware('auth')->group(function () {
         Route::post('/revisi/{id}', [PenundaanController::class, 'revisi'])->name('revisi')->middleware('role:mahasiswa');
         Route::delete('/{id}', [PenundaanController::class, 'destroy'])->name('destroy')->middleware('role:mahasiswa');
         Route::post('/proses/{id}', [PenundaanController::class, 'proses'])->name('proses')->middleware('role:staff');
+        Route::post('/bulk-process', [PenundaanController::class, 'bulkProcess'])->name('bulkProcess')->middleware('role:staff');
     });
-    
+
     Route::name('selang.')->prefix('selang')->group(function () {
         Route::get('/', [SelangController::class, 'index'])->name('index')->middleware('role:mahasiswa,staff,dekanat,subkoor,fo,adminprodi');
         Route::get('/listMahasiswa', [SelangController::class, 'listMahasiswa'])->name('listMahasiswa')->middleware('role:mahasiswa');
@@ -247,8 +258,9 @@ Route::middleware('auth')->group(function () {
         Route::delete('/{id}', [SelangController::class, 'destroy'])->name('destroy')->middleware('role:mahasiswa');
         Route::post('/export/data', [SelangController::class, 'export'])->name('export')->middleware('role:staff,dekanat,subkoor');
         Route::post('/proses/{id}', [SelangController::class, 'proses'])->name('proses')->middleware('role:staff,fo');
+        Route::post('/bulk-process', [SelangController::class, 'bulkProcess'])->name('bulkProcess')->middleware('role:staff');
     });
-    
+
     Route::name('undurDiri.')->prefix('undurDiri')->group(function () {
         Route::get('/', [UndurDiriController::class, 'index'])->name('index')->middleware('role:mahasiswa,staff,dekanat,subkoor,fo,adminprodi');
         Route::get('/listMahasiswa', [UndurDiriController::class, 'listMahasiswa'])->name('listMahasiswa')->middleware('role:mahasiswa');
@@ -264,7 +276,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/export/data', [UndurDiriController::class, 'export'])->name('export')->middleware('role:staff,dekanat,subkoor,adminprodi');
         Route::post('/proses/{id}', [UndurDiriController::class, 'proses'])->name('proses')->middleware('role:staff,fo');
     });
-    
+
     Route::name('diluarJadwal.')->prefix('diluarJadwal')->group(function () {
         Route::get('/', [DiluarJadwalController::class, 'index'])->name('index')->middleware('role:mahasiswa,staff,dekanat,subkoor,fo,adminprodi');
         Route::get('/listMahasiswa', [DiluarJadwalController::class, 'listMahasiswa'])->name('listMahasiswa')->middleware('role:mahasiswa');
@@ -360,7 +372,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/{id}', [SuketController::class, 'proses'])->name('proses')->middleware('role:staff');
         Route::get('/generate/suratHasil/{id}', [SuketController::class, 'generateSurat'])->name('generate')->middleware('role:staff');
     });
-    
+
     Route::name('skmk.')->prefix('skmk')->group(function () {
         Route::get('/', [SKMKController::class, 'index'])->name('index')->middleware('role:mahasiswa,staff,dekanat,subkoor,adminprodi');
         Route::get('/listMahasiswa', [SKMKController::class, 'listMahasiswa'])->name('listMahasiswa')->middleware('role:mahasiswa');
@@ -375,7 +387,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/{id}', [SKMKController::class, 'proses'])->name('proses')->middleware('role:staff');
         Route::get('/generate/suratHasil/{id}', [SKMKController::class, 'generateSurat'])->name('generate')->middleware('role:staff');
     });
-    
+
     Route::name('st.')->prefix('st')->group(function () {
         Route::get('/', [SuratTugasController::class, 'index'])->name('index')->middleware('role:mahasiswa,staff,dekanat,subkoor,adminprodi');
         Route::get('/listMahasiswa', [SuratTugasController::class, 'listMahasiswa'])->name('listMahasiswa')->middleware('role:mahasiswa');
@@ -390,7 +402,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/{id}', [SuratTugasController::class, 'proses'])->name('proses')->middleware('role:staff');
         Route::get('/generate/suratHasil/{id}', [SuratTugasController::class, 'generateSurat'])->name('generate')->middleware('role:staff');
     });
-    
+
     Route::name('sik.')->prefix('sik')->group(function () {
         Route::get('/', [SIKController::class, 'index'])->name('index')->middleware('role:ormawa,staff,dekanat,subkoor,adminprodi');
         Route::get('/listOrmawa', [SIKController::class, 'listOrmawa'])->name('listOrmawa')->middleware('role:ormawa');

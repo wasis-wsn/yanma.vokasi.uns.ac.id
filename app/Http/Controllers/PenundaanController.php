@@ -107,7 +107,7 @@ class PenundaanController extends Controller
         return DataTables::of($list)
             ->addIndexColumn()
             ->editColumn('id', function ($row) {
-                return '<input class="form-check-input" type="checkbox" value="' . encodeId($row->id) . '" name="ids">';
+                return encodeId($row->id);
             })
             ->addColumn('action', function ($row) {
                 $aksi = '<button type="button" class="btn btn-info btn-sm btn-detail" data-id="' . encodeId($row->id) . '">
@@ -192,19 +192,19 @@ class PenundaanController extends Controller
     {
         $list = Penundaan::with('user.prodis', 'status', 'tahunAkademik', 'semester')
             ->whereYear('created_at', $request->year);
-            
+
         if ($request->status != 'all') {
             $list = $list->where('status_id', $request->status);
         }
-            
+
         if ($request->prodi != 'all') {
             $list = $list->whereHas('user', function($query) use ($request) {
                 $query->where('prodi', $request->prodi);
             });
         }
-            
+
         $list = $list->orderBy('created_at', 'desc')->get();
-        
+
         return DataTables::of($list)
             ->addIndexColumn()
             ->addColumn('action', function ($row) {
@@ -424,7 +424,7 @@ class PenundaanController extends Controller
             if ($request->status_id == '6' && $request->hasFile('file')) {
                 // Delete old file
                 Storage::disk('public')->delete('penundaan/upload/' . $ajuan->file);
-                
+
                 // Upload new file
                 $fileName = 'Penundaan_' . Str::of($ajuan->user->name)->trim() . '_' . $ajuan->user->nim . '_hasil_' . time() . '.pdf';
                 $request->file('file')->storeAs('penundaan/upload/', $fileName, 'public');
@@ -443,5 +443,76 @@ class PenundaanController extends Controller
             $status_code = 500;
         }
         return response()->json($return, $status_code);
+    }
+
+    public function bulkProcess(Request $request)
+    {
+        try {
+            // Validate request data
+            $request->validate([
+                'status_id' => 'required',
+                'selected_ids' => 'required',
+                'catatan' => 'nullable',
+            ]);
+
+            $ids = explode(',', $request->selected_ids);
+
+            // Decode encrypted IDs
+            $decodedIds = array_map(function($id) {
+                return decodeId($id);
+            }, $ids);
+
+            // Filter only valid IDs (numeric and > 0)
+            $validIds = array_filter($decodedIds, function($id) {
+                return is_numeric($id) && $id > 0;
+            });
+
+            if (empty($validIds)) {
+                throw new \Exception('Tidak ada ID valid untuk diproses');
+            }
+
+            // Verify records exist
+            $records = Penundaan::whereIn('id', $validIds)->get();
+            if ($records->isEmpty()) {
+                throw new \Exception('Data tidak ditemukan');
+            }
+
+            // Update the records
+            foreach ($records as $record) {
+                $data_update = [
+                    'status_id' => $request->status_id,
+                    'catatan' => $request->catatan ?: null,
+                    'tanggal_proses' => now(),
+                ];
+
+                // Handle file deletion for rejected status
+                if ($request->status_id == '5') {
+                    Storage::disk('public')->delete('penundaan/upload/' . $record->file);
+                }
+
+                $record->update($data_update);
+            }
+
+            \Log::info('Bulk update result:', [
+                'processed_count' => count($validIds),
+                'ids' => $validIds
+            ]);
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Data berhasil diproses'
+            ], 200);
+
+        } catch (\Exception $e) {
+            \Log::error('Bulk process error:', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 }

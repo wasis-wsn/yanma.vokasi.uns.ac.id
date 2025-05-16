@@ -56,7 +56,7 @@
                                         Pengajuan diluar jadwal ajuan harus mendatangi Akademik Sekolah Vokasi
                                     </li>
                                     <li>
-                                        Surat Pengantar yang sudah ditanda tangani Wakil Dekan Akademik, Riset dan Kemahasiswaan 
+                                        Surat Pengantar yang sudah ditanda tangani Wakil Dekan Akademik, Riset dan Kemahasiswaan
                                         Sekolah Vokasi WAJIB diambil di Front Office Sekolah Vokasi
                                     </li>
                                     <li>
@@ -94,7 +94,7 @@
                                 <button type="button" class="btn btn-success mx-2" id="btn-export">Export Data</button>
                                 <!-- Add bulk action button -->
                                 <button type="button" class="btn btn-secondary mx-2" id="btn-bulk-action" disabled>
-                                    <i class="fa fa-tasks"></i> Proses Terpilih
+                                    <i class="fa fa-tasks"></i> Multi Proses
                                 </button>
                             </div>
                             @include('modals.export_semester')
@@ -136,7 +136,7 @@
                                 </div>
                             </div>
                         @endcannot
-                        
+
                         <div class="table-responsive">
                             <table id="suket-datatable" class="table table-striped" width="100%">
                                 <thead>

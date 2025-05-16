@@ -103,7 +103,7 @@ class SelangController extends Controller
         return DataTables::of($list)
             ->addIndexColumn()
             ->editColumn('id', function ($row) {
-                return '<input class="form-check-input" type="checkbox" value="' . encodeId($row->id) . '" name="ids">';
+                return encodeId($row->id);
             })
             ->addColumn('action', function ($row) {
                 $aksi = '<button type="button" class="btn btn-info btn-sm btn-detail" data-id="' . encodeId($row->id) . '">
@@ -223,17 +223,17 @@ class SelangController extends Controller
     {
         $list = SelangCuti::with('user.prodis', 'status', 'tahunAkademik', 'semester')
             ->whereYear('created_at', $request->year);
-            
+
         if ($request->status != 'all') {
             $list = $list->where('status_id', $request->status);
         }
-            
+
         if ($request->prodi != 'all') {
             $list = $list->whereHas('user', function($query) use ($request) {
                 $query->where('prodi', $request->prodi);
             });
         }
-            
+
         $list = $list->orderBy('created_at', 'desc')->get();
 
         return DataTables::of($list)
@@ -464,7 +464,7 @@ class SelangController extends Controller
             if ($request->status_id == '6' && $request->hasFile('file')) {
                 // Delete old file
                 Storage::disk('public')->delete('selang/upload/' . $ajuan->file);
-                
+
                 // Upload new file
                 $fileName = 'Selang_' . $ajuan->user->nim . '_' . Str::of($ajuan->user->name)->replace(' ', '') . '_hasil_' . time() . '.pdf';
                 $request->file('file')->storeAs('selang/upload/', $fileName, 'public');
@@ -481,6 +481,59 @@ class SelangController extends Controller
 
         } catch (\Throwable $th) {
             return response()->json(['status' => false, 'message' => 'Terjadi Kesalahan!'], 500);
+        }
+    }
+
+    public function bulkProcess(Request $request)
+    {
+        try {
+            $request->validate([
+                'status_id' => 'required',
+                'selected_ids' => 'required',
+                'catatan' => 'nullable',
+            ]);
+
+            $ids = explode(',', $request->selected_ids);
+            $decodedIds = array_map(function($id) {
+                return decodeId($id);
+            }, $ids);
+
+            $validIds = array_filter($decodedIds, function($id) {
+                return is_numeric($id) && $id > 0;
+            });
+
+            if (empty($validIds)) {
+                throw new \Exception('Tidak ada ID valid untuk diproses');
+            }
+
+            $records = \App\Models\SelangCuti::whereIn('id', $validIds)->get();
+            if ($records->isEmpty()) {
+                throw new \Exception('Data tidak ditemukan');
+            }
+
+            foreach ($records as $record) {
+                $data_update = [
+                    'status_id' => $request->status_id,
+                    'catatan' => $request->catatan ?: null,
+                    'tanggal_proses' => now(),
+                ];
+                // Jika status diambil (7), set tanggal_ambil
+                if ($request->status_id == '7') {
+                    $data_update['tanggal_ambil'] = now();
+                }
+                $record->update($data_update);
+            }
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Data berhasil diproses'
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage()
+            ], 500);
         }
     }
 }

@@ -70,6 +70,12 @@
                             <span class="item-name">Template</span>
                         </a>
                     </li>
+                    <li class="nav-item nav-judul">
+                        <a class="nav-link {{ Request::is('berita*') ? 'active' : ''}}" aria-current="page" href="{{ route('berita.index') }}">
+                            <i class="fa fa-newspaper-o"></i>
+                            <span class="item-name">Berita</span>
+                        </a>
+                    </li>
                 @endcan
 
                 <li><hr class="hr-horizontal"></li>

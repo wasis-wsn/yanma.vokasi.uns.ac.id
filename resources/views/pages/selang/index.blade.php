@@ -44,8 +44,8 @@
                     <div class="card-body">
                         @can('mahasiswa')
                             <h5>
-                                Jadwal Ajuan = 
-                                {{\Carbon\Carbon::parse($selang->open_datetime)->translatedFormat('d F Y H:i:s')}} WIB - 
+                                Jadwal Ajuan =
+                                {{\Carbon\Carbon::parse($selang->open_datetime)->translatedFormat('d F Y H:i:s')}} WIB -
                                 {{\Carbon\Carbon::parse($selang->close_datetime)->translatedFormat('d F Y H:i:s')}} WIB
                             </h5>
                             <p>
@@ -61,7 +61,7 @@
                                         Mahasiswa mengajukan Selang / Cuti terlebih dahulu di Siakad
                                     </li>
                                     <li>
-                                        Surat Pengantar yang sudah ditanda tangani Wakil Dekan Akademik, Riset dan 
+                                        Surat Pengantar yang sudah ditanda tangani Wakil Dekan Akademik, Riset dan
                                         Kemahasiswaan Sekolah Vokasi WAJIB diambil di Front Office Sekolah Vokasi
                                     </li>
                                     <li>
@@ -95,6 +95,7 @@
                                 @can('staff')
                                     <button type="button" class="btn btn-warning mx-2" data-bs-toggle="modal" data-bs-target="#modalJadwal">Ubah Jadwal</button>
                                     <button type="button" class="btn btn-primary mx-2" data-bs-toggle="modal" data-bs-target="#modalTambah">Tambah Ajuan</button>
+                                    <button type="button" class="btn btn-secondary mx-2" id="btn-bulk-action" disabled><i class="fa fa-tasks"></i> Multi Proses</button>
                                 @endcan
                                 <button type="button" class="btn btn-success mx-2" id="btn-export">Export Data</button>
                             </div>
@@ -109,7 +110,7 @@
                         @endcanany
                         @cannot('mahasiswa')
                             <div class="d-flex justify-content-end pb-4">
-                                
+
                                 <div class="dropdown mx-2">
                                     <button class="btn btn-light btn-sm dropdown-toggle" type="button" id="prodiDropdown" data-bs-toggle="dropdown" data-prodi="all" aria-expanded="false">Prodi</button>
                                     <ul class="dropdown-menu" aria-labelledby="prodiDropdown">
@@ -141,7 +142,7 @@
                             </div>
                         @endcannot
                         @include('pages.selang.modal_detail')
-                        
+
                         <div class="table-responsive">
                             <table id="suket-datatable" class="table table-striped" width="100%">
                                 <thead>
@@ -159,7 +160,8 @@
                                         @endcan
                                         @canany(['staff', 'dekanat','subkoor'])
                                             <th hidden>created_at</th>
-                                            <th>#</th>
+                                            <th><input type="checkbox" id="select-all" class="form-check-input"></th>
+                                            <th>No</th>
                                             <th>Tanggal Submit</th>
                                             <th>Nama</th>
                                             <th>NIM</th>
@@ -196,6 +198,40 @@
 
 </div>
 
+<!-- Modal Bulk Process -->
+<div class="modal fade" id="modalBulkProcess" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Proses Data Terpilih</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="form-bulk-process">
+                @csrf
+                <div class="modal-body">
+                    <div class="form-group mb-3">
+                        <label>Status</label>
+                        <select name="status_id" class="form-select" required>
+                            <option value="">Pilih Status</option>
+                            @foreach ($status as $st)
+                                <option value="{{ $st->id }}">{{ $st->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Catatan</label>
+                        <textarea name="catatan" rows="3" class="form-control"></textarea>
+                    </div>
+                    <input type="hidden" name="selected_ids">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary">Proses</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('js')
@@ -298,7 +334,7 @@
                 'listData' => route('selang.listStaff'),
                 'getData' => route('selang.show', ':id'),
                 'routeProses' => route('selang.proses', ':id'),
-                // Anda dapat menambahkan lebih banyak URL di sini sesuai kebutuhan
+                'bulkProcess' => route('selang.bulkProcess'),
             ]) !!};
         </script>
         <script src="{{ asset('custom/js/selang/staff.js') }}?q{{Str::random(5)}}"></script>
@@ -324,7 +360,7 @@
             let year = $("#tahunDropdown").html();
             let status_table = $("#statusDropdown").data('status');
             let prodi_table = $("#prodiDropdown").data('prodi');
-            
+
             window.Laravel = {!! json_encode([
                 'baseUrl' => url('/'),
                 'export' => route('selang.export'),
