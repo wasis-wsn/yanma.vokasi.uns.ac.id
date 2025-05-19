@@ -37,13 +37,15 @@ class SKLController extends Controller
         if ($request->status != 'all') {
             $list = $list->where('status_id', $request->status);
         }
-        
-        // Uncomment dan perbaiki filter prodi
+
         if ($request->prodi != 'all') {
             $list = $list->whereHas('user', function($query) use ($request) {
                 $query->where('prodi', $request->prodi);
             });
         }
+
+        $list = $list->orderBy('created_at', 'desc')->get();
+
 
         return DataTables::of($list)
             ->addIndexColumn()
@@ -88,7 +90,7 @@ class SKLController extends Controller
             ->editColumn('catatan', function ($row) {
                 return wordwrap($row->catatan, 20, "<br>");
             })
-            ->rawColumns(['action', 'tanggal_submit', 'status_id', 'tanggal_proses', 'tanggal_ambil', 'nama_prodi', 'catatan'])
+            ->rawColumns(['id', 'action', 'tanggal_submit', 'status_id', 'tanggal_proses', 'tanggal_ambil', 'nama_prodi', 'catatan'])
             ->toJson();
     }
 
@@ -96,16 +98,18 @@ class SKLController extends Controller
     {
         $list = SKL::with('user.prodis', 'status')
             ->whereYear('created_at', $request->year);
-            
+
         if ($request->status != 'all') {
             $list = $list->where('status_id', $request->status);
         }
-        
+
         if ($request->prodi != 'all') {
             $list = $list->whereHas('user', function($query) use ($request) {
                 $query->where('prodi', $request->prodi);
             });
         }
+
+        $list = $list->orderBy('created_at', 'desc')->get();
 
         return DataTables::of($list)
             ->addIndexColumn()
@@ -152,16 +156,18 @@ class SKLController extends Controller
     {
         $list = SKL::with('user.prodis', 'status')
             ->whereYear('created_at', $request->year);
-            
+
         if ($request->status != 'all') {
             $list = $list->where('status_id', $request->status);
         }
-        
+
         if ($request->prodi != 'all') {
             $list = $list->whereHas('user', function($query) use ($request) {
                 $query->where('prodi', $request->prodi);
             });
         }
+
+        $list = $list->orderBy('created_at', 'desc')->get();
 
         return DataTables::of($list)
             ->addIndexColumn()
@@ -233,7 +239,7 @@ class SKLController extends Controller
         }
         if(!is_null(Auth::user()->skl)) {
             return response()->json([
-                'status' => false, 
+                'status' => false,
                 'message' => 'Anda sudah pernah mengajukan SKL'
                 ], 500);
         }
