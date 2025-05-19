@@ -12,7 +12,7 @@
         background: url("landingpage/assets/img/bg-white-3.png") 0 0 repeat;
     }
 </style>
-    
+
 @endpush
 
 @section('content')
@@ -26,12 +26,12 @@
 
     <main id="main">
         <!-- Card Berita -->
-        <div class="layanan py-5">
+        <div class="layanan">
         <!-- File: landingpage/berita/index.blade.php -->
             <section id="berita" class="featured-services">
                 <div class="container">
                     <div class="section-header">
-                        <h2>Berita</h2>
+                        <h2>INFORMASI PENTING</h2>
                     </div>
                     <div class="row">
                         @foreach($berita as $b)
