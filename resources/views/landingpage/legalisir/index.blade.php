@@ -103,6 +103,7 @@
                         </ul>
                     </li>
                     <li>Jumlah maksimal legalisir yaitu 10 lembar (keseluruhan).</li>
+                    <li>Berkas akan diambil masing-masing 1 lembar untuk diarsipkan Sekolah Vokasi.</li>
                 </ol>
             </div>
         </section>
