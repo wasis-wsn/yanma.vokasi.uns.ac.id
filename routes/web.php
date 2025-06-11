@@ -321,7 +321,7 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::name('verifikasiWisuda.')->prefix('verifikasiWisuda')->group(function () {
-        Route::get('/', [VerifikasiWisudaController::class, 'index'])->name('index')->middleware('role:mahasiswa,staff,dekanat,subkoor');
+        Route::get('/', [VerifikasiWisudaController::class, 'index'])->name('index')->middleware('role:staff,dekanat,subkoor');
         Route::get('/list', [VerifikasiWisudaController::class, 'list'])->name('list')->middleware('role:staff');
         Route::get('/listDekanat', [VerifikasiWisudaController::class, 'listDekanat'])->name('listDekanat')->middleware('role:dekanat,subkoor');
         Route::post('/', [VerifikasiWisudaController::class, 'store'])->name('store')->middleware('role:mahasiswa');
