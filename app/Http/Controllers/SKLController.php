@@ -49,6 +49,9 @@ class SKLController extends Controller
 
         return DataTables::of($list)
             ->addIndexColumn()
+            ->editColumn('id', function ($row) {
+                return encodeId($row->id);
+            })
             ->addColumn('action', function ($row) {
                 $aksi = '<button type="button" class="btn btn-info btn-sm btn-detail" data-id="' . encodeId($row->id) . '">
                             <i class="fa fa-eye"></i> Review
@@ -344,5 +347,71 @@ class SKLController extends Controller
             return response()->json(['status' => false, 'message' => 'terjadi kesalahan'], 500);
         }
         return response()->json(['status' => true, 'message' => 'Status Berhasil Diperbarui!'], 200);
+    }
+
+    public function bulkProcess(Request $request)
+    {
+        try {
+            $request->validate([
+                'status_id' => 'required',
+                'selected_ids' => 'required',
+                'catatan' => 'nullable',
+            ]);
+
+            $ids = explode(',', $request->selected_ids);
+            $decodedIds = array_map(function($id) {
+                return decodeId($id);
+            }, $ids);
+
+            $validIds = array_filter($decodedIds, function($id) {
+                return is_numeric($id) && $id > 0;
+            });
+
+            if (empty($validIds)) {
+                throw new \Exception('Tidak ada ID valid untuk diproses');
+            }
+
+            $records = SKL::whereIn('id', $validIds)->get();
+            if ($records->isEmpty()) {
+                throw new \Exception('Data tidak ditemukan');
+            }
+
+            foreach ($records as $record) {
+                $data_update = [
+                    'status_id' => $request->status_id,
+                    'catatan' => $request->catatan ?: null,
+                    'tanggal_proses' => now(),
+                ];
+
+                // Jika status diambil (7), set tanggal_ambil
+                if ($request->status_id == '7') {
+                    $data_update['tanggal_ambil'] = now();
+                }
+
+                // Jika status selesai (6), hapus file
+                if ($request->status_id == '6') {
+                    Storage::disk('public')->delete('skl/upload/' . $record->lembar_revisi);
+                    Storage::disk('public')->delete('skl/upload/' . $record->ss_ajuan_skl);
+                }
+
+                $record->update($data_update);
+            }
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Data berhasil diproses secara bulk. Total: ' . count($validIds) . ' data.'
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage()
+            ], 400);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Terjadi kesalahan saat memproses data'
+            ], 500);
+        }
     }
 }

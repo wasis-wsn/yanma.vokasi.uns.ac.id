@@ -320,6 +320,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/show/{id}', [SKLController::class, 'show'])->name('show')->middleware('role:mahasiswa,staff,dekanat,subkoor,fo,adminprodi');
         Route::post('/revisi/{id}', [SKLController::class, 'revisi'])->name('revisi')->middleware('role:mahasiswa');
         Route::post('/proses/{id}', [SKLController::class, 'proses'])->name('proses')->middleware('role:staff,fo');
+        Route::post('/bulk-process', [SKLController::class, 'bulkProcess'])->name('bulkProcess')->middleware('role:staff');
     });
 
     Route::name('verifikasiWisuda.')->prefix('verifikasiWisuda')->group(function () {

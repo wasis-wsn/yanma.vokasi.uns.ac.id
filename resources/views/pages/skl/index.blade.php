@@ -212,14 +212,14 @@
                                             </tr>
                                             <tr>
                                                 <td>Status</td>
-                                                <td>: 
+                                                <td>:
                                                     <button type="button" class="{{auth()->user()->pengajuanTTDTA->status->color}} btn-sm mt-1" disabled>{{auth()->user()->pengajuanTTDTA->status->name}}
                                                     </button>
                                                 </td>
                                             </tr>
                                             <tr>
                                                 <td width="30%">Tanggal Diambil</td>
-                                                <td>: 
+                                                <td>:
                                                     {{ (auth()->user()->pengajuanTTDTA->tanggal_ambil) ? \Carbon\Carbon::parse(auth()->user()->pengajuanTTDTA->tanggal_ambil)->translatedFormat('d F Y H:i:s'). 'WIB' : '' }}
                                                 </td>
                                             </tr>
@@ -251,26 +251,26 @@
                                             </tr>
                                             <tr>
                                                 <td width="30%">Tanggal Diproses</td>
-                                                <td>: 
+                                                <td>:
                                                     {{ (auth()->user()->skl->tanggal_proses) ? \Carbon\Carbon::parse(auth()->user()->skl->tanggal_proses)->translatedFormat('d F Y H:i:s'). 'WIB' : '' }}
                                                 </td>
                                             </tr>
                                             <tr>
                                                 <td>Status</td>
-                                                <td>: 
+                                                <td>:
                                                     <button type="button" class="{{auth()->user()->skl->status->color}} btn-sm mt-1" disabled>{{auth()->user()->skl->status->name}}
                                                     </button>
                                                 </td>
                                             </tr>
                                             <tr>
                                                 <td width="30%">Tanggal Diambil</td>
-                                                <td>: 
+                                                <td>:
                                                     {{ (auth()->user()->skl->tanggal_ambil) ? \Carbon\Carbon::parse(auth()->user()->skl->tanggal_ambil)->translatedFormat('d F Y H:i:s'). 'WIB' : '' }}
                                                 </td>
                                             </tr>
                                             <tr>
                                                 <td width="30%">File Upload</td>
-                                                <td>: 
+                                                <td>:
                                                     <a href="{{ url('storage/skl/upload/'. auth()->user()->skl->lembar_revisi) }}" target="_blank" class="btn btn-sm btn-primary">Lembar Revisi</a>
                                                     <a href="{{ url('storage/skl/upload/'. auth()->user()->skl->ss_ajuan_skl) }}" target="_blank" class="btn btn-sm btn-primary">SS SKL Siakad</a>
                                                     @if (auth()->user()->skl->status_id == '2')
@@ -298,6 +298,7 @@
                             @canany(['staff','dekanat','subkoor','adminprodi'])
                                 <div class="d-flex justify-content-end pb-4 px-4">
                                     <button type="button" class="btn btn-success mx-2" id="btn-export">Export Data</button>
+                                    <button type="button" class="btn btn-secondary mx-2" id="btn-bulk-action" disabled><i class="fa fa-tasks"></i> Multi Proses</button>
                                 </div>
                             @endcanany
                             <div class="d-flex justify-content-end pb-4">
@@ -332,8 +333,10 @@
                                 <table id="skl-datatable" class="table table-striped" width="100%">
                                     <thead>
                                         <tr>
-                                            
                                             <th hidden>created_at</th>
+                                            @can('staff')
+                                                <th><input type="checkbox" id="select-all" class="form-check-input"></th>
+                                            @endcan
                                             <td>No</td>
                                             <td>Nama</td>
                                             <td>NIM</td>
@@ -373,6 +376,41 @@
         @include('pages.skl.modal_detail_ta')
     @endcannot
 
+    <!-- Modal Bulk Process -->
+<div class="modal fade" id="modalBulkProcess" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Proses Data Terpilih</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="form-bulk-process">
+                @csrf
+                <div class="modal-body">
+                    <div class="form-group mb-3">
+                        <label>Status</label>
+                        <select name="status_id" class="form-select" required>
+                            <option value="">Pilih Status</option>
+                            @foreach ($status as $st)
+                                <option value="{{ $st->id }}">{{ $st->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Catatan</label>
+                        <textarea name="catatan" rows="3" class="form-control"></textarea>
+                    </div>
+                    <input type="hidden" name="selected_ids">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary">Proses</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 @endsection
 
 @push('js')
@@ -405,6 +443,7 @@
                 'listData' => route('skl.listStaff'),
                 'getData' => route('skl.show', ':id'),
                 'routeProses' => route('skl.proses', ':id'),
+                'bulkProcess' => route('skl.bulkProcess'),
             ]) !!};
         </script>
         <script src="{{ asset('custom/js/skl/staff.js') }}?q{{Str::random(5)}}"></script>
@@ -415,7 +454,7 @@
         <script>
             let year_ta = $("#tahun_ta").html();
             let status_table_ta = $("#status_ta").data('status');
-            
+
             window.Laravel = {};
             window.Laravel.TA = {!! json_encode([
                 'listData' => route('TA.listFo'),
@@ -433,7 +472,7 @@
             let year = $("#tahunDropdown").html();
             let status_table = $("#statusDropdown").data('status');
             let prodi_table = $("#prodiDropdown").data('prodi');
-            
+
             window.Laravel.skl = {!! json_encode([
                 'baseUrl' => url('/'),
                 'listData' => route('skl.listFo'),
@@ -450,7 +489,7 @@
         <script>
             let year_ta = $("#tahun_ta").html();
             let status_table_ta = $("#status_ta").data('status');
-            
+
             window.Laravel = {};
             window.Laravel.TA = {!! json_encode([
                 'listData' => route('TA.listDekanat'),
@@ -464,7 +503,7 @@
             let year = $("#tahunDropdown").html();
             let status_table = $("#statusDropdown").data('status');
             let prodi_table = $("#prodiDropdown").data('prodi');
-            
+
             window.Laravel.skl = {!! json_encode([
                 'baseUrl' => url('/'),
                 'export' => route('skl.export'),
