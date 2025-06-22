@@ -275,6 +275,7 @@ Route::middleware('auth')->group(function () {
         Route::delete('/{id}', [UndurDiriController::class, 'destroy'])->name('destroy')->middleware('role:mahasiswa');
         Route::post('/export/data', [UndurDiriController::class, 'export'])->name('export')->middleware('role:staff,dekanat,subkoor,adminprodi');
         Route::post('/proses/{id}', [UndurDiriController::class, 'proses'])->name('proses')->middleware('role:staff,fo');
+        Route::post('/bulk-process', [UndurDiriController::class, 'bulkProcess'])->name('bulkProcess')->middleware('role:staff');
     });
 
     Route::name('diluarJadwal.')->prefix('diluarJadwal')->group(function () {
@@ -291,6 +292,7 @@ Route::middleware('auth')->group(function () {
         Route::delete('/{id}', [DiluarJadwalController::class, 'destroy'])->name('destroy')->middleware('role:mahasiswa');
         Route::post('/export/data', [DiluarJadwalController::class, 'export'])->name('export')->middleware('role:staff,dekanat,subkoor,adminprodi');
         Route::post('/proses/{id}', [DiluarJadwalController::class, 'proses'])->name('proses')->middleware('role:staff,fo');
+        Route::post('/bulk-process', [DiluarJadwalController::class, 'bulkProcess'])->name('bulkProcess')->middleware('role:staff');
     });
 
     Route::name('ukt.')->prefix('ukt')->middleware('role:staff')->group(function () {

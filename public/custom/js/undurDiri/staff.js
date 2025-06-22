@@ -10,6 +10,14 @@ $(document).ready(function() {
             ajax: `${window.Laravel.listData}?status=${status}&year=${year}&prodi=${prodi}`,
             columns: [
                 { data: "created_at", visible: false },
+                {
+                    data: "id",
+                    orderable: false,
+                    searchable: false,
+                    render: function(data) {
+                        return '<input type="checkbox" class="form-check-input row-checkbox" value="' + data + '">';
+                    }
+                },
                 { data: "DT_RowIndex" },
                 { data: "tanggal_submit" },
                 { data: "user.name" },
@@ -32,7 +40,7 @@ $(document).ready(function() {
                 },
                 {
                     className: "btn-group-vertical",
-                    targets: [9],
+                    targets: [10],
                 },
                 {
                     className: "text-wrap",
@@ -168,14 +176,14 @@ $(document).ready(function() {
                 $("#form-proses select[name='status_id']").val(res.data.status_id);
                 const canChangeNoSurat = ["3", "4", "6"];
                 const isSelesai = res.data.status_id === "6";
-                
+
                 // Handle no surat visibility
                 if (canChangeNoSurat.includes(res.data.status_id)) {
                     $('#form-no-surat').removeAttr('hidden');
                 } else {
                     $('#form-no-surat').attr('hidden', true);
                 }
-                
+
                 // Handle surat hasil visibility
                 if (isSelesai) {
                     $('#form-surat-hasil').removeAttr('hidden');
@@ -199,14 +207,14 @@ $(document).ready(function() {
     $('#status_id').change(function () {
         const canChangeNoSurat = ["3", "4", "6"];
         const isSelesai = $(this).val() === "6"; // Assuming 6 is the ID for "Selesai" status
-        
+
         // Handle no surat visibility
         if (canChangeNoSurat.includes($(this).val())) {
             $('#form-no-surat').removeAttr('hidden');
         } else {
             $('#form-no-surat').attr('hidden', true);
         }
-        
+
         // Handle surat hasil visibility
         if (isSelesai) {
             $('#form-surat-hasil').removeAttr('hidden');
@@ -325,6 +333,140 @@ $(document).ready(function() {
             cache: false,
             contentType: false,
             processData: false,
+        });
+    });
+
+    // Handle bulk action button state
+    $('#suket-datatable').on('change', 'input[name="ids"]', function() {
+        const checkedBoxes = $('input[name="ids"]:checked');
+        $('#btn-bulk-action').prop('disabled', checkedBoxes.length === 0);
+    });
+
+    // Select/deselect all checkboxes
+    $('#select-all').on('change', function() {
+        $('input[name="ids"]').prop('checked', $(this).prop('checked'));
+        $('#btn-bulk-action').prop('disabled', !$(this).prop('checked'));
+    });
+
+    // Handle select all checkbox
+    $('#select-all').on('change', function() {
+        const isChecked = $(this).prop('checked');
+        $('.row-checkbox').prop('checked', isChecked);
+        updateBulkActionButton();
+    });
+
+    // Handle individual checkbox changes
+    $('#suket-datatable').on('change', '.row-checkbox', function() {
+        updateBulkActionButton();
+        // Update header checkbox state
+        const totalCheckboxes = $('.row-checkbox').length;
+        const checkedCheckboxes = $('.row-checkbox:checked').length;
+        $('#select-all').prop('checked', totalCheckboxes === checkedCheckboxes);
+    });
+
+    // Update bulk action button state
+    function updateBulkActionButton() {
+        const checkedBoxes = $('.row-checkbox:checked').length;
+        $('#btn-bulk-action').prop('disabled', checkedBoxes === 0);
+    }
+
+    // Handle bulk action button click
+    $('#btn-bulk-action').click(function() {
+        const selectedIds = [];
+        $('.row-checkbox:checked').each(function() {
+            selectedIds.push($(this).val());
+        });
+
+        if (selectedIds.length > 0) {
+            $('#form-bulk-process input[name="selected_ids"]').val(selectedIds.join(','));
+            $('#modalBulkProcess').modal('show');
+        } else {
+            Swal.fire({
+                title: "Peringatan!",
+                text: "Pilih minimal satu data untuk diproses",
+                icon: "warning",
+            });
+        }
+    });
+
+    // Handle bulk process form submission
+    $('#form-bulk-process').submit(function(e) {
+        e.preventDefault();
+
+        const selectedIds = $('.row-checkbox:checked').map(function() {
+            return $(this).val();
+        }).get();
+
+        if (selectedIds.length === 0) {
+            Swal.fire({
+                title: "Peringatan!",
+                text: "Pilih minimal satu data untuk diproses",
+                icon: "warning",
+            });
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('status_id', $('#form-bulk-process select[name="status_id"]').val());
+        formData.append('catatan', $('#form-bulk-process textarea[name="catatan"]').val());
+        formData.append('selected_ids', selectedIds.join(','));
+        formData.append('_token', $('meta[name="csrf-token"]').attr('content'));
+
+        $.ajax({
+            url: window.Laravel.bulkProcess,
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            beforeSend: function() {
+                Swal.fire({
+                    title: "Mohon Tunggu",
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    },
+                });
+            },
+            success: function(response) {
+                $('#modalBulkProcess').modal('hide');
+                $('#form-bulk-process')[0].reset();
+
+                if (response.status) {
+                    Swal.fire({
+                        title: "Berhasil!",
+                        text: response.message,
+                        icon: "success",
+                        showConfirmButton: false,
+                        timer: 1500,
+                    });
+
+                    // Reset checkboxes
+                    $('#select-all').prop('checked', false);
+                    $('.row-checkbox').prop('checked', false);
+                    $('#btn-bulk-action').prop('disabled', true);
+
+                    // Reload table
+                    table.ajax.reload();
+                } else {
+                    Swal.fire({
+                        title: "Gagal!",
+                        text: response.message,
+                        icon: "error",
+                    });
+                }
+            },
+            error: function(xhr) {
+                let errorMessage = 'Terjadi kesalahan saat memproses data';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMessage = xhr.responseJSON.message;
+                }
+
+                Swal.fire({
+                    title: "Error!",
+                    text: errorMessage,
+                    icon: "error",
+                });
+            }
         });
     });
 });
