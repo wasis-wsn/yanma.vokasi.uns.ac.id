@@ -19,10 +19,14 @@ class Prodi extends Model
         parent::boot();
 
         static::creating(function ($model) {
-            $model->created_by = auth()->user()->id;
+            if (auth()->check()) {
+                $model->created_by = auth()->user()->id;
+            }
         });
         static::updating(function ($model) {
-            $model->updated_by = auth()->user()->id;
+            if (auth()->check()) {
+                $model->updated_by = auth()->user()->id;
+            }
         });
     }
 
