@@ -22,7 +22,7 @@ class VerifikasiWisudaController extends Controller
     public function index(Request $request)
     {
         $layanan = Layanan::where('url_mhs', $request->url())->orWhere('url_staff', $request->url())->first();
-        $ajuan = $this->canStore();
+        $ajuan = false; // Mahasiswa tidak perlu mengajukan lagi
         $tahuns = Tahun::select('tahun')->orderBy('tahun', 'desc')->get();
         $status = StatusWisuda::all();
         $templates = Template::where('layanan_id', $layanan->id)->get();
@@ -148,19 +148,71 @@ class VerifikasiWisudaController extends Controller
         }
     }
 
-    public function export(Request $request)
+    public function import(Request $request)
+    {
+        $request->validate([
+            'file' => ['required', 'file', 'mimes:xlsx,xls,csv,txt', 'max:10240'],
+            'tahun' => ['required']
+        ], [
+            'required' => ':attribute wajib diisi!',
+            'mimes' => ':attribute harus berformat Excel (.xlsx, .xls) atau CSV (.csv)',
+            'max' => 'ukuran :attribute tidak boleh lebih dari 10 MB',
+        ], [
+            'file' => 'File',
+            'tahun' => 'Tahun'
+        ]);
+
+        try {
+            $file = $request->file('file');
+            $tahun = $request->tahun;
+            
+            // Read the Excel/CSV file
+            $import = new \App\Imports\VerifWisudaImport($tahun);
+            Excel::import($import, $file);
+            
+            // Get any failures
+            $failures = $import->failures();
+            $failureMessages = [];
+            
+            foreach ($failures as $failure) {
+                $failureMessages[] = "Baris {$failure->row()}: " . implode(', ', $failure->errors());
+            }
+            
+            $successMessage = 'Data berhasil diimport untuk tahun ' . $tahun . '. Total: ' . $import->getRowCount() . ' baris.';
+            
+            if (!empty($failureMessages)) {
+                $successMessage .= ' Peringatan: ' . implode('; ', $failureMessages);
+            }
+            
+            return response()->json([
+                'status' => true, 
+                'message' => $successMessage
+            ], 200);
+        } catch (\Throwable $th) {
+            \Log::error('Import error: ' . $th->getMessage());
+            return response()->json([
+                'status' => false, 
+                'message' => 'Terjadi kesalahan saat mengimport data: ' . $th->getMessage()
+            ], 500);
+        }
+    }
+
+    public function exportWisudawan(Request $request)
     {
         $request->validate([
             'tahun' => ['required']
         ], [
             'required' => ':attribute wajib diisi',
         ], [
-            'tahun' => 'Periode Wisuda'
+            'tahun' => 'Tahun'
         ]);
 
         $tahun = $request->tahun;
-        $name = 'Rekap_Data_Verifikasi_Wisuda_Tahun_' . $tahun;
-        return Excel::download(new VerifWisudaExport($tahun), $name . '.xlsx');
+        $name = 'Rekap_Data_Wisudawan_Tahun_' . $tahun;
+        
+        // You'll need to create a new export class for wisudawan data
+        // For now, we'll use the same export class but you should create a separate one
+        return Excel::download(new VerifWisudaExport($tahun, 'wisudawan'), $name . '.xlsx');
     }
 
     public function show($id)
@@ -255,4 +307,93 @@ class VerifikasiWisudaController extends Controller
             return response()->json(['status' => false, 'message' => 'terjadi kesalahan'], 500);
         }
     }
+    public function listWisudawan(Request $request)
+{
+    $year = $request->year ?? date('Y');
+    
+    $data = VerifikasiWisuda::with(['user', 'status'])
+        ->whereYear('created_at', $year)
+        ->whereIn('status_id', [2, 3]) // Only show accepted/rejected
+        ->orderBy('created_at', 'desc')
+        ->get();
+
+    return DataTables::of($data)
+        ->addIndexColumn()
+        ->addColumn('action', function($row) {
+            return '';
+        })
+        ->rawColumns(['action'])
+        ->make(true);
+}
+
+public function terima($id)
+{
+    try {
+        $verifikasi = VerifikasiWisuda::findOrFail(decodeId($id));
+        $verifikasi->update(['status_id' => 2]); // 2 = Diterima
+        
+        return response()->json([
+            'status' => true,
+            'message' => 'Wisudawan berhasil diterima'
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'status' => false,
+            'message' => 'Gagal menerima wisudawan: ' . $e->getMessage()
+        ], 500);
+    }
+}
+
+public function tolak($id)
+{
+    try {
+        $verifikasi = VerifikasiWisuda::findOrFail(decodeId($id));
+        $verifikasi->update(['status_id' => 3]); // 3 = Ditolak
+        
+        return response()->json([
+            'status' => true,
+            'message' => 'Wisudawan berhasil ditolak'
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'status' => false,
+            'message' => 'Gagal menolak wisudawan: ' . $e->getMessage()
+        ], 500);
+    }
+}
+
+public function konfirmasi(Request $request, $id)
+{
+    $request->validate([
+        'konfirmasi' => ['required', 'in:setuju,tidak_setuju']
+    ], [
+        'required' => ':attribute wajib dipilih!',
+        'in' => ':attribute harus berisi setuju atau tidak setuju',
+    ], [
+        'konfirmasi' => 'Konfirmasi keikutsertaan'
+    ]);
+
+    try {
+        $id = decodeId($id);
+        $verifikasi = VerifikasiWisuda::where('id', $id)
+            ->where('user_id', Auth::user()->id)
+            ->firstOrFail();
+
+        $status_id = $request->konfirmasi === 'setuju' ? '4' : '5'; // 4 = Dikonfirmasi, 5 = Ditolak Mahasiswa
+        
+        $verifikasi->update([
+            'status_id' => $status_id,
+            'tanggal_konfirmasi' => now(),
+            'catatan_mahasiswa' => $request->catatan_mahasiswa
+        ]);
+
+        $message = $request->konfirmasi === 'setuju' 
+            ? 'Terima kasih! Anda telah mengkonfirmasi keikutsertaan wisuda.'
+            : 'Konfirmasi berhasil disimpan. Anda tidak akan mengikuti wisuda periode ini.';
+
+        return response()->json(['status' => true, 'message' => $message], 200);
+    } catch (\Throwable $th) {
+        return response()->json(['status' => false, 'message' => 'Terjadi kesalahan'], 500);
+    }
+}
 }

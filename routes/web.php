@@ -323,14 +323,20 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::name('verifikasiWisuda.')->prefix('verifikasiWisuda')->group(function () {
-        Route::get('/', [VerifikasiWisudaController::class, 'index'])->name('index')->middleware('role:staff,dekanat,subkoor');
+        Route::get('/', [VerifikasiWisudaController::class, 'index'])->name('index')->middleware('role:staff,dekanat,subkoor,mahasiswa');
         Route::get('/list', [VerifikasiWisudaController::class, 'list'])->name('list')->middleware('role:staff');
         Route::get('/listDekanat', [VerifikasiWisudaController::class, 'listDekanat'])->name('listDekanat')->middleware('role:dekanat,subkoor');
+        Route::get('/listWisudawan', [VerifikasiWisudaController::class, 'listWisudawan'])->name('listWisudawan')->middleware('role:staff');
         Route::post('/', [VerifikasiWisudaController::class, 'store'])->name('store')->middleware('role:mahasiswa');
         Route::post('/export/data', [VerifikasiWisudaController::class, 'export'])->name('export')->middleware('role:staff,dekanat,subkoor');
+        Route::post('/export/wisudawan', [VerifikasiWisudaController::class, 'exportWisudawan'])->name('exportWisudawan')->middleware('role:staff');
         Route::get('/show/{id}', [VerifikasiWisudaController::class, 'show'])->name('show')->middleware('role:mahasiswa,staff,dekanat,subkoor');
         Route::post('/update/{id}', [VerifikasiWisudaController::class, 'update'])->name('update')->middleware('role:mahasiswa');
         Route::post('/proses/{id}', [VerifikasiWisudaController::class, 'proses'])->name('proses')->middleware('role:staff');
+        Route::post('/{id}/terima', [VerifikasiWisudaController::class, 'terima'])->name('terima')->middleware('role:staff');
+        Route::post('/{id}/tolak', [VerifikasiWisudaController::class, 'tolak'])->name('tolak')->middleware('role:staff');
+        Route::post('/import', [VerifikasiWisudaController::class, 'import'])->name('import')->middleware('role:staff');
+        Route::post('/{id}/konfirmasi', [VerifikasiWisudaController::class, 'konfirmasi'])->name('konfirmasi')->middleware('role:mahasiswa');
     });
 
     Route::name('transkrip.')->prefix('transkrip')->group(function () {

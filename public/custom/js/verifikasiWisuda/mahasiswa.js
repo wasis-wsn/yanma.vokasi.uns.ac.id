@@ -1,23 +1,28 @@
-$('#btn-tambah').click(function() {
-    let action = window.Laravel.store;
-
-    $('#form-tambah').attr('action', action);
-    $('#titleModalTambah').html('Tambah Ajuan Verifikasi Wisuda');
-    $('#form-tambah input[type="file"]').val('');
-    $('#modalTambah').modal('show');
-})
-
-$("#btn-edit").click(function () {
-    let id = $(this).data("id");
-    let action = window.Laravel.editData.replace(":id", id);
-
-    $('#form-tambah').attr('action', action);
-    $('#titleModalTambah').html('Edit Ajuan Verifikasi Wisuda');
-    $('#form-tambah input[type="file"]').val('');
-    $('#modalTambah').modal('show');
+$('#btn-setuju').click(function() {
+    let id = $(this).data('id');
+    let action = window.Laravel.konfirmasi.replace(':id', id);
+    
+    $('#form-konfirmasi').attr('action', action);
+    $('#modalKonfirmasiLabel').text('Konfirmasi Keikutsertaan Wisuda');
+    $('#konfirmasi-text').text('Apakah Anda yakin bersedia mengikuti wisuda pada periode ini?');
+    $('#konfirmasi_value').val('setuju');
+    $('#btn-konfirmasi-submit').removeClass('btn-danger').addClass('btn-success').text('Ya, Saya Setuju');
+    $('#modalKonfirmasi').modal('show');
 });
 
-$("#form-tambah").submit(function (e) {
+$('#btn-tidak-setuju').click(function() {
+    let id = $(this).data('id');
+    let action = window.Laravel.konfirmasi.replace(':id', id);
+    
+    $('#form-konfirmasi').attr('action', action);
+    $('#modalKonfirmasiLabel').text('Konfirmasi Penolakan Wisuda');
+    $('#konfirmasi-text').text('Apakah Anda yakin tidak bersedia mengikuti wisuda pada periode ini?');
+    $('#konfirmasi_value').val('tidak_setuju');
+    $('#btn-konfirmasi-submit').removeClass('btn-success').addClass('btn-danger').text('Ya, Saya Tidak Setuju');
+    $('#modalKonfirmasi').modal('show');
+});
+
+$("#form-konfirmasi").submit(function (e) {
     e.preventDefault();
     let formData = new FormData(this);
 
@@ -31,7 +36,7 @@ $("#form-tambah").submit(function (e) {
         beforeSend: function () {
             Swal.fire({
                 title: "Mohon Tunggu",
-                text: "Semakin besar ukuran file, semakin banyak waktu yang diperlukan.",
+                text: "Sedang memproses konfirmasi...",
                 allowOutsideClick: false,
                 didOpen: () => {
                     Swal.showLoading();
@@ -40,8 +45,8 @@ $("#form-tambah").submit(function (e) {
         },
         success: function (res) {
             if (res.status) {
-                $("#form-tambah input").val("");
-                $("#modalTambah").modal("hide");
+                $("#form-konfirmasi")[0].reset();
+                $("#modalKonfirmasi").modal("hide");
                 Swal.fire({
                     title: "Berhasil!",
                     text: res.message,
