@@ -9,19 +9,20 @@
             <form id="form-konfirmasi" method="POST">
                 @csrf
                 <div class="modal-body">
-                    <div class="mb-3">
-                        <p id="konfirmasi-text" class="fw-bold"></p>
-                    </div>
-                    <div class="mb-3">
-                        <label for="catatan_mahasiswa" class="form-label">Catatan (Opsional)</label>
-                        <textarea class="form-control" name="catatan_mahasiswa" id="catatan_mahasiswa" rows="3" 
-                            placeholder="Tuliskan catatan jika diperlukan..."></textarea>
-                    </div>
+                    <p id="konfirmasi-text">Apakah Anda yakin bersedia mengikuti wisuda pada periode ini?</p>
+
                     <input type="hidden" name="konfirmasi" id="konfirmasi_value">
+
+                    <div class="mb-3" id="catatan-field">
+                        <label for="catatan" class="form-label">Alasan Penolakan</label>
+                        <textarea class="form-control" name="catatan" id="catatan" rows="3"
+                            placeholder="Jelaskan alasan Anda menolak untuk mengikuti wisuda..."></textarea>
+                        <small class="text-muted">Catatan ini akan membantu staff memahami keputusan Anda.</small>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn" id="btn-konfirmasi-submit">Konfirmasi</button>
+                    <button type="submit" class="btn btn-success" id="btn-konfirmasi-submit">Ya, Saya Setuju</button>
                 </div>
             </form>
         </div>

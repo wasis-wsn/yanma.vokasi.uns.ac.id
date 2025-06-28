@@ -41,6 +41,11 @@ class VerifikasiWisudaController extends Controller
     {
         $data = VerifikasiWisuda::with('user.prodis', 'status')->whereYear('created_at', $request->year);
         if ($request->status != 'all') $data = $data->where('status_id', $request->status);
+
+        // Exclude verified (status 2) and confirmed (status 4) students from verification table
+        // They should appear in the wisudawan table instead
+        $data = $data->whereNotIn('status_id', [2, 4]);
+
         $data = $data->orderBy('created_at', 'desc')->get();
 
         return DataTables::of($data)
@@ -49,10 +54,14 @@ class VerifikasiWisudaController extends Controller
                 $aksi = '<button type="button" class="btn btn-info btn-sm btn-detail" data-id="' . encodeId($row->id) . '">
                         <i class="fa fa-eye"></i> Review
                     </button>';
+
                 if ($row->status_id == 1) {
-                    $aksi .= '<button type="button" class="btn btn-warning btn-sm btn-proses btn-block" data-nim="' . $row->user->nim . '" data-id="' . encodeId($row->id) . '">
-                            <i class="fa fa-pen"></i> proses
-                        </button>';
+                    // Show proses button only if no_seri_ijazah is empty
+                    if (empty($row->no_seri_ijazah)) {
+                        $aksi .= '<button type="button" class="btn btn-warning btn-sm btn-proses btn-block" data-nim="' . $row->user->nim . '" data-id="' . encodeId($row->id) . '">
+                                <i class="fa fa-pen"></i> Proses
+                            </button>';
+                    }
                 }
                 return $aksi;
             })
@@ -84,6 +93,11 @@ class VerifikasiWisudaController extends Controller
     {
         $data = VerifikasiWisuda::with('user.prodis', 'status')->whereYear('created_at', $request->year);
         if ($request->status != 'all') $data = $data->where('status_id', $request->status);
+
+        // Exclude verified (status 2) and confirmed (status 4) students from verification table
+        // They should appear in the wisudawan table instead
+        $data = $data->whereNotIn('status_id', [2, 4]);
+
         $data = $data->orderBy('created_at', 'desc')->get();
 
         return DataTables::of($data)
@@ -165,33 +179,58 @@ class VerifikasiWisudaController extends Controller
         try {
             $file = $request->file('file');
             $tahun = $request->tahun;
-            
+
             // Read the Excel/CSV file
             $import = new \App\Imports\VerifWisudaImport($tahun);
             Excel::import($import, $file);
-            
+
             // Get any failures
             $failures = $import->failures();
             $failureMessages = [];
-            
+
             foreach ($failures as $failure) {
                 $failureMessages[] = "Baris {$failure->row()}: " . implode(', ', $failure->errors());
             }
-            
-            $successMessage = 'Data berhasil diimport untuk tahun ' . $tahun . '. Total: ' . $import->getRowCount() . ' baris.';
-            
+
+            // Get import statistics
+            $totalRows = $import->getRowCount();
+            $newRecords = $import->getNewCount();
+            $updatedRecords = $import->getUpdatedCount();
+            $importedWithSeriIjazah = $import->getImportedWithSeriIjazah();
+            $importedWithoutSeriIjazah = $import->getImportedWithoutSeriIjazah();
+
+            // Build success message with details
+            $successMessage = "Data berhasil diimport untuk tahun {$tahun}. ";
+            $successMessage .= "Total baris diproses: {$totalRows}. ";
+
+            if ($newRecords > 0) {
+                $successMessage .= "Data baru: {$newRecords}. ";
+            }
+
+            if ($updatedRecords > 0) {
+                $successMessage .= "Data diperbarui: {$updatedRecords}. ";
+            }
+
+            if ($importedWithSeriIjazah > 0) {
+                $successMessage .= "{$importedWithSeriIjazah} mahasiswa memiliki nomor seri ijazah (siap dikonfirmasi). ";
+            }
+
+            if ($importedWithoutSeriIjazah > 0) {
+                $successMessage .= "{$importedWithoutSeriIjazah} mahasiswa tidak memiliki nomor seri ijazah (perlu diproses staff).";
+            }
+
             if (!empty($failureMessages)) {
                 $successMessage .= ' Peringatan: ' . implode('; ', $failureMessages);
             }
-            
+
             return response()->json([
-                'status' => true, 
+                'status' => true,
                 'message' => $successMessage
             ], 200);
         } catch (\Throwable $th) {
             \Log::error('Import error: ' . $th->getMessage());
             return response()->json([
-                'status' => false, 
+                'status' => false,
                 'message' => 'Terjadi kesalahan saat mengimport data: ' . $th->getMessage()
             ], 500);
         }
@@ -209,10 +248,26 @@ class VerifikasiWisudaController extends Controller
 
         $tahun = $request->tahun;
         $name = 'Rekap_Data_Wisudawan_Tahun_' . $tahun;
-        
+
         // You'll need to create a new export class for wisudawan data
         // For now, we'll use the same export class but you should create a separate one
         return Excel::download(new VerifWisudaExport($tahun, 'wisudawan'), $name . '.xlsx');
+    }
+
+    public function export(Request $request)
+    {
+        $request->validate([
+            'tahun' => ['required']
+        ], [
+            'required' => ':attribute wajib diisi',
+        ], [
+            'tahun' => 'Tahun'
+        ]);
+
+        $tahun = $request->tahun;
+        $name = 'Rekap_Data_Verifikasi_Wisuda_Tahun_' . $tahun;
+
+        return Excel::download(new VerifWisudaExport($tahun, 'verifikasi'), $name . '.xlsx');
     }
 
     public function show($id)
@@ -259,71 +314,95 @@ class VerifikasiWisudaController extends Controller
     {
         $request->validate([
             'status_id' => ['required'],
-            'no_seri_ijazah' => ['required_if:status_id,2'],
-            'periode_wisuda' => ['required_if:status_id,2'],
-            'kode_akses' => ['required_if:status_id,2'],
+            'catatan' => ['nullable', 'string']
         ], [
             'required' => ':attribute wajib diisi!',
-            'required_if' => ':attribute wajib diisi!',
         ], [
-            'status_id' => 'Status Verifikasi',
-            'no_seri_ijazah' => 'No Seri Ijazah',
-            'periode_wisuda' => 'Periode Wisuda',
-            'kode_akses' => 'Kode Akses Wisuda',
+            'status_id' => 'Status',
+            'catatan' => 'Catatan'
         ]);
 
         try {
             $id = decodeId($id);
             $ajuan = VerifikasiWisuda::findOrFail($id);
 
-            if ($request->status_id == '2') {
-                Storage::disk('public')->delete('verifWisuda/upload/' . $ajuan->file);
-            }
-
-            $ajuan->update([
+            // Only update status and catatan - don't change existing verification data
+            $updateData = [
                 'status_id' => $request->status_id,
-                'no_seri_ijazah' => $request->no_seri_ijazah,
-                'periode_wisuda' => $request->periode_wisuda,
-                'kode_akses' => $request->kode_akses,
                 'catatan' => $request->catatan,
                 'tanggal_proses' => new \DateTime(),
-            ]);
+            ];
 
-            if ($request->status_id == '2') {
+            $ajuan->update($updateData);
+
+            // Only create transkrip and skpi if status is 2 (Terverifikasi) and data is complete
+            if ($request->status_id == '2' && !empty($ajuan->periode_wisuda)) {
                 $mahasiswa_id = $ajuan->user_id;
-                TranskripNilai::create([
-                    'user_id' => $mahasiswa_id,
-                    'status_id' => '1',
-                    'periode_wisuda' => $request->periode_wisuda,
-                ]);
-                SKPI::create([
-                    'user_id' => $mahasiswa_id,
-                    'status_id' => '1',
-                    'periode_wisuda' => $request->periode_wisuda,
-                ]);
+
+                // Check if records don't already exist
+                $existingTranskrip = TranskripNilai::where('user_id', $mahasiswa_id)
+                    ->where('periode_wisuda', $ajuan->periode_wisuda)
+                    ->first();
+
+                $existingSKPI = SKPI::where('user_id', $mahasiswa_id)
+                    ->where('periode_wisuda', $ajuan->periode_wisuda)
+                    ->first();
+
+                if (!$existingTranskrip) {
+                    TranskripNilai::create([
+                        'user_id' => $mahasiswa_id,
+                        'status_id' => '1',
+                        'periode_wisuda' => $ajuan->periode_wisuda,
+                    ]);
+                }
+
+                if (!$existingSKPI) {
+                    SKPI::create([
+                        'user_id' => $mahasiswa_id,
+                        'status_id' => '1',
+                        'periode_wisuda' => $ajuan->periode_wisuda,
+                    ]);
+                }
             }
-            return response()->json(['status' => true, 'message' => 'Ajuan Berhasil Diproses!'], 200);
+
+            return response()->json(['status' => true, 'message' => 'Status berhasil diperbarui!'], 200);
         } catch (\Throwable $th) {
             return response()->json(['status' => false, 'message' => 'terjadi kesalahan'], 500);
         }
     }
     public function listWisudawan(Request $request)
-{
-    $year = $request->year ?? date('Y');
-    
-    $data = VerifikasiWisuda::with(['user', 'status'])
-        ->whereYear('created_at', $year)
-        ->whereIn('status_id', [2, 3]) // Only show accepted/rejected
-        ->orderBy('created_at', 'desc')
-        ->get();
+    {
+        $year = $request->year ?? date('Y');
 
-    return DataTables::of($data)
-        ->addIndexColumn()
-        ->addColumn('action', function($row) {
-            return '';
-        })
-        ->rawColumns(['action'])
-        ->make(true);
+        $data = VerifikasiWisuda::with(['user.prodis', 'status'])
+            ->whereYear('created_at', $year)
+            ->whereIn('status_id', [2, 4]) // Include verified (2) and confirmed (4) students
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return DataTables::of($data)
+            ->addIndexColumn()
+            ->addColumn('action', function($row) {
+                $aksi = '<button type="button" class="btn btn-info btn-sm btn-detail" data-id="' . encodeId($row->id) . '">
+                        <i class="fa fa-eye"></i> Lihat
+                    </button>';
+                $aksi .= '<button type="button" class="btn btn-warning btn-sm btn-proses btn-block" data-nim="' . $row->user->nim . '" data-id="' . encodeId($row->id) . '" data-type="wisudawan">
+                        <i class="fa fa-pen"></i> Proses
+                    </button>';
+                return $aksi;
+            })
+            ->editColumn('status_id', function ($row) {
+                return '<button type="button" class="btn ' . $row->status->color . ' btn-sm" disabled>' . $row->status->name . '</button>';
+            })
+            ->editColumn('periode_wisuda', function ($row) {
+                $periode_wisuda = $row->periode_wisuda;
+                if ($periode_wisuda) {
+                    $periode_wisuda = Carbon::createFromFormat('Y-m', $row->periode_wisuda)->translatedFormat('F Y');
+                }
+                return $periode_wisuda;
+            })
+            ->rawColumns(['action', 'status_id'])
+            ->make(true);
 }
 
 public function terima($id)
@@ -331,7 +410,7 @@ public function terima($id)
     try {
         $verifikasi = VerifikasiWisuda::findOrFail(decodeId($id));
         $verifikasi->update(['status_id' => 2]); // 2 = Diterima
-        
+
         return response()->json([
             'status' => true,
             'message' => 'Wisudawan berhasil diterima'
@@ -349,7 +428,7 @@ public function tolak($id)
     try {
         $verifikasi = VerifikasiWisuda::findOrFail(decodeId($id));
         $verifikasi->update(['status_id' => 3]); // 3 = Ditolak
-        
+
         return response()->json([
             'status' => true,
             'message' => 'Wisudawan berhasil ditolak'
@@ -379,15 +458,49 @@ public function konfirmasi(Request $request, $id)
             ->where('user_id', Auth::user()->id)
             ->firstOrFail();
 
-        $status_id = $request->konfirmasi === 'setuju' ? '4' : '5'; // 4 = Dikonfirmasi, 5 = Ditolak Mahasiswa
-        
+        // Check if student is eligible to confirm (status 1, 2, or 6)
+        if (!in_array($verifikasi->status_id, ['1', '2', '6'])) {
+            return response()->json(['status' => false, 'message' => 'Anda tidak dapat melakukan konfirmasi pada saat ini.'], 400);
+        }
+
+        // 4 = Terima (confirmed), 3 = Tolak (rejected) based on your table
+        $status_id = $request->konfirmasi === 'setuju' ? '4' : '3';
+
         $verifikasi->update([
             'status_id' => $status_id,
             'tanggal_konfirmasi' => now(),
-            'catatan_mahasiswa' => $request->catatan_mahasiswa
+            'catatan' => $request->catatan // Update catatan field with student's note
         ]);
 
-        $message = $request->konfirmasi === 'setuju' 
+        // If student agrees, create transkrip and skpi records (only if periode_wisuda exists)
+        if ($request->konfirmasi === 'setuju' && $verifikasi->periode_wisuda) {
+            // Check if records don't already exist
+            $existingTranskrip = TranskripNilai::where('user_id', $verifikasi->user_id)
+                ->where('periode_wisuda', $verifikasi->periode_wisuda)
+                ->first();
+
+            $existingSKPI = SKPI::where('user_id', $verifikasi->user_id)
+                ->where('periode_wisuda', $verifikasi->periode_wisuda)
+                ->first();
+
+            if (!$existingTranskrip) {
+                TranskripNilai::create([
+                    'user_id' => $verifikasi->user_id,
+                    'status_id' => '1',
+                    'periode_wisuda' => $verifikasi->periode_wisuda,
+                ]);
+            }
+
+            if (!$existingSKPI) {
+                SKPI::create([
+                    'user_id' => $verifikasi->user_id,
+                    'status_id' => '1',
+                    'periode_wisuda' => $verifikasi->periode_wisuda,
+                ]);
+            }
+        }
+
+        $message = $request->konfirmasi === 'setuju'
             ? 'Terima kasih! Anda telah mengkonfirmasi keikutsertaan wisuda.'
             : 'Konfirmasi berhasil disimpan. Anda tidak akan mengikuti wisuda periode ini.';
 

@@ -1,24 +1,32 @@
 $('#btn-setuju').click(function() {
     let id = $(this).data('id');
     let action = window.Laravel.konfirmasi.replace(':id', id);
-    
+
     $('#form-konfirmasi').attr('action', action);
     $('#modalKonfirmasiLabel').text('Konfirmasi Keikutsertaan Wisuda');
     $('#konfirmasi-text').text('Apakah Anda yakin bersedia mengikuti wisuda pada periode ini?');
     $('#konfirmasi_value').val('setuju');
     $('#btn-konfirmasi-submit').removeClass('btn-danger').addClass('btn-success').text('Ya, Saya Setuju');
+
+    // Hide catatan field for agreement
+    $('#catatan-field').hide();
+
     $('#modalKonfirmasi').modal('show');
 });
 
 $('#btn-tidak-setuju').click(function() {
     let id = $(this).data('id');
     let action = window.Laravel.konfirmasi.replace(':id', id);
-    
+
     $('#form-konfirmasi').attr('action', action);
     $('#modalKonfirmasiLabel').text('Konfirmasi Penolakan Wisuda');
     $('#konfirmasi-text').text('Apakah Anda yakin tidak bersedia mengikuti wisuda pada periode ini?');
     $('#konfirmasi_value').val('tidak_setuju');
     $('#btn-konfirmasi-submit').removeClass('btn-success').addClass('btn-danger').text('Ya, Saya Tidak Setuju');
+
+    // Show catatan field for rejection
+    $('#catatan-field').show();
+
     $('#modalKonfirmasi').modal('show');
 });
 

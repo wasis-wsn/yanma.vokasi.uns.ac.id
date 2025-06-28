@@ -2,22 +2,27 @@
 
 namespace App\Imports;
 
-use App\Models\User;
 use App\Models\VerifikasiWisuda;
+use App\Models\User;
+use App\Models\PeriodeWisuda;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\WithValidation;
 use Maatwebsite\Excel\Concerns\SkipsOnFailure;
-use Maatwebsite\Excel\Concerns\SkipsFailures;
-use Maatwebsite\Excel\Concerns\WithBatchInserts;
-use Maatwebsite\Excel\Concerns\WithChunkReading;
+use Maatwebsite\Excel\Validators\Failure;
 
-class VerifWisudaImport implements ToModel, WithHeadingRow, WithValidation, SkipsOnFailure, WithBatchInserts, WithChunkReading
+class VerifWisudaImport implements ToModel, WithHeadingRow, WithValidation, SkipsOnFailure
 {
-    use SkipsFailures;
-    
+    use Importable;
+
     private $tahun;
     private $rowCount = 0;
+    private $importedWithSeriIjazah = 0;
+    private $importedWithoutSeriIjazah = 0;
+    private $updatedCount = 0;
+    private $newCount = 0;
+    private $failures = [];
 
     public function __construct($tahun)
     {
@@ -26,63 +31,73 @@ class VerifWisudaImport implements ToModel, WithHeadingRow, WithValidation, Skip
 
     public function model(array $row)
     {
-        // Clean and normalize the row data
-        $row = array_map(function($value) {
-            return is_string($value) ? trim($value) : $value;
-        }, $row);
-
-        // Skip empty rows
-        if (empty($row['nim']) || empty($row['no_seri_ijazah'])) {
-            return null;
-        }
+        $this->rowCount++;
 
         // Find user by NIM
         $user = User::where('nim', $row['nim'])->first();
-        
         if (!$user) {
-            \Log::warning("Mahasiswa dengan NIM {$row['nim']} tidak ditemukan");
-            return null; // Skip instead of throwing exception
+            return null;
         }
 
-        // Check if verification already exists
+        // Check if already exists
         $existing = VerifikasiWisuda::where('user_id', $user->id)->first();
-        
         if ($existing) {
-            // Update existing record
-            $existing->update([
-                'no_seri_ijazah' => $row['no_seri_ijazah'] ?? $existing->no_seri_ijazah,
-                'periode_wisuda' => $row['periode_wisuda'] ?? $existing->periode_wisuda,
-                'kode_akses' => $row['kode_akses'] ?? $existing->kode_akses,
-                'status_id' => 2, // Approved status
-                'tanggal_proses' => now(),
-            ]);
-            $this->rowCount++;
+            // Only update if not confirmed yet
+            if (!in_array($existing->status_id, ['4', '5'])) {
+                // Count for statistics
+                if (!empty($row['no_seri_ijazah'])) {
+                    $this->importedWithSeriIjazah++;
+                } else {
+                    $this->importedWithoutSeriIjazah++;
+                }
+
+                $existing->update([
+                    'no_seri_ijazah' => $row['no_seri_ijazah'] ?? null,
+                    'periode_wisuda' => $row['periode_wisuda'] ?? $existing->periode_wisuda,
+                    'kode_akses' => $row['kode_akses'] ?? null,
+                    'jadwal' => $row['jadwal'] ?? null,
+                    'catatan' => $row['catatan'] ?? null,
+                ]);
+                $this->updatedCount++;
+            }
             return null;
-        } else {
-            // Create new record
-            $this->rowCount++;
-            return new VerifikasiWisuda([
-                'user_id' => $user->id,
-                'no_seri_ijazah' => $row['no_seri_ijazah'],
-                'periode_wisuda' => $row['periode_wisuda'],
-                'kode_akses' => $row['kode_akses'] ?? 'AUTO_' . time(),
-                'status_id' => 2, // Approved status
-                'tanggal_proses' => now(),
-                'file' => null, // No file for imported data
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
         }
+
+        // Get active graduation period for this year
+        $activePeriode = PeriodeWisuda::getActivePeriode($this->tahun);
+        $periodeWisuda = null;
+
+        if ($activePeriode) {
+            $periodeWisuda = $this->tahun . '-' . str_pad($activePeriode->bulan, 2, '0', STR_PAD_LEFT);
+        }
+
+        // Count for statistics
+        if (!empty($row['no_seri_ijazah'])) {
+            $this->importedWithSeriIjazah++;
+        } else {
+            $this->importedWithoutSeriIjazah++;
+        }
+
+        // Determine status based on whether no_seri_ijazah is provided
+        $status_id = '1'; // Default: Belum Diproses
+
+        $this->newCount++;
+        return new VerifikasiWisuda([
+            'user_id' => $user->id,
+            'status_id' => $status_id,
+            'no_seri_ijazah' => $row['no_seri_ijazah'] ?? null,
+            'periode_wisuda' => $row['periode_wisuda'] ?? $periodeWisuda,
+            'kode_akses' => $row['kode_akses'] ?? null,
+            'jadwal' => $row['jadwal'] ?? null,
+            'catatan' => $row['catatan'] ?? null,
+            'tanggal_proses' => null,
+        ]);
     }
 
     public function rules(): array
     {
         return [
             'nim' => 'required',
-            'no_seri_ijazah' => 'required',
-            'periode_wisuda' => 'required|regex:/^\d{4}-\d{2}$/',
-            // Make kode_akses optional since it's empty in your CSV
-            'kode_akses' => 'nullable',
         ];
     }
 
@@ -90,11 +105,44 @@ class VerifWisudaImport implements ToModel, WithHeadingRow, WithValidation, Skip
     {
         return [
             'nim.required' => 'NIM wajib diisi',
-            'no_seri_ijazah.required' => 'No Seri Ijazah wajib diisi',
-            'periode_wisuda.required' => 'Periode Wisuda wajib diisi',
-            'periode_wisuda.regex' => 'Periode Wisuda harus dalam format YYYY-MM',
         ];
     }
+
+    public function onFailure(Failure ...$failures)
+    {
+        $this->failures = $failures;
+    }
+
+    public function failures()
+    {
+        return $this->failures;
+    }
+
+    public function getRowCount()
+    {
+        return $this->rowCount;
+    }
+
+    public function getImportedWithSeriIjazah()
+    {
+        return $this->importedWithSeriIjazah;
+    }
+
+    public function getImportedWithoutSeriIjazah()
+    {
+        return $this->importedWithoutSeriIjazah;
+    }
+
+    public function getUpdatedCount()
+    {
+        return $this->updatedCount;
+    }
+
+    public function getNewCount()
+    {
+        return $this->newCount;
+    }
+
 
     public function batchSize(): int
     {
@@ -104,10 +152,5 @@ class VerifWisudaImport implements ToModel, WithHeadingRow, WithValidation, Skip
     public function chunkSize(): int
     {
         return 100;
-    }
-
-    public function getRowCount()
-    {
-        return $this->rowCount;
     }
 }
