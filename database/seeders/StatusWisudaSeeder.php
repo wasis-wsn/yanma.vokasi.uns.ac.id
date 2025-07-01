@@ -16,6 +16,9 @@ class StatusWisudaSeeder extends Seeder
         StatusWisuda::insert([
             ['id' =>  '1', 'name' => 'Belum Diproses', 'color' => 'btn-secondary', 'gate' => '2'],
             ['id' =>  '2', 'name' => 'Sudah Terverifikasi', 'color' => 'btn-success', 'gate' => '2'],
+            ['id' =>  '3', 'name' => 'Tidak Terverifikasi', 'color' => 'btn-danger', 'gate' => '2'],
+            ['id' =>  '4', 'name' => 'Tolak', 'color' => 'btn-danger', 'gate' => '2'],
+            ['id' =>  '5', 'name' => 'Terima', 'color' => 'btn-success', 'gate' => '2'],
         ]);
     }
 }
