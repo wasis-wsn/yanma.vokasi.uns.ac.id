@@ -198,6 +198,7 @@ class VerifikasiWisudaController extends Controller
             $updatedRecords = $import->getUpdatedCount();
             $importedWithSeriIjazah = $import->getImportedWithSeriIjazah();
             $importedWithoutSeriIjazah = $import->getImportedWithoutSeriIjazah();
+            $updatedDetails = $import->getUpdatedDetails();
 
             // Build success message with details
             $successMessage = "Data berhasil diimport untuk tahun {$tahun}. ";
@@ -209,6 +210,23 @@ class VerifikasiWisudaController extends Controller
 
             if ($updatedRecords > 0) {
                 $successMessage .= "Data diperbarui: {$updatedRecords}. ";
+                
+                // Add details about what was updated
+                if (!empty($updatedDetails)) {
+                    $updateSummary = [];
+                    foreach ($updatedDetails as $detail) {
+                        $fields = implode(', ', $detail['updates']);
+                        $updateSummary[] = "{$detail['name']} ({$detail['nim']}): {$fields}";
+                    }
+                    
+                    if (count($updateSummary) <= 5) {
+                        $successMessage .= "Detail perubahan: " . implode('; ', $updateSummary) . ". ";
+                    } else {
+                        $firstFive = array_slice($updateSummary, 0, 5);
+                        $remaining = count($updateSummary) - 5;
+                        $successMessage .= "Detail perubahan: " . implode('; ', $firstFive) . " dan {$remaining} lainnya. ";
+                    }
+                }
             }
 
             if ($importedWithSeriIjazah > 0) {

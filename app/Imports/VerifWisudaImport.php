@@ -23,6 +23,7 @@ class VerifWisudaImport implements ToModel, WithHeadingRow, WithValidation, Skip
     private $updatedCount = 0;
     private $newCount = 0;
     private $failures = [];
+    private $updatedDetails = [];
 
     public function __construct($tahun)
     {
@@ -41,25 +42,69 @@ class VerifWisudaImport implements ToModel, WithHeadingRow, WithValidation, Skip
 
         // Check if already exists
         $existing = VerifikasiWisuda::where('user_id', $user->id)->first();
+        
         if ($existing) {
-            // Only update if not confirmed yet
-            if (!in_array($existing->status_id, ['4', '5'])) {
+            // Track what fields are being updated
+            $updates = [];
+            $hasChanges = false;
+
+            // Check each field for changes
+            if (isset($row['no_seri_ijazah']) && $existing->no_seri_ijazah != $row['no_seri_ijazah']) {
+                $updates['no_seri_ijazah'] = $row['no_seri_ijazah'];
+                $hasChanges = true;
+            }
+
+            if (isset($row['periode_wisuda']) && $existing->periode_wisuda != $row['periode_wisuda']) {
+                $updates['periode_wisuda'] = $row['periode_wisuda'];
+                $hasChanges = true;
+            }
+
+            if (isset($row['kode_akses']) && $existing->kode_akses != $row['kode_akses']) {
+                $updates['kode_akses'] = $row['kode_akses'];
+                $hasChanges = true;
+            }
+
+            if (isset($row['jadwal']) && $existing->jadwal != $row['jadwal']) {
+                $updates['jadwal'] = $row['jadwal'];
+                $hasChanges = true;
+            }
+
+            if (isset($row['catatan']) && $existing->catatan != $row['catatan']) {
+                $updates['catatan'] = $row['catatan'];
+                $hasChanges = true;
+            }
+
+            // Update if there are changes and not confirmed yet
+            if ($hasChanges && !in_array($existing->status_id, ['4', '5'])) {
+                // Update the existing record
+                $existing->update($updates);
+                
                 // Count for statistics
-                if (!empty($row['no_seri_ijazah'])) {
+                if (!empty($updates['no_seri_ijazah'])) {
+                    $this->importedWithSeriIjazah++;
+                } else if (empty($existing->no_seri_ijazah)) {
+                    $this->importedWithoutSeriIjazah++;
+                } else {
+                    $this->importedWithSeriIjazah++;
+                }
+
+                $this->updatedCount++;
+                
+                // Track what was updated for detailed feedback
+                $this->updatedDetails[] = [
+                    'nim' => $row['nim'],
+                    'name' => $user->name,
+                    'updates' => array_keys($updates)
+                ];
+            } else if (!$hasChanges) {
+                // No changes, but still count for statistics
+                if (!empty($existing->no_seri_ijazah)) {
                     $this->importedWithSeriIjazah++;
                 } else {
                     $this->importedWithoutSeriIjazah++;
                 }
-
-                $existing->update([
-                    'no_seri_ijazah' => $row['no_seri_ijazah'] ?? null,
-                    'periode_wisuda' => $row['periode_wisuda'] ?? $existing->periode_wisuda,
-                    'kode_akses' => $row['kode_akses'] ?? null,
-                    'jadwal' => $row['jadwal'] ?? null,
-                    'catatan' => $row['catatan'] ?? null,
-                ]);
-                $this->updatedCount++;
             }
+            
             return null;
         }
 
@@ -143,6 +188,10 @@ class VerifWisudaImport implements ToModel, WithHeadingRow, WithValidation, Skip
         return $this->newCount;
     }
 
+    public function getUpdatedDetails()
+    {
+        return $this->updatedDetails;
+    }
 
     public function batchSize(): int
     {
