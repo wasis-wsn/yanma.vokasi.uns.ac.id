@@ -87,7 +87,7 @@
                                 $user = auth()->user();
                                 $isStaff = $user && $user->roles && $user->roles->gate_name == 'staff';
                             @endphp
-                            @if ($layanan->name != 'Verifikasi Wisuda' || $isStaff)
+                            {{-- @if ($layanan->name != 'Verifikasi Wisuda' || $isStaff) --}}
                                 <div class="col-xl-3 col-md-6 d-flex" data-aos="zoom-out">
                                     <div class="service-item position-relative">
                                         <h4>
@@ -95,7 +95,7 @@
                                         </h4>
                                     </div>
                                 </div><!-- End Service Item -->
-                            @endif
+                            {{-- @endif --}}
                             @endforeach
                         </div>
                     </div>

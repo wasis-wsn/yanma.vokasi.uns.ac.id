@@ -51,7 +51,7 @@
                                 <h3 class="card-title pricing-card-title text-center">{{$kategori->name}}</h3>
                                 <ul class="list-unstyled my-3">
                                     @foreach ($kategori->layanan as $layanan)
-                                        @if($layanan->name != 'Verifikasi Wisuda')
+                                        {{-- @if($layanan->name != 'Verifikasi Wisuda') --}}
                                             @canany($layanan->gate)
                                                 <li>
                                                     <a href="{{in_array(auth()->user()->roles->gate_name, ['mahasiswa','ormawa','adminprodi']) ? $layanan->url_mhs : $layanan->url_staff}}">
@@ -59,7 +59,7 @@
                                                     </a>
                                                 </li>
                                             @endcanany
-                                        @endif
+                                        {{-- @endif --}}
                                     @endforeach
                                 </ul>
                             </div>
@@ -85,7 +85,7 @@
                                     @endforeach
                                 </ul>
                             </div>
-                        </div>  
+                        </div>
                         <div class="card-body p-0 pb-2">
                             <div class="w-100">
                                 <canvas id="grafik-diluarjadwal" style="max-height: 500px"></canvas>
@@ -124,7 +124,7 @@
                                     @endforeach
                                 </ul>
                             </div>
-                        </div>  
+                        </div>
                         <div class="card-body p-0 pb-2">
                             <div class="w-100">
                                 <canvas id="grafik-cuti" style="max-height: 500px"></canvas>
@@ -163,7 +163,7 @@
                                     @endforeach
                                 </ul>
                             </div>
-                        </div>  
+                        </div>
                         <div class="card-body p-0 pb-2">
                             <div class="w-100">
                                 <canvas id="grafik-surattugas" style="max-height: 500px"></canvas>
@@ -203,7 +203,7 @@
             $("#tahunDiluarJadwal").html(tahunDiluarJadwal);
             updateChartsDiluarJadwal(tahunDiluarJadwal);
         });
-    
+
         function createChartsDiluarJadwal(tahun) {
             let url = "{{ route('grafik.diluarjadwal', ':tahun') }}";
             url = url.replace(':tahun', tahun);
@@ -219,19 +219,19 @@
                 }
             })
         }
-    
+
         function initialChartDiluarJadwal(data) {
             let keyProdi = Object.keys(data.nama_prodi);
             let legendProdi = '';
             Object.keys(data.nama_prodi).forEach(key => {
                 legendProdi += `<li>
-                        ${key}. 
-                        ${data.nama_prodi[key].nama_prodi} 
+                        ${key}.
+                        ${data.nama_prodi[key].nama_prodi}
                         (${data.nama_prodi[key].jumlah_data})
                     </li>`;
             });
             $('#list-diluar-jadwal').html(legendProdi);
-    
+
             let ctx = document.getElementById('grafik-diluarjadwal').getContext('2d');
             chartDiluarJadwal = new Chart(ctx, {
                 type: 'bar',
@@ -275,7 +275,7 @@
                 }
             });
         }
-    
+
         function updateChartsDiluarJadwal(tahun) {
             let url = "{{ route('grafik.diluarjadwal', ':tahun') }}";
             url = url.replace(':tahun', tahun);
@@ -291,8 +291,8 @@
                     let legendProdi = '';
                     Object.keys(res.nama_prodi).forEach(key => {
                         legendProdi += `<li>
-                                ${key}. 
-                                ${res.nama_prodi[key].nama_prodi} 
+                                ${key}.
+                                ${res.nama_prodi[key].nama_prodi}
                                 (${res.nama_prodi[key].jumlah_data})
                             </li>`;
                     });
@@ -340,8 +340,8 @@
             let legendProdi = '';
             Object.keys(data.nama_prodi).forEach(key => {
                 legendProdi += `<li>
-                        ${key}. 
-                        ${data.nama_prodi[key].nama_prodi} 
+                        ${key}.
+                        ${data.nama_prodi[key].nama_prodi}
                         (${data.nama_prodi[key].jumlah_data})
                     </li>`;
             });
@@ -406,8 +406,8 @@
                     let legendProdi = '';
                     Object.keys(res.nama_prodi).forEach(key => {
                         legendProdi += `<li>
-                                ${key}. 
-                                ${res.nama_prodi[key].nama_prodi} 
+                                ${key}.
+                                ${res.nama_prodi[key].nama_prodi}
                                 (${res.nama_prodi[key].jumlah_data})
                             </li>`;
                     });
@@ -456,8 +456,8 @@
             let legendProdi = '';
             Object.keys(data.nama_prodi).forEach(key => {
                 legendProdi += `<li>
-                        ${key}. 
-                        ${data.nama_prodi[key].nama_prodi} 
+                        ${key}.
+                        ${data.nama_prodi[key].nama_prodi}
                         (${data.nama_prodi[key].jumlah_data})
                     </li>`;
             });
@@ -522,8 +522,8 @@
                     let legendProdi = '';
                     Object.keys(res.nama_prodi).forEach(key => {
                         legendProdi += `<li>
-                                ${key}. 
-                                ${res.nama_prodi[key].nama_prodi} 
+                                ${key}.
+                                ${res.nama_prodi[key].nama_prodi}
                                 (${res.nama_prodi[key].jumlah_data})
                             </li>`;
                     });
