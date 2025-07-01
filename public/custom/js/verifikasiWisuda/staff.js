@@ -473,6 +473,24 @@
                     $('#periode_wisuda').prop('required', false);
                     $('#kode_akses').prop('required', false);
 
+                    // Populate status dropdown based on context
+                    let statusOptions = '';
+                    if (type === 'wisudawan') {
+                        // For wisudawan table: only show status 1 and 3
+                        statusOptions = `
+                        <option value="2">Sudah Terverifikasi</option>
+                        <option value="3">Tidak Terverifikasi</option>
+                        `;
+                    } else {
+                        // For verification table: only show status 1 and 3
+                        statusOptions = `
+                        <option value="1">Belum Diproses</option>
+                        <option value="3">Tidak Terverifikasi</option>
+                        `;
+                    }
+
+                    $('#status_id').html(statusOptions);
+
                     // Set current status and notes
                     $('#status_id').val(data.status_id);
                     $('#catatan').val(data.catatan || '');

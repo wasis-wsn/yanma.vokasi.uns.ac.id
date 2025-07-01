@@ -169,6 +169,10 @@
                         </div>
                         @elseif($verifikasi->status_id == '3')
                         <div class="alert alert-danger mt-3">
+                            <i class="fa fa-times-circle"></i> Anda tidak dapat mengikuti wisuda pada periode ini.
+                        </div>
+                        @elseif($verifikasi->status_id == '5')
+                        <div class="alert alert-danger mt-3">
                             <i class="fa fa-times-circle"></i> Anda telah menolak untuk mengikuti wisuda periode ini.
                             Data Anda masih tercatat dalam sistem verifikasi wisuda.
                         </div>
