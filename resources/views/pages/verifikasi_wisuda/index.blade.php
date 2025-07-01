@@ -33,14 +33,16 @@
                     <div class="card-header d-flex justify-content-between">
                         <div class="header-title">
                             <h4 class="card-title">Periode Wisuda</h4>
-                            <p class="card-text">Kelola periode wisuda per tahun. Periode yang aktif akan otomatis digunakan saat import data mahasiswa.</p>
+                            <p class="card-text">Kelola periode wisuda per tahun. Periode yang aktif akan otomatis
+                                digunakan saat import data mahasiswa.</p>
                         </div>
                     </div>
                     <div class="card-body">
                         <div class="d-flex justify-content-end pb-4">
                             <div class="dropdown mx-2">
-                                <button class="btn btn-light btn-sm dropdown-toggle" type="button" id="tahunPeriodeDropdown"
-                                    data-bs-toggle="dropdown" aria-expanded="false">{{ date('Y') }}</button>
+                                <button class="btn btn-light btn-sm dropdown-toggle" type="button"
+                                    id="tahunPeriodeDropdown" data-bs-toggle="dropdown"
+                                    aria-expanded="false">{{ date('Y') }}</button>
                                 <ul class="dropdown-menu" aria-labelledby="tahunPeriodeDropdown">
                                     @foreach ($tahuns as $tahun)
                                     <li><a class="dropdown-item tahun-periode-menu" href="#"
@@ -89,112 +91,94 @@
                         </p>
 
                         @if (!is_null(auth()->user()->verifikasiWisuda))
-                            @php $verifikasi = auth()->user()->verifikasiWisuda; @endphp
+                        @php $verifikasi = auth()->user()->verifikasiWisuda; @endphp
 
-                            {{-- Show staff notes if available --}}
-                            @if(!empty($verifikasi->catatan))
-                                <div class="alert alert-warning">
-                                    <h5><i class="fa fa-exclamation-triangle"></i> Catatan dari Staff</h5>
-                                    <p class="mb-0">{{ $verifikasi->catatan }}</p>
-                                </div>
-                            @endif
+                        {{-- Show staff notes if available --}}
+                        @if(!empty($verifikasi->catatan))
+                        <div class="alert alert-warning">
+                            <h5><i class="fa fa-exclamation-triangle"></i> Catatan dari Staff</h5>
+                            <p class="mb-0">{{ $verifikasi->catatan }}</p>
+                        </div>
+                        @endif
 
-                            {{-- Show confirmation section only if student has certificate serial number AND status allows confirmation --}}
-                            @if(!empty($verifikasi->no_seri_ijazah) && in_array($verifikasi->status_id, ['1', '2', '6']))
-                            <div class="alert alert-info">
-                                <h5><i class="fa fa-info-circle"></i> Konfirmasi Keikutsertaan Wisuda</h5>
-                                @if($verifikasi->status_id == '1')
-                                    <p>Data Anda telah terdaftar. Silakan konfirmasi keikutsertaan wisuda Anda.</p>
-                                @else
-                                    <p>Anda telah memenuhi syarat untuk mengikuti wisuda. Silakan konfirmasi keikutsertaan Anda.</p>
+                        {{-- Show waiting message for students without certificate serial number --}}
+                        @if(empty($verifikasi->no_seri_ijazah) && $verifikasi->status_id == '1')
+                        <div class="alert alert-info">
+                            <h5><i class="fa fa-clock-o"></i> Menunggu Verifikasi Staff</h5>
+                            <p>Data Anda sedang dalam proses verifikasi oleh staff. Mohon menunggu hingga proses
+                                verifikasi selesai.</p>
+                        </div>
+                        @endif
+                        <div class="table-responsive">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td width="30%">No Seri Ijazah</td>
+                                    <td>: {{ $verifikasi->no_seri_ijazah ?? 'Belum tersedia' }}</td>
+                                </tr>
+                                <tr>
+                                    <td width="30%">Kode Akses Wisuda</td>
+                                    <td>: {{ $verifikasi->kode_akses ?? 'Belum tersedia' }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Status Verifikasi</td>
+                                    <td>:
+                                        <button type="button" class="{{$verifikasi->status->color}} btn-sm mt-1"
+                                            disabled>{{$verifikasi->status->name}}
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td width="30%">Periode Wisuda</td>
+                                    <td>:
+                                        {{ ($verifikasi->periode_wisuda) ? \Carbon\Carbon::createFromFormat('Y-m', $verifikasi->periode_wisuda)->translatedFormat('F Y') : 'Belum ditentukan' }}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Jadwal Wisuda</td>
+                                    <td>: {{ $verifikasi->jadwal ?? 'Belum ditentukan' }}</td>
+                                </tr>
+                                @if(!empty($verifikasi->catatan))
+                                <tr>
+                                    <td>Catatan Staff</td>
+                                    <td>: {{ $verifikasi->catatan }}</td>
+                                </tr>
                                 @endif
+                            </table>
+                        </div>
+
+                        {{-- Confirmation section only for students WITH certificate serial number and eligible status --}}
+                        @if(!empty($verifikasi->no_seri_ijazah) && in_array($verifikasi->status_id, ['1', '2', '6']))
+                        <div class="mt-3">
+                            <h6>Konfirmasi Keikutsertaan Wisuda</h6>
+                            <p class="text-muted">Apakah Anda bersedia mengikuti wisuda pada periode ini?</p>
+
+                            <div class="d-flex gap-3">
+                                <button type="button" class="btn btn-success" id="btn-setuju"
+                                    data-id="{{ encodeId($verifikasi->id) }}">
+                                    <i class="fa fa-check"></i> Ya, Saya Setuju
+                                </button>
+                                <button type="button" class="btn btn-danger" id="btn-tidak-setuju"
+                                    data-id="{{ encodeId($verifikasi->id) }}">
+                                    <i class="fa fa-times"></i> Tidak, Saya Tidak Setuju
+                                </button>
                             </div>
-                            @endif
-
-                            {{-- Show waiting message for students without certificate serial number --}}
-                            @if(empty($verifikasi->no_seri_ijazah) && $verifikasi->status_id == '1')
-                            <div class="alert alert-info">
-                                <h5><i class="fa fa-clock-o"></i> Menunggu Verifikasi Staff</h5>
-                                <p>Data Anda sedang dalam proses verifikasi oleh staff. Mohon menunggu hingga proses verifikasi selesai.</p>
-                            </div>
-                            @endif
-
-                            <div class="card border-primary">
-                                <div class="card-header bg-primary text-white">
-                                    <h5 class="mb-0">Data Verifikasi Wisuda Anda</h5>
-                                </div>
-                                <div class="card-body">
-                                    <div class="table-responsive">
-                                        <table class="table table-borderless">
-                                            <tr>
-                                                <td width="30%">No Seri Ijazah</td>
-                                                <td>: {{ $verifikasi->no_seri_ijazah ?? 'Belum tersedia' }}</td>
-                                            </tr>
-                                            <tr>
-                                                <td width="30%">Kode Akses Wisuda</td>
-                                                <td>: {{ $verifikasi->kode_akses ?? 'Belum tersedia' }}</td>
-                                            </tr>
-                                            <tr>
-                                                <td>Status Verifikasi</td>
-                                                <td>:
-                                                    <button type="button"
-                                                        class="{{$verifikasi->status->color}} btn-sm mt-1"
-                                                        disabled>{{$verifikasi->status->name}}
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td width="30%">Periode Wisuda</td>
-                                                <td>:
-                                                    {{ ($verifikasi->periode_wisuda) ? \Carbon\Carbon::createFromFormat('Y-m', $verifikasi->periode_wisuda)->translatedFormat('F Y') : 'Belum ditentukan' }}
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td>Jadwal Wisuda</td>
-                                                <td>: {{ $verifikasi->jadwal ?? 'Belum ditentukan' }}</td>
-                                            </tr>
-                                            @if(!empty($verifikasi->catatan))
-                                            <tr>
-                                                <td>Catatan Staff</td>
-                                                <td>: {{ $verifikasi->catatan }}</td>
-                                            </tr>
-                                            @endif
-                                        </table>
-                                    </div>
-
-                                    {{-- Confirmation section only for students WITH certificate serial number and eligible status --}}
-                                    @if(!empty($verifikasi->no_seri_ijazah) && in_array($verifikasi->status_id, ['1', '2', '6']))
-                                        <div class="mt-3">
-                                            <h6>Konfirmasi Keikutsertaan Wisuda</h6>
-                                            <p class="text-muted">Apakah Anda bersedia mengikuti wisuda pada periode ini?</p>
-
-                                            <div class="d-flex gap-3">
-                                                <button type="button" class="btn btn-success" id="btn-setuju"
-                                                    data-id="{{ encodeId($verifikasi->id) }}">
-                                                    <i class="fa fa-check"></i> Ya, Saya Setuju
-                                                </button>
-                                                <button type="button" class="btn btn-danger" id="btn-tidak-setuju"
-                                                    data-id="{{ encodeId($verifikasi->id) }}">
-                                                    <i class="fa fa-times"></i> Tidak, Saya Tidak Setuju
-                                                </button>
-                                            </div>
-                                        </div>
-                                    @elseif($verifikasi->status_id == '4')
-                                        <div class="alert alert-success mt-3">
-                                            <i class="fa fa-check-circle"></i> Anda telah mengkonfirmasi untuk mengikuti wisuda.
-                                        </div>
-                                    @elseif($verifikasi->status_id == '3')
-                                        <div class="alert alert-danger mt-3">
-                                            <i class="fa fa-times-circle"></i> Anda telah menolak untuk mengikuti wisuda periode ini. Data Anda masih tercatat dalam sistem verifikasi wisuda.
-                                        </div>
-                                    @endif
-                                </div>
-                            </div>
+                        </div>
+                        @elseif($verifikasi->status_id == '4')
+                        <div class="alert alert-success mt-3">
+                            <i class="fa fa-check-circle"></i> Anda telah mengkonfirmasi untuk mengikuti wisuda.
+                        </div>
+                        @elseif($verifikasi->status_id == '3')
+                        <div class="alert alert-danger mt-3">
+                            <i class="fa fa-times-circle"></i> Anda telah menolak untuk mengikuti wisuda periode ini.
+                            Data Anda masih tercatat dalam sistem verifikasi wisuda.
+                        </div>
+                        @endif
                         @else
-                            <div class="alert alert-info">
-                                <h5><i class="fa fa-info-circle"></i> Informasi</h5>
-                                <p>Anda belum terdaftar untuk wisuda. Data akan muncul di sini setelah staff melakukan import data verifikasi wisuda.</p>
-                            </div>
+                        <div class="alert alert-info">
+                            <h5><i class="fa fa-info-circle"></i> Informasi</h5>
+                            <p>Anda belum terdaftar untuk wisuda. Data akan muncul di sini setelah staff melakukan
+                                import data verifikasi wisuda.</p>
+                        </div>
                         @endif
                         @endcan
 
@@ -265,13 +249,15 @@
                 <div class="card-header d-flex justify-content-between">
                     <div class="header-title">
                         <h4 class="card-title">Daftar Wisudawan</h4>
-                        <p class="card-text">Mahasiswa yang telah terverifikasi (status 2) dan mengkonfirmasi keikutsertaan wisuda (status 4)</p>
+                        <p class="card-text">Mahasiswa yang telah terverifikasi (status 2) dan mengkonfirmasi
+                            keikutsertaan wisuda (status 4)</p>
                     </div>
                 </div>
                 <div class="card-body">
                     <div class="d-flex justify-content-between pb-4">
                         <div>
-                            <button type="button" class="btn btn-success mx-2" id="btn-export-wisudawan">Export Data Wisudawan</button>
+                            <button type="button" class="btn btn-success mx-2" id="btn-export-wisudawan">Export Data
+                                Wisudawan</button>
                         </div>
                         <div class="dropdown mx-2">
                             <button class="btn btn-light btn-sm dropdown-toggle" type="button"
@@ -311,7 +297,8 @@
 </div>
 
 {{-- Export Modal for Wisudawan --}}
-<div class="modal fade" id="modalExportWisudawan" tabindex="-1" aria-labelledby="modalExportWisudawanLabel" aria-hidden="true">
+<div class="modal fade" id="modalExportWisudawan" tabindex="-1" aria-labelledby="modalExportWisudawanLabel"
+    aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
@@ -402,6 +389,7 @@
     @if(session('error'))
     toastr.error("{{session('error')}}")
     @endif
+
 </script>
 
 @can('mahasiswa')
@@ -445,6 +433,7 @@
             'listData' => route('verifikasiWisuda.listDekanat'),
             'getData' => route('verifikasiWisuda.show', ':id'),
         ]) !!};
+
 </script>
 <script src="{{ asset('custom/js/verifikasiWisuda/staff.js') }}?q{{Str::random(5)}}"></script>
 @endcanany
