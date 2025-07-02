@@ -41,7 +41,6 @@ class VerifWisudaExport implements FromCollection, WithHeadings, WithStyles, Wit
                 'Nama',
                 'Prodi',
                 'Periode Wisuda',
-                'Kode Akses',
                 'Status',
                 'Catatan'
             ]

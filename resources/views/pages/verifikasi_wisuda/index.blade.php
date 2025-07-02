@@ -127,10 +127,10 @@
                                     <td width="30%">No Seri Ijazah</td>
                                     <td>: {{ $verifikasi->no_seri_ijazah ?? 'Belum tersedia' }}</td>
                                 </tr>
-                                <tr>
+                                {{-- <tr>
                                     <td width="30%">Kode Akses Wisuda</td>
                                     <td>: {{ $verifikasi->kode_akses ?? 'Belum tersedia' }}</td>
-                                </tr>
+                                </tr> --}}
                                 <tr>
                                     <td>Status Verifikasi</td>
                                     <td>:

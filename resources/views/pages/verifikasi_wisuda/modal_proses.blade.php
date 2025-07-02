@@ -31,12 +31,12 @@
                         </div>
                     </div>
 
-                    <div class="form-group mb-3">
+                    {{-- <div class="form-group mb-3">
                         <label class="form-label" for="kode_akses">Kode Akses Wisuda</label>
                         <input type="text" class="form-control" id="kode_akses" name="kode_akses" readonly
                                placeholder="Belum tersedia">
                         <small class="text-muted">Data ini tidak dapat diubah</small>
-                    </div>
+                    </div> --}}
 
                     <hr>
 
