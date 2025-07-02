@@ -510,7 +510,7 @@ public function konfirmasi(Request $request, $id)
         }
 
         // 4 = Terima (confirmed), 3 = Tolak (rejected) based on your table
-        $status_id = $request->konfirmasi === 'setuju' ? '4' : '3';
+        $status_id = $request->konfirmasi === 'setuju' ? '4' : '5';
 
         $verifikasi->update([
             'status_id' => $status_id,

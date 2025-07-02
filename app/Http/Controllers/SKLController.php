@@ -10,6 +10,7 @@ use App\Models\StatusSKL;
 use App\Models\Prodi;
 use App\Models\Tahun;
 use App\Models\Template;
+use App\Models\VerifikasiWisuda;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -256,6 +257,13 @@ class SKLController extends Controller
                 'lembar_revisi' => $lembarRevisinName,
                 'ss_ajuan_skl' => $ssAjuanName,
             ]);
+
+            // Create corresponding VerifikasiWisuda record
+            VerifikasiWisuda::create([
+                'user_id' => Auth::user()->id,
+                'status_id' => '1',
+            ]);
+
             return response()->json(['status' => true, 'message' => 'Ajuan Berhasil Ditambahkan!'], 200);
         } catch (\Throwable $th) {
             return response()->json(['status' => false, 'message' => 'Terjadi Kesalahan'], 500);

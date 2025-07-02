@@ -40,6 +40,14 @@ class VerifWisudaImport implements ToModel, WithHeadingRow, WithValidation, Skip
             return null;
         }
 
+        // Get active graduation period for this year - ALWAYS apply this
+        $activePeriode = PeriodeWisuda::getActivePeriode($this->tahun);
+        $periodeWisuda = null;
+
+        if ($activePeriode) {
+            $periodeWisuda = $this->tahun . '-' . str_pad($activePeriode->bulan, 2, '0', STR_PAD_LEFT);
+        }
+
         // Check if already exists
         $existing = VerifikasiWisuda::where('user_id', $user->id)->first();
         
@@ -48,14 +56,15 @@ class VerifWisudaImport implements ToModel, WithHeadingRow, WithValidation, Skip
             $updates = [];
             $hasChanges = false;
 
-            // Check each field for changes
-            if (isset($row['no_seri_ijazah']) && $existing->no_seri_ijazah != $row['no_seri_ijazah']) {
-                $updates['no_seri_ijazah'] = $row['no_seri_ijazah'];
+            // ALWAYS update periode_wisuda to active period if available
+            if ($periodeWisuda && $existing->periode_wisuda != $periodeWisuda) {
+                $updates['periode_wisuda'] = $periodeWisuda;
                 $hasChanges = true;
             }
 
-            if (isset($row['periode_wisuda']) && $existing->periode_wisuda != $row['periode_wisuda']) {
-                $updates['periode_wisuda'] = $row['periode_wisuda'];
+            // Check each field for changes
+            if (isset($row['no_seri_ijazah']) && $existing->no_seri_ijazah != $row['no_seri_ijazah']) {
+                $updates['no_seri_ijazah'] = $row['no_seri_ijazah'];
                 $hasChanges = true;
             }
 
@@ -79,13 +88,12 @@ class VerifWisudaImport implements ToModel, WithHeadingRow, WithValidation, Skip
                 // Update the existing record
                 $existing->update($updates);
                 
-                // Count for statistics
-                if (!empty($updates['no_seri_ijazah'])) {
+                // Count for statistics - use updated values
+                $finalNoSeriIjazah = $updates['no_seri_ijazah'] ?? $existing->no_seri_ijazah;
+                if (!empty($finalNoSeriIjazah)) {
                     $this->importedWithSeriIjazah++;
-                } else if (empty($existing->no_seri_ijazah)) {
-                    $this->importedWithoutSeriIjazah++;
                 } else {
-                    $this->importedWithSeriIjazah++;
+                    $this->importedWithoutSeriIjazah++;
                 }
 
                 $this->updatedCount++;
@@ -108,14 +116,6 @@ class VerifWisudaImport implements ToModel, WithHeadingRow, WithValidation, Skip
             return null;
         }
 
-        // Get active graduation period for this year
-        $activePeriode = PeriodeWisuda::getActivePeriode($this->tahun);
-        $periodeWisuda = null;
-
-        if ($activePeriode) {
-            $periodeWisuda = $this->tahun . '-' . str_pad($activePeriode->bulan, 2, '0', STR_PAD_LEFT);
-        }
-
         // Count for statistics
         if (!empty($row['no_seri_ijazah'])) {
             $this->importedWithSeriIjazah++;
@@ -131,7 +131,7 @@ class VerifWisudaImport implements ToModel, WithHeadingRow, WithValidation, Skip
             'user_id' => $user->id,
             'status_id' => $status_id,
             'no_seri_ijazah' => $row['no_seri_ijazah'] ?? null,
-            'periode_wisuda' => $row['periode_wisuda'] ?? $periodeWisuda,
+            'periode_wisuda' => $periodeWisuda, // Always use active period
             'kode_akses' => $row['kode_akses'] ?? null,
             'jadwal' => $row['jadwal'] ?? null,
             'catatan' => $row['catatan'] ?? null,

@@ -81,7 +81,7 @@
                 <div class="card">
                     <div class="card-header d-flex justify-content-between">
                         <div class="header-title">
-                            <h4 class="card-title">Verifikasi Wisuda</h4>
+                            <h4 class="card-title">Konfirmasi Kehadiran</h4>
                         </div>
                     </div>
                     <div class="card-body">
@@ -93,13 +93,25 @@
                         @if (!is_null(auth()->user()->verifikasiWisuda))
                         @php $verifikasi = auth()->user()->verifikasiWisuda; @endphp
 
-                        {{-- Show staff notes if available --}}
+                        {{-- Tampilkan semua alert hanya jika ada catatan --}}
                         @if(!empty($verifikasi->catatan))
-                        <div class="alert alert-warning">
-                            <h5><i class="fa fa-exclamation-triangle"></i> Catatan dari Staff</h5>
-                            <p class="mb-0">{{ $verifikasi->catatan }}</p>
-                        </div>
+
+                            {{-- Jika status_id == 2 tampilkan alert hijau --}}
+                            @if($verifikasi->status_id == 2)
+                                <div class="alert alert-success">
+                                    <h5><i class="fa fa-check-circle"></i> Status Diverifikasi</h5>
+                                    <p class="mb-0">Pengajuan telah diverifikasi oleh staff.</p>
+                                </div>
+
+                            {{-- Jika status_id == 3 tampilkan alert biru --}}
+                            @elseif($verifikasi->status_id == 3)
+                                <div class="alert alert-primary">
+                                    <h5><i class="fa fa-info-circle"></i> Menunggu Tindakan Selanjutnya</h5>
+                                    <p class="mb-0">{{ $verifikasi->catatan }}</p>
+                                </div>
+                            @endif
                         @endif
+
 
                         {{-- Show waiting message for students without certificate serial number --}}
                         @if(empty($verifikasi->no_seri_ijazah) && $verifikasi->status_id == '1')
@@ -147,7 +159,7 @@
                         </div>
 
                         {{-- Confirmation section only for students WITH certificate serial number and eligible status --}}
-                        @if(!empty($verifikasi->no_seri_ijazah) && in_array($verifikasi->status_id, ['1', '2', '6']))
+                        @if(!empty($verifikasi->no_seri_ijazah) && in_array($verifikasi->status_id, ['1','6']))
                         <div class="mt-3">
                             <h6>Konfirmasi Keikutsertaan Wisuda</h6>
                             <p class="text-muted">Apakah Anda bersedia mengikuti wisuda pada periode ini?</p>
@@ -189,7 +201,6 @@
                         @cannot('mahasiswa')
                         {{-- Existing Verifikasi Wisuda Table --}}
                         <div class="d-flex justify-content-start pb-4">
-                            <button type="button" class="btn btn-success mx-2" id="btn-export">Export Data</button>
                             <button type="button" class="btn btn-info mx-2" id="btn-import">Import Data</button>
                         </div>
                         @include('modals.export')
@@ -246,7 +257,7 @@
 
 {{-- Daftar Wisudawan Card --}}
 @can('staff')
-<div class="conatiner-fluid content-inner py-0">
+    <div class="conatiner-fluid content-inner @can('staff') py-0 @else mt-n5 py-0 @endcan">
     <div class="row">
         <div class="col-sm-12">
             <div class="card">
