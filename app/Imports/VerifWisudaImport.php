@@ -50,7 +50,7 @@ class VerifWisudaImport implements ToModel, WithHeadingRow, WithValidation, Skip
 
         // Check if already exists
         $existing = VerifikasiWisuda::where('user_id', $user->id)->first();
-        
+
         if ($existing) {
             // Track what fields are being updated
             $updates = [];
@@ -87,7 +87,7 @@ class VerifWisudaImport implements ToModel, WithHeadingRow, WithValidation, Skip
             if ($hasChanges && !in_array($existing->status_id, ['4', '5'])) {
                 // Update the existing record
                 $existing->update($updates);
-                
+
                 // Count for statistics - use updated values
                 $finalNoSeriIjazah = $updates['no_seri_ijazah'] ?? $existing->no_seri_ijazah;
                 if (!empty($finalNoSeriIjazah)) {
@@ -97,7 +97,7 @@ class VerifWisudaImport implements ToModel, WithHeadingRow, WithValidation, Skip
                 }
 
                 $this->updatedCount++;
-                
+
                 // Track what was updated for detailed feedback
                 $this->updatedDetails[] = [
                     'nim' => $row['nim'],
@@ -112,7 +112,7 @@ class VerifWisudaImport implements ToModel, WithHeadingRow, WithValidation, Skip
                     $this->importedWithoutSeriIjazah++;
                 }
             }
-            
+
             return null;
         }
 

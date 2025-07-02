@@ -212,6 +212,7 @@ class VerifikasiWisudaController extends Controller
             $totalRows = $import->getRowCount();
             $newRecords = $import->getNewCount();
             $updatedRecords = $import->getUpdatedCount();
+            $skippedRows = $import->getSkippedRows();
             $importedWithSeriIjazah = $import->getImportedWithSeriIjazah();
             $importedWithoutSeriIjazah = $import->getImportedWithoutSeriIjazah();
             $updatedDetails = $import->getUpdatedDetails();
@@ -220,8 +221,8 @@ class VerifikasiWisudaController extends Controller
             $successMessage = "Data berhasil diimport untuk tahun {$tahun}. ";
             $successMessage .= "Total baris diproses: {$totalRows}. ";
 
-            if ($newRecords > 0) {
-                $successMessage .= "Data baru: {$newRecords}. ";
+            if ($skippedRows > 0) {
+                $successMessage .= "Data dilewati (tidak ada di tabel verifikasi): {$skippedRows}. ";
             }
 
             if ($updatedRecords > 0) {
