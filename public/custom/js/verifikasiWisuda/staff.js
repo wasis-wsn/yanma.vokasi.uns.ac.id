@@ -197,8 +197,8 @@
 
     // Add export handler for wisudawan table
     $('#btn-export-wisudawan').click(function() {
-        if (window.Laravel.exportWisudawan) {
-            $('#form-export-wisudawan').attr('action', window.Laravel.exportWisudawan);
+        if (window.Laravel.export) {
+            $('#form-export-wisudawan').attr('action', window.Laravel.export);
             $('#modalExportWisudawan').modal('show');
         } else {
             Swal.fire({
@@ -207,6 +207,83 @@
                 icon: "error",
             });
         }
+    });
+
+    // Handle export form submission for wisudawan
+    $('#form-export-wisudawan').on('submit', function(e) {
+        e.preventDefault();
+
+        let formData = new FormData(this);
+
+        $.ajax({
+            url: $(this).attr('action'),
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            xhrFields: {
+                responseType: 'blob'
+            },
+            beforeSend: function() {
+                Swal.fire({
+                    title: 'Mengexport data...',
+                    text: 'Data akan dihapus setelah export selesai',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+            },
+            success: function(response, status, xhr) {
+                // Get filename from response headers
+                let filename = '';
+                let disposition = xhr.getResponseHeader('Content-Disposition');
+                if (disposition && disposition.indexOf('attachment') !== -1) {
+                    let filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+                    let matches = filenameRegex.exec(disposition);
+                    if (matches != null && matches[1]) {
+                        filename = matches[1].replace(/['"]/g, '');
+                    }
+                }
+
+                // Create download link
+                let blob = new Blob([response]);
+                let url = window.URL.createObjectURL(blob);
+                let a = document.createElement('a');
+                a.href = url;
+                a.download = filename || 'export.xlsx';
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+
+                Swal.fire({
+                    title: "Berhasil!",
+                    text: "Data berhasil diexport dan dihapus dari database",
+                    icon: "success",
+                    showConfirmButton: false,
+                    timer: 2000,
+                });
+
+                $('#modalExportWisudawan').modal('hide');
+
+                // Reload both tables to show updated data
+                if (table) {
+                    table.ajax.reload();
+                }
+                if (wisudawanTable) {
+                    wisudawanTable.ajax.reload();
+                }
+            },
+            error: function(xhr) {
+                let err = JSON.parse(xhr.responseText);
+                Swal.fire({
+                    title: "Error!",
+                    text: err.message || "Terjadi kesalahan saat mengexport data",
+                    icon: "error",
+                });
+            }
+        });
     });
 
     $(".status-menu").click(function() {

@@ -15,6 +15,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -52,9 +53,7 @@ class VerifikasiWisudaController extends Controller
         return DataTables::of($data)
             ->addIndexColumn()
             ->addColumn('action', function ($row) {
-                $aksi = '<button type="button" class="btn btn-info btn-sm btn-detail" data-id="' . encodeId($row->id) . '">
-                        <i class="fa fa-eye"></i> Review
-                    </button>';
+                $aksi = '';
 
                 if ($row->status_id == 1) {
                     // Show proses button only if no_seri_ijazah is empty
@@ -113,10 +112,8 @@ class VerifikasiWisudaController extends Controller
         return DataTables::of($data)
             ->addIndexColumn()
             ->addColumn('action', function ($row) {
-                $aksi = '<button type="button" class="btn btn-info btn-sm btn-detail" data-id="' . encodeId($row->id) . '">
-                        <i class="fa fa-eye"></i> Review
-                    </button>';
-                return $aksi;
+                // No action buttons for dekanat - they can only view
+                return '';
             })
             ->editColumn('tanggal_submit', function ($row) {
                 return Carbon::parse($row->created_at)->translatedFormat('d F Y') . '<br/>' . Carbon::parse($row->created_at)->translatedFormat('H:i:s') . ' WIB';
@@ -273,39 +270,44 @@ class VerifikasiWisudaController extends Controller
         }
     }
 
-    public function exportWisudawan(Request $request)
-    {
-        $request->validate([
-            'tahun' => ['required']
-        ], [
-            'required' => ':attribute wajib diisi',
-        ], [
-            'tahun' => 'Tahun'
-        ]);
-
-        $tahun = $request->tahun;
-        $name = 'Rekap_Data_Wisudawan_Tahun_' . $tahun;
-
-        // You'll need to create a new export class for wisudawan data
-        // For now, we'll use the same export class but you should create a separate one
-        return Excel::download(new VerifWisudaExport($tahun, 'wisudawan'), $name . '.xlsx');
-    }
-
     public function export(Request $request)
-    {
-        $request->validate([
-            'tahun' => ['required']
-        ], [
-            'required' => ':attribute wajib diisi',
-        ], [
-            'tahun' => 'Tahun'
-        ]);
+{
+    $request->validate([
+        'tahun' => ['required'],
+        'type' => ['nullable', 'in:verifikasi,wisudawan']
+    ], [
+        'required' => ':attribute wajib diisi',
+    ], [
+        'tahun' => 'Tahun',
+        'type' => 'Tipe Export'
+    ]);
 
-        $tahun = $request->tahun;
+    $tahun = $request->tahun;
+    $type = $request->type ?? 'verifikasi';
+
+    if ($type === 'wisudawan') {
+        $name = 'Rekap_Data_Wisudawan_Tahun_' . $tahun;
+    } else {
         $name = 'Rekap_Data_Verifikasi_Wisuda_Tahun_' . $tahun;
-
-        return Excel::download(new VerifWisudaExport($tahun, 'verifikasi'), $name . '.xlsx');
     }
+
+    try {
+        // Buat instance export dengan flag delete
+        $export = new VerifWisudaExport($tahun, $type, true); // true = auto delete after export
+
+        // Download file
+        $response = Excel::download($export, $name . '.xlsx');
+
+        // Optional: Tambahkan flash message untuk notifikasi
+        session()->flash('success', 'Data berhasil diexport dan dihapus dari database');
+
+        return $response;
+
+    } catch (\Exception $e) {
+        // Jika ada error, kembalikan pesan error
+        return back()->with('error', 'Gagal export data: ' . $e->getMessage());
+    }
+}
 
     public function show($id)
     {
@@ -420,10 +422,7 @@ class VerifikasiWisudaController extends Controller
         return DataTables::of($data)
             ->addIndexColumn()
             ->addColumn('action', function($row) {
-                $aksi = '<button type="button" class="btn btn-info btn-sm btn-detail" data-id="' . encodeId($row->id) . '">
-                        <i class="fa fa-eye"></i> Lihat
-                    </button>';
-                $aksi .= '<button type="button" class="btn btn-warning btn-sm btn-proses btn-block" data-nim="' . $row->user->nim . '" data-id="' . encodeId($row->id) . '" data-type="wisudawan">
+                $aksi = '<button type="button" class="btn btn-warning btn-sm btn-proses btn-block" data-nim="' . $row->user->nim . '" data-id="' . encodeId($row->id) . '" data-type="wisudawan">
                         <i class="fa fa-pen"></i> Proses
                     </button>';
                 return $aksi;

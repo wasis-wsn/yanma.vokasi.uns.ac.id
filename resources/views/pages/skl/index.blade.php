@@ -212,14 +212,14 @@
                                             </tr>
                                             <tr>
                                                 <td>Status</td>
-                                                <td>: 
+                                                <td>:
                                                     <button type="button" class="{{auth()->user()->pengajuanTTDTA->status->color}} btn-sm mt-1" disabled>{{auth()->user()->pengajuanTTDTA->status->name}}
                                                     </button>
                                                 </td>
                                             </tr>
                                             <tr>
                                                 <td width="30%">Tanggal Diambil</td>
-                                                <td>: 
+                                                <td>:
                                                     {{ (auth()->user()->pengajuanTTDTA->tanggal_ambil) ? \Carbon\Carbon::parse(auth()->user()->pengajuanTTDTA->tanggal_ambil)->translatedFormat('d F Y H:i:s'). 'WIB' : '' }}
                                                 </td>
                                             </tr>
@@ -251,26 +251,26 @@
                                             </tr>
                                             <tr>
                                                 <td width="30%">Tanggal Diproses</td>
-                                                <td>: 
+                                                <td>:
                                                     {{ (auth()->user()->skl->tanggal_proses) ? \Carbon\Carbon::parse(auth()->user()->skl->tanggal_proses)->translatedFormat('d F Y H:i:s'). 'WIB' : '' }}
                                                 </td>
                                             </tr>
                                             <tr>
                                                 <td>Status</td>
-                                                <td>: 
+                                                <td>:
                                                     <button type="button" class="{{auth()->user()->skl->status->color}} btn-sm mt-1" disabled>{{auth()->user()->skl->status->name}}
                                                     </button>
                                                 </td>
                                             </tr>
                                             <tr>
                                                 <td width="30%">Tanggal Diambil</td>
-                                                <td>: 
+                                                <td>:
                                                     {{ (auth()->user()->skl->tanggal_ambil) ? \Carbon\Carbon::parse(auth()->user()->skl->tanggal_ambil)->translatedFormat('d F Y H:i:s'). 'WIB' : '' }}
                                                 </td>
                                             </tr>
                                             <tr>
                                                 <td width="30%">File Upload</td>
-                                                <td>: 
+                                                <td>:
                                                     <a href="{{ url('storage/skl/upload/'. auth()->user()->skl->lembar_revisi) }}" target="_blank" class="btn btn-sm btn-primary">Lembar Revisi</a>
                                                     <a href="{{ url('storage/skl/upload/'. auth()->user()->skl->ss_ajuan_skl) }}" target="_blank" class="btn btn-sm btn-primary">SS SKL Siakad</a>
                                                     @if (auth()->user()->skl->status_id == '2')
@@ -332,7 +332,7 @@
                                 <table id="skl-datatable" class="table table-striped" width="100%">
                                     <thead>
                                         <tr>
-                                            
+
                                             <th hidden>created_at</th>
                                             <td>No</td>
                                             <td>Nama</td>
@@ -341,7 +341,7 @@
                                             <td>Tanggal Submit</td>
                                             <td>Tanggal Proses</td>
                                             <td>Status</td>
-                                            <td>Nomor Surat</td>
+                                            <td>Nomor SKL</td>
                                             <td>Aksi</td>
                                             <td>Tanggal Diambil</td>
                                             <td>Catatan</td>
@@ -415,7 +415,7 @@
         <script>
             let year_ta = $("#tahun_ta").html();
             let status_table_ta = $("#status_ta").data('status');
-            
+
             window.Laravel = {};
             window.Laravel.TA = {!! json_encode([
                 'listData' => route('TA.listFo'),
@@ -433,7 +433,7 @@
             let year = $("#tahunDropdown").html();
             let status_table = $("#statusDropdown").data('status');
             let prodi_table = $("#prodiDropdown").data('prodi');
-            
+
             window.Laravel.skl = {!! json_encode([
                 'baseUrl' => url('/'),
                 'listData' => route('skl.listFo'),
@@ -450,7 +450,7 @@
         <script>
             let year_ta = $("#tahun_ta").html();
             let status_table_ta = $("#status_ta").data('status');
-            
+
             window.Laravel = {};
             window.Laravel.TA = {!! json_encode([
                 'listData' => route('TA.listDekanat'),
@@ -464,7 +464,7 @@
             let year = $("#tahunDropdown").html();
             let status_table = $("#statusDropdown").data('status');
             let prodi_table = $("#prodiDropdown").data('prodi');
-            
+
             window.Laravel.skl = {!! json_encode([
                 'baseUrl' => url('/'),
                 'export' => route('skl.export'),

@@ -140,15 +140,15 @@
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td width="30%">Periode Wisuda</td>
+                                    <td width="30%">Jadwal Wisuda</td>
                                     <td>:
                                         {{ ($verifikasi->periode_wisuda) ? \Carbon\Carbon::createFromFormat('Y-m', $verifikasi->periode_wisuda)->translatedFormat('F Y') : 'Belum ditentukan' }}
                                     </td>
                                 </tr>
-                                <tr>
+                                {{-- <tr>
                                     <td>Jadwal Wisuda</td>
                                     <td>: {{ $verifikasi->jadwal ?? 'Belum ditentukan' }}</td>
-                                </tr>
+                                </tr> --}}
                                 @if(!empty($verifikasi->catatan))
                                 <tr>
                                     <td>Catatan Staff</td>
@@ -311,7 +311,7 @@
     </div>
 </div>
 
-{{-- Export Modal for Wisudawan --}}
+{{-- Single Export Modal --}}
 <div class="modal fade" id="modalExportWisudawan" tabindex="-1" aria-labelledby="modalExportWisudawanLabel"
     aria-hidden="true">
     <div class="modal-dialog">
@@ -322,6 +322,7 @@
             </div>
             <form id="form-export-wisudawan" method="POST" target="_blank">
                 @csrf
+                <input type="hidden" name="type" value="wisudawan">
                 <div class="modal-body">
                     <div class="mb-3">
                         <label for="tahun_wisudawan" class="form-label">Tahun</label>
@@ -424,7 +425,6 @@
             'baseUrl' => url('/'),
             'export' => route('verifikasiWisuda.export'),
             'import' => route('verifikasiWisuda.import'),
-            'exportWisudawan' => route('verifikasiWisuda.exportWisudawan'),
             'listData' => route('verifikasiWisuda.list'),
             'listWisudawan' => route('verifikasiWisuda.listWisudawan'),
             'listPeriode' => route('periodeWisuda.list'),
