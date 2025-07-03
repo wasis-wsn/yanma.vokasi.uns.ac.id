@@ -53,12 +53,14 @@ class VerifikasiWisudaController extends Controller
         return DataTables::of($data)
             ->addIndexColumn()
             ->addColumn('action', function ($row) {
-                $aksi = '';
+                $aksi = '<button type="button" class="btn btn-primary btn-sm btn-proses me-1" data-nim="' . $row->user->nim . '" data-id="' . encodeId($row->id) . '">
+                        <i class="fa fa-edit"></i> Edit
+                    </button>';
 
                 if ($row->status_id == 1) {
                     // Show proses button only if no_seri_ijazah is empty
                     if (empty($row->no_seri_ijazah)) {
-                        $aksi .= '<button type="button" class="btn btn-warning btn-sm btn-proses btn-block" data-nim="' . $row->user->nim . '" data-id="' . encodeId($row->id) . '">
+                        $aksi .= '<button type="button" class="btn btn-warning btn-sm btn-proses" data-nim="' . $row->user->nim . '" data-id="' . encodeId($row->id) . '">
                                 <i class="fa fa-pen"></i> Proses
                             </button>';
                     }
@@ -423,7 +425,10 @@ class VerifikasiWisudaController extends Controller
         return DataTables::of($data)
             ->addIndexColumn()
             ->addColumn('action', function($row) {
-                $aksi = '<button type="button" class="btn btn-warning btn-sm btn-proses btn-block" data-nim="' . $row->user->nim . '" data-id="' . encodeId($row->id) . '" data-type="wisudawan">
+                $aksi = '<button type="button" class="btn btn-primary btn-sm btn-proses me-1" data-nim="' . $row->user->nim . '" data-id="' . encodeId($row->id) . '" data-type="wisudawan">
+                        <i class="fa fa-edit"></i> Edit
+                    </button>';
+                $aksi .= '<button type="button" class="btn btn-warning btn-sm btn-proses" data-nim="' . $row->user->nim . '" data-id="' . encodeId($row->id) . '" data-type="wisudawan">
                         <i class="fa fa-pen"></i> Proses
                     </button>';
                 return $aksi;

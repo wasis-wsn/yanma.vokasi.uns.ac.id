@@ -142,7 +142,28 @@
                                 <tr>
                                     <td width="30%">Jadwal Wisuda</td>
                                     <td>:
-                                        {{ ($verifikasi->periode_wisuda) ? \Carbon\Carbon::createFromFormat('Y-m', $verifikasi->periode_wisuda)->translatedFormat('F Y') : 'Belum ditentukan' }}
+                                        @php
+                                            $periode = $verifikasi->periode_wisuda;
+                                            $tanggalWisuda = null;
+
+                                            if ($periode) {
+                                                $periodeDate = \Carbon\Carbon::createFromFormat('Y-m', $periode);
+                                                $periodeData = \App\Models\PeriodeWisuda::where('tahun', $periodeDate->year)
+                                                    ->where('bulan', $periodeDate->month)
+                                                    ->first();
+
+                                                if ($periodeData && $periodeData->tanggal_wisuda) {
+                                                    $tanggalWisuda = \Carbon\Carbon::parse($periodeData->tanggal_wisuda)
+                                                        ->translatedFormat('d F Y');
+                                                }
+                                            }
+                                        @endphp
+
+                                        @if($tanggalWisuda)
+                                            {{ $tanggalWisuda }}
+                                        @else
+                                            Belum ditentukan
+                                        @endif
                                     </td>
                                 </tr>
                                 {{-- <tr>

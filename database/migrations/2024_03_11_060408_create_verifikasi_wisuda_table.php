@@ -19,10 +19,10 @@ return new class extends Migration
             $table->foreignId('status_id')->nullable()->references('id')->on('status_wisudas')->onDelete('set null');
             $table->string('catatan')->nullable();
             $table->dateTime('tanggal_proses')->nullable();
+            $table->dateTime('tanggal_terbit')->nullable();
             $table->string('no_seri_ijazah')->nullable();
             $table->string('file')->nullable();
             $table->string('periode_wisuda')->nullable();
-            $table->string('kode_akses')->nullable();
             $table->timestamps();
 
             // $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');

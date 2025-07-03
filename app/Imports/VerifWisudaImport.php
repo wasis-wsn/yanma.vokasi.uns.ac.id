@@ -22,6 +22,7 @@ class VerifWisudaImport implements ToModel, WithHeadingRow, WithValidation, Skip
     private $importedWithoutSeriIjazah = 0;
     private $updatedCount = 0;
     private $newCount = 0;
+    private $skippedRows = 0; // Add this property
     private $failures = [];
     private $updatedDetails = [];
 
@@ -37,6 +38,16 @@ class VerifWisudaImport implements ToModel, WithHeadingRow, WithValidation, Skip
         // Find user by NIM
         $user = User::where('nim', $row['nim'])->first();
         if (!$user) {
+            $this->skippedRows++; // Increment skipped rows
+            return null;
+        }
+
+        // Check if student already exists in VerifikasiWisuda - ONLY process existing records
+        $existing = VerifikasiWisuda::where('user_id', $user->id)->first();
+
+        if (!$existing) {
+            // Skip if student doesn't exist in VerifikasiWisuda table
+            $this->skippedRows++; // Increment skipped rows
             return null;
         }
 
@@ -48,95 +59,68 @@ class VerifWisudaImport implements ToModel, WithHeadingRow, WithValidation, Skip
             $periodeWisuda = $this->tahun . '-' . str_pad($activePeriode->bulan, 2, '0', STR_PAD_LEFT);
         }
 
-        // Check if already exists
-        $existing = VerifikasiWisuda::where('user_id', $user->id)->first();
+        // Track what fields are being updated
+        $updates = [];
+        $hasChanges = false;
 
-        if ($existing) {
-            // Track what fields are being updated
-            $updates = [];
-            $hasChanges = false;
-
-            // ALWAYS update periode_wisuda to active period if available
-            if ($periodeWisuda && $existing->periode_wisuda != $periodeWisuda) {
-                $updates['periode_wisuda'] = $periodeWisuda;
-                $hasChanges = true;
-            }
-
-            // Check each field for changes
-            if (isset($row['no_seri_ijazah']) && $existing->no_seri_ijazah != $row['no_seri_ijazah']) {
-                $updates['no_seri_ijazah'] = $row['no_seri_ijazah'];
-                $hasChanges = true;
-            }
-
-            if (isset($row['kode_akses']) && $existing->kode_akses != $row['kode_akses']) {
-                $updates['kode_akses'] = $row['kode_akses'];
-                $hasChanges = true;
-            }
-
-            if (isset($row['jadwal']) && $existing->jadwal != $row['jadwal']) {
-                $updates['jadwal'] = $row['jadwal'];
-                $hasChanges = true;
-            }
-
-            if (isset($row['catatan']) && $existing->catatan != $row['catatan']) {
-                $updates['catatan'] = $row['catatan'];
-                $hasChanges = true;
-            }
-
-            // Update if there are changes and not confirmed yet
-            if ($hasChanges && !in_array($existing->status_id, ['4', '5'])) {
-                // Update the existing record
-                $existing->update($updates);
-
-                // Count for statistics - use updated values
-                $finalNoSeriIjazah = $updates['no_seri_ijazah'] ?? $existing->no_seri_ijazah;
-                if (!empty($finalNoSeriIjazah)) {
-                    $this->importedWithSeriIjazah++;
-                } else {
-                    $this->importedWithoutSeriIjazah++;
-                }
-
-                $this->updatedCount++;
-
-                // Track what was updated for detailed feedback
-                $this->updatedDetails[] = [
-                    'nim' => $row['nim'],
-                    'name' => $user->name,
-                    'updates' => array_keys($updates)
-                ];
-            } else if (!$hasChanges) {
-                // No changes, but still count for statistics
-                if (!empty($existing->no_seri_ijazah)) {
-                    $this->importedWithSeriIjazah++;
-                } else {
-                    $this->importedWithoutSeriIjazah++;
-                }
-            }
-
-            return null;
+        // ALWAYS update periode_wisuda to active period if available
+        if ($periodeWisuda && $existing->periode_wisuda != $periodeWisuda) {
+            $updates['periode_wisuda'] = $periodeWisuda;
+            $hasChanges = true;
         }
 
-        // Count for statistics
-        if (!empty($row['no_seri_ijazah'])) {
-            $this->importedWithSeriIjazah++;
-        } else {
-            $this->importedWithoutSeriIjazah++;
+        // Check each field for changes
+        if (isset($row['no_seri_ijazah']) && $existing->no_seri_ijazah != $row['no_seri_ijazah']) {
+            $updates['no_seri_ijazah'] = $row['no_seri_ijazah'];
+            $hasChanges = true;
         }
 
-        // Determine status based on whether no_seri_ijazah is provided
-        $status_id = '1'; // Default: Belum Diproses
+        if (isset($row['kode_akses']) && $existing->kode_akses != $row['kode_akses']) {
+            $updates['kode_akses'] = $row['kode_akses'];
+            $hasChanges = true;
+        }
 
-        $this->newCount++;
-        return new VerifikasiWisuda([
-            'user_id' => $user->id,
-            'status_id' => $status_id,
-            'no_seri_ijazah' => $row['no_seri_ijazah'] ?? null,
-            'periode_wisuda' => $periodeWisuda, // Always use active period
-            'kode_akses' => $row['kode_akses'] ?? null,
-            'jadwal' => $row['jadwal'] ?? null,
-            'catatan' => $row['catatan'] ?? null,
-            'tanggal_proses' => null,
-        ]);
+        if (isset($row['jadwal']) && $existing->jadwal != $row['jadwal']) {
+            $updates['jadwal'] = $row['jadwal'];
+            $hasChanges = true;
+        }
+
+        if (isset($row['catatan']) && $existing->catatan != $row['catatan']) {
+            $updates['catatan'] = $row['catatan'];
+            $hasChanges = true;
+        }
+
+        // Update if there are changes and not confirmed yet
+        if ($hasChanges && !in_array($existing->status_id, ['4', '5'])) {
+            // Update the existing record
+            $existing->update($updates);
+
+            // Count for statistics - use updated values
+            $finalNoSeriIjazah = $updates['no_seri_ijazah'] ?? $existing->no_seri_ijazah;
+            if (!empty($finalNoSeriIjazah)) {
+                $this->importedWithSeriIjazah++;
+            } else {
+                $this->importedWithoutSeriIjazah++;
+            }
+
+            $this->updatedCount++;
+
+            // Track what was updated for detailed feedback
+            $this->updatedDetails[] = [
+                'nim' => $row['nim'],
+                'name' => $user->name,
+                'updates' => array_keys($updates)
+            ];
+        } else if (!$hasChanges) {
+            // No changes, but still count for statistics
+            if (!empty($existing->no_seri_ijazah)) {
+                $this->importedWithSeriIjazah++;
+            } else {
+                $this->importedWithoutSeriIjazah++;
+            }
+        }
+
+        return null; // Never create new records, only update existing ones
     }
 
     public function rules(): array
@@ -191,6 +175,11 @@ class VerifWisudaImport implements ToModel, WithHeadingRow, WithValidation, Skip
     public function getUpdatedDetails()
     {
         return $this->updatedDetails;
+    }
+
+    public function getSkippedRows()
+    {
+        return $this->skippedRows;
     }
 
     public function batchSize(): int

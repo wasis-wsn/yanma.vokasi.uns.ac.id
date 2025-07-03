@@ -501,6 +501,7 @@
         let id = $(this).data("id");
         let nim = $(this).data("nim");
         let type = $(this).data("type"); // Check if it's for wisudawan
+        let isEdit = $(this).hasClass('btn-primary'); // Check if it's edit button (primary) or process button (warning)
 
         if (!id) return;
 
@@ -527,43 +528,64 @@
                     let url = window.Laravel.routeProses.replace(":id", id);
                     $('#form-proses').attr('action', url);
 
-                    // Set modal title based on type
-                    if (type === 'wisudawan') {
-                        $('#titleModalProses').text(`Proses Status Wisudawan - ${nim}`);
+                    // Set modal title based on type and action
+                    if (isEdit) {
+                        if (type === 'wisudawan') {
+                            $('#titleModalProses').text(`Edit Status Wisudawan - ${nim}`);
+                        } else {
+                            $('#titleModalProses').text(`Edit Status Verifikasi - ${nim}`);
+                        }
                     } else {
-                        $('#titleModalProses').text(`Proses Verifikasi Wisuda - ${nim}`);
+                        if (type === 'wisudawan') {
+                            $('#titleModalProses').text(`Proses Status Wisudawan - ${nim}`);
+                        } else {
+                            $('#titleModalProses').text(`Proses Verifikasi Wisuda - ${nim}`);
+                        }
                     }
 
                     // Reset form first
                     $('#form-proses')[0].reset();
 
-                    // Make all verification fields read-only and populate with existing data
-                    $('#no_seri_ijazah').prop('readonly', true).val(data.no_seri_ijazah || '');
-                    $('#periode_wisuda').prop('readonly', true).val(data.periode_wisuda || '');
-                    $('#kode_akses').prop('readonly', true).val(data.kode_akses || '');
+                    // For edit mode, make verification fields editable; for process mode, keep them read-only
+                    if (isEdit) {
+                        // Edit mode - fields are editable
+                        $('#no_seri_ijazah').prop('readonly', true).val(data.no_seri_ijazah || '');
+                        $('#periode_wisuda').prop('readonly', true).val(data.periode_wisuda || '');
+                        // Make fields required in edit mode
+                        $('#no_seri_ijazah').prop('required', false); // Optional
+                        $('#periode_wisuda').prop('required', false); // Optional                    } else {
+                        // Process mode - fields are read-only
+                        $('#no_seri_ijazah').prop('readonly', true).val(data.no_seri_ijazah || '');
+                        $('#periode_wisuda').prop('readonly', true).val(data.periode_wisuda || '');
+                        // Remove required attributes since fields are read-only
+                        $('#no_seri_ijazah').prop('required', false);
+                        $('#periode_wisuda').prop('required', false);                    }
 
-                    // Show all fields but make them read-only
+                    // Show all fields
                     $('.form-v9').show();
 
-                    // Remove required attributes since fields are read-only
-                    $('#no_seri_ijazah').prop('required', false);
-                    $('#periode_wisuda').prop('required', false);
-                    $('#kode_akses').prop('required', false);
-
-                    // Populate status dropdown based on context
+                    // Populate status dropdown based on context and mode
                     let statusOptions = '';
-                    if (type === 'wisudawan') {
-                        // For wisudawan table: only show status 1 and 3
+                    if (isEdit) {
+                        // Edit mode - show all available statuses
                         statusOptions = `
+                        <option value="1">Belum Diproses</option>
                         <option value="2">Sudah Terverifikasi</option>
                         <option value="3">Tidak Terverifikasi</option>
                         `;
                     } else {
-                        // For verification table: only show status 1 and 3
-                        statusOptions = `
-                        <option value="1">Belum Diproses</option>
-                        <option value="3">Tidak Terverifikasi</option>
-                        `;
+                        // Process mode - limited options based on context
+                        if (type === 'wisudawan') {
+                            statusOptions = `
+                            <option value="2">Sudah Terverifikasi</option>
+                            <option value="3">Tidak Terverifikasi</option>
+                            `;
+                        } else {
+                            statusOptions = `
+                            <option value="1">Belum Diproses</option>
+                            <option value="3">Tidak Terverifikasi</option>
+                            `;
+                        }
                     }
 
                     $('#status_id').html(statusOptions);
@@ -653,11 +675,28 @@
         });
     });
 
-    // Remove the status change handler since we don't want fields to be required anymore
-    // Handle status change in process modal (simplified)
+    // Handle status change to set default notes
     $('#status_id').on('change', function() {
-        // All fields remain visible and read-only regardless of status
-        // No need to show/hide or change required attributes
+        const statusId = $(this).val();
+        const defaultNotes = {
+            '1': 'Data Anda sedang dalam proses verifikasi. Mohon menunggu konfirmasi lebih lanjut.',
+            '2': 'Selamat! Data Anda telah terverifikasi. Silakan konfirmasi keikutsertaan wisuda pada sistem.',
+            '3': 'Data tidak dapat diverifikasi. Silakan hubungi bagian akademik untuk informasi lebih lanjut.',
+            '4': 'Anda telah terdaftar sebagai peserta wisuda. Informasi lebih lanjut akan disampaikan kemudian.',
+            '5': 'Anda tidak mengikuti wisuda pada periode ini.',
+            '6': 'Data Anda siap untuk dikonfirmasi. Silakan lakukan konfirmasi keikutsertaan wisuda.'
+        };
+
+        // Set default note if available and current note is empty
+        if (defaultNotes[statusId] && $('#catatan').val().trim() === '') {
+            $('#catatan').val(defaultNotes[statusId]);
+        }
+    });
+
+    // Handle quick action buttons for common notes
+    $(document).on('click', '.catatan-cepat', function() {
+        const catatan = $(this).data('catatan');
+        $('#catatan').val(catatan);
     });
 
 })();
