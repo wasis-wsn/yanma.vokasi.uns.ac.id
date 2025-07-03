@@ -75,8 +75,8 @@
     @endcan
 
     {{-- Verifikasi Wisuda Card --}}
-    <div class="conatiner-fluid content-inner @can('staff') py-0 @else mt-n5 py-0 @endcan">
-        <div class="row">
+
+            <div class="row">
             <div class="col-sm-12">
                 <div class="card">
                     <div class="card-header d-flex justify-content-between">
@@ -272,9 +272,84 @@
                     </div>
                 </div>
             </div>
+
+    </div>
+</div>
+
+{{-- Alur Verifikasi Wisuda Card - New separate card for students --}}
+@can('mahasiswa')
+<div class="conatiner-fluid content-inner py-0 mt-2">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between">
+                    <div class="header-title">
+                        <h4 class="card-title">Alur Verifikasi Wisuda</h4>
+                        <p class="card-text">Panduan langkah-langkah untuk menyelesaikan proses verifikasi wisuda</p>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="iq-timeline0 m-0 d-flex align-items-center justify-content-between position-relative">
+                        <ul class="list-inline p-0 m-0">
+                            <li>
+                                <div class="timeline-dots timeline-dot1 border-primary text-primary"></div>
+                                <h6 class="float-left mb-1">Mengajukan Surat Keterangan Lulus (SKL)</h6>
+                                <div class="d-inline-block w-100">
+                                    <p>Mahasiswa mengajukan SKL melalui sistem yang akan otomatis membuat data verifikasi wisuda</p>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="timeline-dots timeline-dot1 border-warning text-warning"></div>
+                                <h6 class="float-left mb-1">Menunggu Verifikasi Staff</h6>
+                                <div class="d-inline-block w-100">
+                                    <p>Staff akan memverifikasi data Anda dan menginput nomor seri ijazah serta periode wisuda</p>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="timeline-dots timeline-dot1 border-success text-success"></div>
+                                <h6 class="float-left mb-1">Data Terverifikasi</h6>
+                                <div class="d-inline-block w-100">
+                                    <p>Setelah data terverifikasi, Anda akan melihat nomor seri ijazah dan jadwal wisuda pada halaman ini</p>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="timeline-dots timeline-dot1 border-info text-info"></div>
+                                <h6 class="float-left mb-1">Konfirmasi Keikutsertaan</h6>
+                                <div class="d-inline-block w-100">
+                                    <p>Konfirmasi keikutsertaan wisuda dengan klik tombol "Ya, Saya Setuju" atau "Tidak, Saya Tidak Setuju"</p>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="timeline-dots timeline-dot1 border-success text-success"></div>
+                                <h6 class="float-left mb-1">Terdaftar Sebagai Wisudawan</h6>
+                                <div class="d-inline-block w-100">
+                                    <p>Setelah konfirmasi, Anda akan terdaftar sebagai calon wisudawan dan dapat mengurus berkas wisuda lainnya</p>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+
+                    @if (count($templates) > 0)
+                    <div class="mt-4">
+                        <h6 class="mb-2">Template File:</h6>
+                        <ul class="text-dark">
+                            @foreach ($templates as $item)
+                                <li class="mb-1">
+                                    <strong>{{$item->template}}</strong>
+                                    <a href="{{asset('storage/template/'.$item->file)}}" target="_blank" class="btn btn-sm btn-outline-primary ms-2">
+                                        <i class="fa fa-download"></i> Download
+                                    </a>
+                                </li>
+                            @endforeach
+                        </ul>
+                    </div>
+                    @endif
+                </div>
+            </div>
         </div>
     </div>
 </div>
+@endcan
 
 {{-- Daftar Wisudawan Card --}}
 @can('staff')
@@ -285,8 +360,6 @@
                 <div class="card-header d-flex justify-content-between">
                     <div class="header-title">
                         <h4 class="card-title">Daftar Wisudawan</h4>
-                        <p class="card-text">Mahasiswa yang telah terverifikasi (status 2) dan mengkonfirmasi
-                            keikutsertaan wisuda (status 4)</p>
                     </div>
                 </div>
                 <div class="card-body">
