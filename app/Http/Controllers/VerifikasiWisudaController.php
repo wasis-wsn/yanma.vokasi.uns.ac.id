@@ -560,4 +560,107 @@ public function konfirmasi(Request $request, $id)
         return response()->json(['status' => false, 'message' => 'Terjadi kesalahan'], 500);
     }
 }
+public function bulkProcess(Request $request)
+{
+    $request->validate([
+        'status_id' => ['required'],
+        'catatan' => ['nullable', 'string'],
+        'selected_ids' => ['required', 'string'],
+        'periode_wisuda' => ['nullable', 'string']
+    ], [
+        'required' => ':attribute wajib diisi!',
+    ], [
+        'status_id' => 'Status',
+        'catatan' => 'Catatan',
+        'selected_ids' => 'Data yang dipilih',
+        'periode_wisuda' => 'Periode Wisuda'
+    ]);
+
+    try {
+        $ids = explode(',', $request->selected_ids);
+        $validIds = [];
+        
+        // Use raw IDs directly like in perpanjangan system
+        foreach ($ids as $id) {
+            $trimmedId = trim($id);
+            if (empty($trimmedId)) continue;
+            
+            // Verify the record exists using raw ID
+            $exists = VerifikasiWisuda::where('id', $trimmedId)->exists();
+            if ($exists) {
+                $validIds[] = $trimmedId;
+            }
+        }
+
+        if (empty($validIds)) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Tidak ada data valid yang dipilih'
+            ], 400);
+        }
+
+        $updateData = [
+            'status_id' => $request->status_id,
+            'catatan' => $request->catatan,
+            'tanggal_proses' => now(),
+        ];
+
+        if ($request->periode_wisuda) {
+            $updateData['periode_wisuda'] = $request->periode_wisuda;
+        }
+
+        // Update all selected records using raw IDs
+        $updated = VerifikasiWisuda::whereIn('id', $validIds)->update($updateData);
+
+        // If status is verified (2), create related records
+        if ($request->status_id == '2') {
+            $verifikasiData = VerifikasiWisuda::whereIn('id', $validIds)
+                ->where('status_id', '2')
+                ->whereNotNull('periode_wisuda')
+                ->get();
+
+            foreach ($verifikasiData as $verifikasi) {
+                // Create transkrip if not exists
+                $existingTranskrip = TranskripNilai::where('user_id', $verifikasi->user_id)
+                    ->where('periode_wisuda', $verifikasi->periode_wisuda)
+                    ->first();
+
+                if (!$existingTranskrip) {
+                    TranskripNilai::create([
+                        'user_id' => $verifikasi->user_id,
+                        'status_id' => '1',
+                        'periode_wisuda' => $verifikasi->periode_wisuda,
+                    ]);
+                }
+
+                // Create SKPI if not exists
+                $existingSKPI = SKPI::where('user_id', $verifikasi->user_id)
+                    ->where('periode_wisuda', $verifikasi->periode_wisuda)
+                    ->first();
+
+                if (!$existingSKPI) {
+                    SKPI::create([
+                        'user_id' => $verifikasi->user_id,
+                        'status_id' => '1',
+                        'periode_wisuda' => $verifikasi->periode_wisuda,
+                    ]);
+                }
+            }
+        }
+
+        return response()->json([
+            'status' => true,
+            'message' => "Data berhasil diproses ({$updated} data berhasil diupdate)"
+        ], 200);
+
+    } catch (\Exception $e) {
+        \Log::error('Bulk process error: ' . $e->getMessage());
+        \Log::error('Request data: ' . json_encode($request->all()));
+        
+        return response()->json([
+            'status' => false,
+            'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+        ], 500);
+    }
+}
 }

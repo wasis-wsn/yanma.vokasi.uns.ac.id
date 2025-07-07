@@ -26,7 +26,7 @@
 
     {{-- Periode Wisuda Card - Moved to top --}}
     @can('staff')
-    <div class="conatiner-fluid content-inner mt-n5 py-0">
+    <div class="container-fluid content-inner mt-n5 py-0">
         <div class="row">
             <div class="col-sm-12">
                 <div class="card">
@@ -75,8 +75,8 @@
     @endcan
 
     {{-- Verifikasi Wisuda Card --}}
-
-            <div class="row">
+    <div class="container-fluid content-inner py-0">
+        <div class="row">
             <div class="col-sm-12">
                 <div class="card">
                     <div class="card-header d-flex justify-content-between">
@@ -127,10 +127,6 @@
                                     <td width="30%">No Seri Ijazah</td>
                                     <td>: {{ $verifikasi->no_seri_ijazah ?? 'Belum tersedia' }}</td>
                                 </tr>
-                                {{-- <tr>
-                                    <td width="30%">Kode Akses Wisuda</td>
-                                    <td>: {{ $verifikasi->kode_akses ?? 'Belum tersedia' }}</td>
-                                </tr> --}}
                                 <tr>
                                     <td>Status Verifikasi</td>
                                     <td>:
@@ -166,10 +162,6 @@
                                         @endif
                                     </td>
                                 </tr>
-                                {{-- <tr>
-                                    <td>Jadwal Wisuda</td>
-                                    <td>: {{ $verifikasi->jadwal ?? 'Belum ditentukan' }}</td>
-                                </tr> --}}
                                 @if(!empty($verifikasi->catatan))
                                 <tr>
                                     <td>Catatan Staff</td>
@@ -200,9 +192,72 @@
                         <div class="alert alert-success mt-3">
                             <i class="fa fa-check-circle"></i> Anda telah mengkonfirmasi untuk mengikuti wisuda.
                         </div>
+                        <div class="card-header d-flex justify-content-between">
+                            <div class="header-title">
+                                <h4 class="card-title">Alur Verifikasi Wisuda</h4>
+                                <p class="card-text">Panduan langkah-langkah untuk menyelesaikan proses verifikasi wisuda</p>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="iq-timeline0 m-0 d-flex align-items-center justify-content-between position-relative">
+                                <ul class="list-inline p-0 m-0">
+                                    <li>
+                                        <div class="timeline-dots timeline-dot1 border-primary text-primary"></div>
+                                        <h6 class="float-left mb-1">Mengajukan Surat Keterangan Lulus (SKL)</h6>
+                                        <div class="d-inline-block w-100">
+                                            <p>Mahasiswa mengajukan SKL melalui sistem yang akan otomatis membuat data verifikasi wisuda</p>
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <div class="timeline-dots timeline-dot1 border-warning text-warning"></div>
+                                        <h6 class="float-left mb-1">Menunggu Verifikasi Staff</h6>
+                                        <div class="d-inline-block w-100">
+                                            <p>Staff akan memverifikasi data Anda dan menginput nomor seri ijazah serta periode wisuda</p>
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <div class="timeline-dots timeline-dot1 border-success text-success"></div>
+                                        <h6 class="float-left mb-1">Data Terverifikasi</h6>
+                                        <div class="d-inline-block w-100">
+                                            <p>Setelah data terverifikasi, Anda akan melihat nomor seri ijazah dan jadwal wisuda pada halaman ini</p>
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <div class="timeline-dots timeline-dot1 border-info text-info"></div>
+                                        <h6 class="float-left mb-1">Konfirmasi Keikutsertaan</h6>
+                                        <div class="d-inline-block w-100">
+                                            <p>Konfirmasi keikutsertaan wisuda dengan klik tombol "Ya, Saya Setuju" atau "Tidak, Saya Tidak Setuju"</p>
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <div class="timeline-dots timeline-dot1 border-success text-success"></div>
+                                        <h6 class="float-left mb-1">Terdaftar Sebagai Wisudawan</h6>
+                                        <div class="d-inline-block w-100">
+                                            <p>Setelah konfirmasi, Anda akan terdaftar sebagai calon wisudawan dan dapat mengurus berkas wisuda lainnya</p>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+
+                            @if (count($templates) > 0)
+                            <div class="mt-4">
+                                <h6 class="mb-2">Template File:</h6>
+                                <ul class="text-dark">
+                                    @foreach ($templates as $item)
+                                        <li class="mb-1">
+                                            <strong>{{$item->template}}</strong>
+                                            <a href="{{asset('storage/template/'.$item->file)}}" target="_blank" class="btn btn-sm btn-outline-primary ms-2">
+                                                <i class="fa fa-download"></i> Download
+                                            </a>
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                            @endif
+                        </div>
                         @elseif($verifikasi->status_id == '3')
                         <div class="alert alert-danger mt-3">
-                            <i class="fa fa-times-circle"></i> Anda tidak dapat mengikuti wisuda pada periode ini.
+                            <i class="fa fa-times-circle"></i> Mohon maaf, Anda belum memenuhi persyaratan untuk mengikuti wisuda periode ini. Informasi selengkapnya dapat dilihat pada kolom catatan.
                         </div>
                         @elseif($verifikasi->status_id == '5')
                         <div class="alert alert-danger mt-3">
@@ -223,6 +278,9 @@
                         {{-- Existing Verifikasi Wisuda Table --}}
                         <div class="d-flex justify-content-start pb-4">
                             <button type="button" class="btn btn-info mx-2" id="btn-import">Import Data</button>
+                            <button type="button" class="btn btn-secondary mx-2" id="btn-bulk-action" disabled>
+                                <i class="fa fa-tasks"></i> Multi Proses
+                            </button>
                         </div>
                         @include('modals.export')
                         @include('modals.import')
@@ -254,6 +312,7 @@
                                 <thead>
                                     <tr>
                                         <th hidden>created_at</th>
+                                        <th><input type="checkbox" id="select-all" class="form-check-input"></th>
                                         <th>No</th>
                                         <th>Nama</th>
                                         <th>NIM</th>
@@ -272,205 +331,132 @@
                     </div>
                 </div>
             </div>
-
-    </div>
-</div>
-
-{{-- Alur Verifikasi Wisuda Card - New separate card for students --}}
-@can('mahasiswa')
-<div class="conatiner-fluid content-inner py-0 mt-2">
-    <div class="row">
-        <div class="col-sm-12">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between">
-                    <div class="header-title">
-                        <h4 class="card-title">Alur Verifikasi Wisuda</h4>
-                        <p class="card-text">Panduan langkah-langkah untuk menyelesaikan proses verifikasi wisuda</p>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <div class="iq-timeline0 m-0 d-flex align-items-center justify-content-between position-relative">
-                        <ul class="list-inline p-0 m-0">
-                            <li>
-                                <div class="timeline-dots timeline-dot1 border-primary text-primary"></div>
-                                <h6 class="float-left mb-1">Mengajukan Surat Keterangan Lulus (SKL)</h6>
-                                <div class="d-inline-block w-100">
-                                    <p>Mahasiswa mengajukan SKL melalui sistem yang akan otomatis membuat data verifikasi wisuda</p>
-                                </div>
-                            </li>
-                            <li>
-                                <div class="timeline-dots timeline-dot1 border-warning text-warning"></div>
-                                <h6 class="float-left mb-1">Menunggu Verifikasi Staff</h6>
-                                <div class="d-inline-block w-100">
-                                    <p>Staff akan memverifikasi data Anda dan menginput nomor seri ijazah serta periode wisuda</p>
-                                </div>
-                            </li>
-                            <li>
-                                <div class="timeline-dots timeline-dot1 border-success text-success"></div>
-                                <h6 class="float-left mb-1">Data Terverifikasi</h6>
-                                <div class="d-inline-block w-100">
-                                    <p>Setelah data terverifikasi, Anda akan melihat nomor seri ijazah dan jadwal wisuda pada halaman ini</p>
-                                </div>
-                            </li>
-                            <li>
-                                <div class="timeline-dots timeline-dot1 border-info text-info"></div>
-                                <h6 class="float-left mb-1">Konfirmasi Keikutsertaan</h6>
-                                <div class="d-inline-block w-100">
-                                    <p>Konfirmasi keikutsertaan wisuda dengan klik tombol "Ya, Saya Setuju" atau "Tidak, Saya Tidak Setuju"</p>
-                                </div>
-                            </li>
-                            <li>
-                                <div class="timeline-dots timeline-dot1 border-success text-success"></div>
-                                <h6 class="float-left mb-1">Terdaftar Sebagai Wisudawan</h6>
-                                <div class="d-inline-block w-100">
-                                    <p>Setelah konfirmasi, Anda akan terdaftar sebagai calon wisudawan dan dapat mengurus berkas wisuda lainnya</p>
-                                </div>
-                            </li>
-                        </ul>
-                    </div>
-
-                    @if (count($templates) > 0)
-                    <div class="mt-4">
-                        <h6 class="mb-2">Template File:</h6>
-                        <ul class="text-dark">
-                            @foreach ($templates as $item)
-                                <li class="mb-1">
-                                    <strong>{{$item->template}}</strong>
-                                    <a href="{{asset('storage/template/'.$item->file)}}" target="_blank" class="btn btn-sm btn-outline-primary ms-2">
-                                        <i class="fa fa-download"></i> Download
-                                    </a>
-                                </li>
-                            @endforeach
-                        </ul>
-                    </div>
-                    @endif
-                </div>
-            </div>
         </div>
     </div>
 </div>
-@endcan
 
 {{-- Daftar Wisudawan Card --}}
 @can('staff')
-    <div class="conatiner-fluid content-inner @can('staff') py-0 @else mt-n5 py-0 @endcan">
-    <div class="row">
-        <div class="col-sm-12">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between">
-                    <div class="header-title">
-                        <h4 class="card-title">Daftar Wisudawan</h4>
+<div class="container-fluid content-inner mt-n5 py-0" style="margin-top: -2rem;">
+    <div class="col-sm-12 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between">
+                <div class="header-title">
+                    <h4 class="card-title">Daftar Wisudawan</h4>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between pb-4">
+                    <div>
+                        <button type="button" class="btn btn-success mx-2" id="btn-export-wisudawan">Export Data
+                            Wisudawan</button>
+                        <button type="button" class="btn btn-secondary mx-2" id="btn-bulk-action-wisudawan" disabled>
+                            <i class="fa fa-tasks"></i> Multi Proses
+                        </button>
+                    </div>
+                    <div class="dropdown mx-2">
+                        <button class="btn btn-light btn-sm dropdown-toggle" type="button"
+                            id="tahunWisudawanDropdown" data-bs-toggle="dropdown"
+                            aria-expanded="false">{{ date('Y') }}</button>
+                        <ul class="dropdown-menu" aria-labelledby="tahunWisudawanDropdown">
+                            @foreach ($tahuns as $tahun)
+                            <li><a class="dropdown-item tahun-wisudawan-menu" href="#"
+                                    data-year="{{ $tahun->tahun }}">{{ $tahun->tahun }}</a></li>
+                            @endforeach
+                        </ul>
                     </div>
                 </div>
-                <div class="card-body">
-                    <div class="d-flex justify-content-between pb-4">
-                        <div>
-                            <button type="button" class="btn btn-success mx-2" id="btn-export-wisudawan">Export Data
-                                Wisudawan</button>
-                        </div>
-                        <div class="dropdown mx-2">
-                            <button class="btn btn-light btn-sm dropdown-toggle" type="button"
-                                id="tahunWisudawanDropdown" data-bs-toggle="dropdown"
-                                aria-expanded="false">{{ date('Y') }}</button>
-                            <ul class="dropdown-menu" aria-labelledby="tahunWisudawanDropdown">
-                                @foreach ($tahuns as $tahun)
-                                <li><a class="dropdown-item tahun-wisudawan-menu" href="#"
-                                        data-year="{{ $tahun->tahun }}">{{ $tahun->tahun }}</a></li>
-                                @endforeach
-                            </ul>
-                        </div>
-                    </div>
-                    <div class="table-responsive">
-                        <table id="wisudawan-datatable" class="table table-striped" width="100%">
-                            <thead>
-                                <tr>
-                                    <th hidden>created_at</th>
-                                    <th>No</th>
-                                    <th>Nama</th>
-                                    <th>NIM</th>
-                                    <th>No Seri Ijazah</th>
-                                    <th>Periode Wisuda</th>
-                                    <th>Status</th>
-                                    <th>Aksi</th>
-                                    <th>Catatan</th>
-                                </tr>
-                            </thead>
-                            <tbody id="show_wisudawan_data">
-                            </tbody>
-                        </table>
-                    </div>
+                <div class="table-responsive">
+                    <table id="wisudawan-datatable" class="table table-striped" width="100%">
+                        <thead>
+                            <tr>
+                                <th hidden>created_at</th>
+                                <th><input type="checkbox" id="select-all-wisudawan" class="form-check-input"></th>
+                                <th>No</th>
+                                <th>Nama</th>
+                                <th>NIM</th>
+                                <th>No Seri Ijazah</th>
+                                <th>Periode Wisuda</th>
+                                <th>Status</th>
+                                <th>Aksi</th>
+                                <th>Catatan</th>
+                            </tr>
+                        </thead>
+                        <tbody id="show_wisudawan_data">
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-{{-- Single Export Modal --}}
-<div class="modal fade" id="modalExportWisudawan" tabindex="-1" aria-labelledby="modalExportWisudawanLabel"
-    aria-hidden="true">
+<!-- Bulk Process Modal for Verifikasi -->
+<div class="modal fade" id="modalBulkProcess" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="modalExportWisudawanLabel">Export Data Wisudawan</h5>
+                <h5 class="modal-title">Proses Data Terpilih</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form id="form-export-wisudawan" method="POST" target="_blank">
+            <form id="form-bulk-process">
                 @csrf
-                <input type="hidden" name="type" value="wisudawan">
                 <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="tahun_wisudawan" class="form-label">Tahun</label>
-                        <select class="form-select" name="tahun" id="tahun_wisudawan" required>
-                            @foreach ($tahuns as $tahun)
-                            <option value="{{ $tahun->tahun }}" {{ $tahun->tahun == date('Y') ? 'selected' : '' }}>
-                                {{ $tahun->tahun }}
-                            </option>
-                            @endforeach
+                    <div class="form-group mb-3">
+                        <label>Status</label>
+                        <select name="status_id" class="form-select" required>
+                            <option value="">Pilih Status</option>
+                            <option value="2">Sudah Terverifikasi</option>
+                            <option value="3">Tidak Terverifikasi</option>
                         </select>
                     </div>
+                    <div class="form-group mb-3">
+                        <label>Periode Wisuda</label>
+                        <input type="month" name="periode_wisuda" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label>Catatan</label>
+                        <textarea name="catatan" rows="3" class="form-control"></textarea>
+                    </div>
+                    <input type="hidden" name="selected_ids">
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                    <button type="submit" class="btn btn-success">Export</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary">Proses</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
-<!-- Modal Edit Periode -->
-<div class="modal fade" id="modalEditPeriode" tabindex="-1" aria-labelledby="modalEditPeriodeLabel" aria-hidden="true">
+<!-- Bulk Process Modal for Wisudawan -->
+<div class="modal fade" id="modalBulkProcessWisudawan" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="modalEditPeriodeLabel">Edit Periode Wisuda</h5>
+                <h5 class="modal-title">Proses Wisudawan Terpilih</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form id="form-edit-periode" method="POST">
+            <form id="form-bulk-process-wisudawan">
                 @csrf
-                @method('PUT')
                 <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">Bulan</label>
-                        <input type="text" class="form-control" id="nama_bulan" readonly>
+                    <div class="form-group mb-3">
+                        <label>Status</label>
+                        <select name="status_id" class="form-select" required>
+                            <option value="">Pilih Status</option>
+                            <option value="2">Terverifikasi</option>
+                            <option value="3">Tidak Terverifikasi</option>
+                        </select>
                     </div>
-                    <div class="mb-3">
-                        <label for="tanggal_wisuda" class="form-label">Tanggal Wisuda</label>
-                        <input type="date" class="form-control" name="tanggal_wisuda" id="tanggal_wisuda">
+                    <div class="form-group">
+                        <label>Catatan</label>
+                        <textarea name="catatan" rows="3" class="form-control"></textarea>
                     </div>
-                    <div class="mb-3">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" name="is_active" id="is_active" value="1">
-                            <label class="form-check-label" for="is_active">
-                                Aktif (Akan digunakan sebagai periode wisuda default)
-                            </label>
-                        </div>
-                        <small class="text-muted">Hanya satu periode yang bisa aktif per tahun</small>
-                    </div>
+                    <input type="hidden" name="selected_ids">
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                    <button type="submit" class="btn btn-primary">Simpan</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary">Proses</button>
                 </div>
             </form>
         </div>
@@ -487,6 +473,46 @@
 @can('staff')
 @include('pages.verifikasi_wisuda.modal_detail')
 @include('pages.verifikasi_wisuda.modal_proses')
+
+<!-- Add Edit Periode Modal -->
+<div class="modal fade" id="modalEditPeriode" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Periode Wisuda</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="form-edit-periode">
+                @csrf
+                @method('PUT')
+                <div class="modal-body">
+                    <div class="form-group mb-3">
+                        <label>Nama Bulan</label>
+                        <input type="text" id="nama_bulan" name="nama_bulan" class="form-control" readonly>
+                    </div>
+                    <div class="form-group mb-3">
+                        <label>Tanggal Wisuda</label>
+                        <input type="date" id="tanggal_wisuda" name="tanggal_wisuda" class="form-control">
+                        <small class="text-muted">
+                            <i class="fa fa-info-circle"></i> 
+                            Jika tanggal diubah, mahasiswa yang statusnya "Tidak Terverifikasi" akan direset menjadi "Belum Diproses" untuk konfirmasi ulang.
+                        </small>
+                    </div>
+                    <div class="form-check">
+                        <input type="checkbox" id="is_active" name="is_active" class="form-check-input" value="1">
+                        <label class="form-check-label" for="is_active">
+                            Aktif (periode ini akan digunakan sebagai default saat import)
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 @endcan
 
 @endsection
@@ -499,7 +525,6 @@
     @if(session('error'))
     toastr.error("{{session('error')}}")
     @endif
-
 </script>
 
 @can('mahasiswa')
@@ -511,10 +536,12 @@
 </script>
 <script src="{{ asset('custom/js/verifikasiWisuda/mahasiswa.js') }}?q{{Str::random(5)}}"></script>
 @endcan
+
 @can('staff')
 <script>
     var year = $("#tahunDropdown").html();
     var status_table = $("#statusDropdown").data('status');
+    
     window.Laravel = {!!json_encode([
             'baseUrl' => url('/'),
             'export' => route('verifikasiWisuda.export'),
@@ -528,10 +555,12 @@
             'routeEdit' => route('verifikasiWisuda.update', ':id'),
             'routeTerima' => route('verifikasiWisuda.terima', ':id'),
             'routeTolak' => route('verifikasiWisuda.tolak', ':id'),
+            'bulkProcess' => route('verifikasiWisuda.bulkProcess'),
         ]) !!};
 </script>
 <script src="{{ asset('custom/js/verifikasiWisuda/staff.js') }}?q{{Str::random(5)}}"></script>
 @endcan
+
 @canany(['dekanat','subkoor'])
 <script>
     var year = $("#tahunDropdown").html();
@@ -542,7 +571,6 @@
             'listData' => route('verifikasiWisuda.listDekanat'),
             'getData' => route('verifikasiWisuda.show', ':id'),
         ]) !!};
-
 </script>
 <script src="{{ asset('custom/js/verifikasiWisuda/staff.js') }}?q{{Str::random(5)}}"></script>
 @endcanany

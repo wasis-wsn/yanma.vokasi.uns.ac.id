@@ -16,6 +16,15 @@
             ajax: `${window.Laravel.listData}?status=${status}&year=${year}`,
             columns: [
                 { data: "created_at", visible: false },
+                { 
+                    data: "id", 
+                    orderable: false, 
+                    searchable: false,
+                    render: function(data, type, row) {
+                        // Use raw ID like in perpanjangan system
+                        return `<input type="checkbox" class="form-check-input row-checkbox" value="${data}">`;
+                    }
+                },
                 { data: "DT_RowIndex" },
                 { data: "user.name" },
                 { data: "user.nim" },
@@ -26,9 +35,9 @@
                 { data: "catatan" },
             ],
             columnDefs: [
-                { className: "text-center", width: "3%", targets: [1] },
-                { className: "text-wrap", targets: [2] },
-                { className: "btn-group-vertical", targets: [7] },
+                { className: "text-center", width: "3%", targets: [1, 2] },
+                { className: "text-wrap", targets: [3] },
+                { className: "btn-group-vertical", targets: [8] },
             ],
             order: [[0, "desc"]],
         });
@@ -42,6 +51,15 @@
             ajax: `${window.Laravel.listWisudawan}?year=${year}`,
             columns: [
                 { data: "created_at", visible: false },
+                { 
+                    data: "id", 
+                    orderable: false, 
+                    searchable: false,
+                    render: function(data, type, row) {
+                        // Use raw ID like in perpanjangan system
+                        return `<input type="checkbox" class="form-check-input row-checkbox-wisudawan" value="${data}">`;
+                    }
+                },
                 { data: "DT_RowIndex" },
                 { data: "user.name" },
                 { data: "user.nim" },
@@ -52,9 +70,9 @@
                 { data: "catatan" },
             ],
             columnDefs: [
-                { className: "text-center", width: "3%", targets: [1] },
-                { className: "text-wrap", targets: [2] },
-                { className: "btn-group-vertical", targets: [7] },
+                { className: "text-center", width: "3%", targets: [1, 2] },
+                { className: "text-wrap", targets: [3] },
+                { className: "btn-group-vertical", targets: [8] },
             ],
             order: [[0, "desc"]],
         });
@@ -310,12 +328,28 @@
         }
     });
 
-    // Edit periode button handler
-    $(document).on('click', '.btn-edit', function() {
+    // Edit periode button handler - Updated with debugging
+    $(document).on('click', '.btn-edit', function(e) {
+        e.preventDefault();
+        console.log('Edit button clicked'); // Debug log
+        
         const id = $(this).data('id');
         const nama = $(this).data('nama');
         const tanggal = $(this).data('tanggal');
         const active = $(this).data('active');
+
+        console.log('Button data:', { id, nama, tanggal, active }); // Debug log
+
+        // Check if modal exists
+        if ($('#modalEditPeriode').length === 0) {
+            console.error('Modal #modalEditPeriode not found');
+            Swal.fire({
+                title: 'Error!',
+                text: 'Modal edit periode tidak ditemukan',
+                icon: 'error'
+            });
+            return;
+        }
 
         $('#nama_bulan').val(nama);
         $('#tanggal_wisuda').val(tanggal);
@@ -323,21 +357,95 @@
 
         const action = window.Laravel.updatePeriode.replace(':id', id);
         $('#form-edit-periode').attr('action', action);
-        $('#modalEditPeriode').modal('show');
+        
+        // Use Bootstrap 5 modal syntax
+        const editModal = new bootstrap.Modal(document.getElementById('modalEditPeriode'));
+        editModal.show();
     });
 
-    // Form submit handler for periode
+    // Also add a more general handler in case the specific class isn't working
+    $(document).on('click', '[data-action="edit-periode"]', function(e) {
+        e.preventDefault();
+        console.log('Alternative edit handler triggered');
+        
+        const id = $(this).data('id');
+        const nama = $(this).data('nama');
+        const tanggal = $(this).data('tanggal');
+        const active = $(this).data('active');
+
+        if ($('#modalEditPeriode').length === 0) {
+            Swal.fire({
+                title: 'Error!',
+                text: 'Modal edit periode tidak ditemukan',
+                icon: 'error'
+            });
+            return;
+        }
+
+        $('#nama_bulan').val(nama);
+        $('#tanggal_wisuda').val(tanggal);
+        $('#is_active').prop('checked', active == 1);
+
+        const action = window.Laravel.updatePeriode.replace(':id', id);
+        $('#form-edit-periode').attr('action', action);
+        
+        const editModal = new bootstrap.Modal(document.getElementById('modalEditPeriode'));
+        editModal.show();
+    });
+
+    // Form submit handler for periode - Updated
     $('#form-edit-periode').on('submit', function(e) {
         e.preventDefault();
 
         let formData = new FormData(this);
+        
+        // Get additional data from the button that was clicked
+        const activeButton = $('.btn-edit[data-id]').last();
+        if (activeButton.length) {
+            formData.append('tahun', activeButton.data('tahun'));
+            formData.append('bulan', activeButton.data('bulan'));
+        }
 
+        // Check if this is updating an existing period with graduation date
+        const hasExistingDate = activeButton.data('tanggal') && activeButton.data('tanggal').trim() !== '';
+        const newDate = $('#tanggal_wisuda').val();
+        const isDateChanged = hasExistingDate && newDate && hasExistingDate !== newDate;
+
+        // Show confirmation if date is being changed
+        if (isDateChanged) {
+            Swal.fire({
+                title: 'Ubah Periode Wisuda?',
+                html: `
+                    <p>Anda akan mengubah tanggal wisuda periode ini.</p>
+                    <p><strong>Perhatian:</strong> Mahasiswa yang statusnya "Tidak Terverifikasi" akan direset menjadi "Belum Diproses" dan perlu melakukan konfirmasi ulang.</p>
+                    <p>Apakah Anda yakin ingin melanjutkan?</p>
+                `,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Ya, Ubah!',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    submitPeriodeForm(formData);
+                }
+            });
+        } else {
+            submitPeriodeForm(formData);
+        }
+    });
+
+    function submitPeriodeForm(formData) {
         $.ajax({
             url: $(this).attr('action'),
             type: 'POST',
             data: formData,
             processData: false,
             contentType: false,
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
             beforeSend: function() {
                 Swal.fire({
                     title: 'Menyimpan...',
@@ -360,6 +468,13 @@
                     if (periodeTable) {
                         periodeTable.ajax.reload();
                     }
+                    // Reload verification tables to show updated data
+                    if (table) {
+                        table.ajax.reload();
+                    }
+                    if (wisudawanTable) {
+                        wisudawanTable.ajax.reload();
+                    }
                 } else {
                     Swal.fire({
                         title: "Gagal!",
@@ -377,7 +492,7 @@
                 });
             }
         });
-    });
+    }
 
     // Add event handlers for accept/reject buttons
     $(document).on("click", ".btn-terima", function() {
@@ -523,6 +638,18 @@
 
                 if (response.status && response.data) {
                     let data = response.data;
+
+                    // Check if trying to edit a student without certificate serial number
+                    if (isEdit && (!data.no_seri_ijazah || data.no_seri_ijazah.trim() === '')) {
+                        Swal.fire({
+                            title: "Peringatan!",
+                            text: `Mahasiswa dengan NIM ${nim} belum mendapatkan nomor seri ijazah. Silakan input nomor seri ijazah terlebih dahulu sebelum melakukan edit.`,
+                            icon: "warning",
+                            confirmButtonText: "Mengerti",
+                            confirmButtonColor: "#3085d6"
+                        });
+                        return; // Stop execution here
+                    }
 
                     // Set form action
                     let url = window.Laravel.routeProses.replace(":id", id);
@@ -697,6 +824,228 @@
     $(document).on('click', '.catatan-cepat', function() {
         const catatan = $(this).data('catatan');
         $('#catatan').val(catatan);
+    });
+
+    // Bulk action functionality for verifikasi table
+    $('#select-all').on('change', function() {
+        const isChecked = $(this).prop('checked');
+        $('.row-checkbox').prop('checked', isChecked);
+        updateBulkActionButton();
+    });
+
+    $('#wisuda-datatable').on('change', '.row-checkbox', function() {
+        updateBulkActionButton();
+        const totalCheckboxes = $('.row-checkbox').length;
+        const checkedCheckboxes = $('.row-checkbox:checked').length;
+        $('#select-all').prop('checked', totalCheckboxes === checkedCheckboxes);
+    });
+
+    function updateBulkActionButton() {
+        const checkedBoxes = $('.row-checkbox:checked').length;
+        $('#btn-bulk-action').prop('disabled', checkedBoxes === 0);
+    }
+
+    $('#btn-bulk-action').click(function() {
+        const selectedIds = [];
+        $('.row-checkbox:checked').each(function() {
+            selectedIds.push($(this).val());
+        });
+
+        if (selectedIds.length > 0) {
+            $('#form-bulk-process input[name="selected_ids"]').val(selectedIds.join(','));
+            $('#modalBulkProcess').modal('show');
+        } else {
+            Swal.fire({
+                title: 'Peringatan',
+                text: 'Pilih minimal satu data untuk diproses',
+                icon: 'warning'
+            });
+        }
+    });
+
+    // Bulk action functionality for wisudawan table
+    $('#select-all-wisudawan').on('change', function() {
+        const isChecked = $(this).prop('checked');
+        $('.row-checkbox-wisudawan').prop('checked', isChecked);
+        updateBulkActionButtonWisudawan();
+    });
+
+    $('#wisudawan-datatable').on('change', '.row-checkbox-wisudawan', function() {
+        updateBulkActionButtonWisudawan();
+        const totalCheckboxes = $('.row-checkbox-wisudawan').length;
+        const checkedCheckboxes = $('.row-checkbox-wisudawan:checked').length;
+        $('#select-all-wisudawan').prop('checked', totalCheckboxes === checkedCheckboxes);
+    });
+
+    function updateBulkActionButtonWisudawan() {
+        const checkedBoxes = $('.row-checkbox-wisudawan:checked').length;
+        $('#btn-bulk-action-wisudawan').prop('disabled', checkedBoxes === 0);
+    }
+
+    $('#btn-bulk-action-wisudawan').click(function() {
+        const selectedIds = [];
+        $('.row-checkbox-wisudawan:checked').each(function() {
+            selectedIds.push($(this).val());
+        });
+
+        if (selectedIds.length > 0) {
+            $('#form-bulk-process-wisudawan input[name="selected_ids"]').val(selectedIds.join(','));
+            $('#modalBulkProcessWisudawan').modal('show');
+        } else {
+            Swal.fire({
+                title: 'Peringatan',
+                text: 'Pilih minimal satu data untuk diproses',
+                icon: 'warning'
+            });
+        }
+    });
+
+    // Handle bulk process form submission for verifikasi
+    $('#form-bulk-process').submit(function(e) {
+        e.preventDefault();
+        
+        const selectedIds = $('.row-checkbox:checked').map(function() {
+            return $(this).val();
+        }).get();
+
+        if (selectedIds.length === 0) {
+            Swal.fire({
+                title: 'Peringatan',
+                text: 'Pilih minimal satu data untuk diproses',
+                icon: 'warning'
+            });
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('status_id', $('#form-bulk-process select[name="status_id"]').val());
+        formData.append('catatan', $('#form-bulk-process textarea[name="catatan"]').val());
+        formData.append('periode_wisuda', $('#form-bulk-process input[name="periode_wisuda"]').val());
+        formData.append('selected_ids', selectedIds.join(','));
+        formData.append('_token', $('meta[name="csrf-token"]').attr('content'));
+        
+        $.ajax({
+            url: window.Laravel.bulkProcess,
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            beforeSend: function() {
+                Swal.fire({
+                    title: 'Mohon Tunggu',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+            },
+            success: function(response) {
+                if (response.status) {
+                    $('#modalBulkProcess').modal('hide');
+                    $('#select-all').prop('checked', false);
+                    $('.row-checkbox').prop('checked', false);
+                    updateBulkActionButton();
+                    
+                    Swal.fire({
+                        title: 'Berhasil!',
+                        text: response.message,
+                        icon: 'success',
+                        showConfirmButton: false,
+                        timer: 1500
+                    });
+                    table.ajax.reload();
+                    if (wisudawanTable) {
+                        wisudawanTable.ajax.reload();
+                    }
+                } else {
+                    Swal.fire({
+                        title: 'Gagal!',
+                        text: response.message,
+                        icon: 'error'
+                    });
+                }
+            },
+            error: function(xhr) {
+                Swal.fire({
+                    title: 'Gagal!',
+                    text: xhr.responseJSON?.message || 'Terjadi kesalahan saat memproses data',
+                    icon: 'error'
+                });
+            }
+        });
+    });
+
+    // Handle bulk process form submission for wisudawan
+    $('#form-bulk-process-wisudawan').submit(function(e) {
+        e.preventDefault();
+        
+        const selectedIds = $('.row-checkbox-wisudawan:checked').map(function() {
+            return $(this).val();
+        }).get();
+
+        if (selectedIds.length === 0) {
+            Swal.fire({
+                title: 'Peringatan',
+                text: 'Pilih minimal satu data untuk diproses',
+                icon: 'warning'
+            });
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('status_id', $('#form-bulk-process-wisudawan select[name="status_id"]').val());
+        formData.append('catatan', $('#form-bulk-process-wisudawan textarea[name="catatan"]').val());
+        formData.append('selected_ids', selectedIds.join(','));
+        formData.append('_token', $('meta[name="csrf-token"]').attr('content'));
+        
+        $.ajax({
+            url: window.Laravel.bulkProcess,
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            beforeSend: function() {
+                Swal.fire({
+                    title: 'Mohon Tunggu',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+            },
+            success: function(response) {
+                if (response.status) {
+                    $('#modalBulkProcessWisudawan').modal('hide');
+                    $('#select-all-wisudawan').prop('checked', false);
+                    $('.row-checkbox-wisudawan').prop('checked', false);
+                    updateBulkActionButtonWisudawan();
+                    
+                    Swal.fire({
+                        title: 'Berhasil!',
+                        text: response.message,
+                        icon: 'success',
+                        showConfirmButton: false,
+                        timer: 1500
+                    });
+                    if (wisudawanTable) {
+                        wisudawanTable.ajax.reload();
+                    }
+                } else {
+                    Swal.fire({
+                        title: 'Gagal!',
+                        text: response.message,
+                        icon: 'error'
+                    });
+                }
+            },
+            error: function(xhr) {
+                Swal.fire({
+                    title: 'Gagal!',
+                    text: xhr.responseJSON?.message || 'Terjadi kesalahan saat memproses data',
+                    icon: 'error'
+                });
+            }
+        });
     });
 
 })();
