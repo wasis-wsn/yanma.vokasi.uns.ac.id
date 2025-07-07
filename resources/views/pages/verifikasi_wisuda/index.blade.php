@@ -473,7 +473,6 @@
 @can('staff')
 @include('pages.verifikasi_wisuda.modal_detail')
 @include('pages.verifikasi_wisuda.modal_proses')
-
 <!-- Add Edit Periode Modal -->
 <div class="modal fade" id="modalEditPeriode" tabindex="-1">
     <div class="modal-dialog">
@@ -484,7 +483,6 @@
             </div>
             <form id="form-edit-periode">
                 @csrf
-                @method('PUT')
                 <div class="modal-body">
                     <div class="form-group mb-3">
                         <label>Nama Bulan</label>

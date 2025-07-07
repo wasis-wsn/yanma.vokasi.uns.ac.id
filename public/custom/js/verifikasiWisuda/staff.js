@@ -85,6 +85,7 @@
             destroy: true,
             ajax: `${window.Laravel.listPeriode}?tahun=${tahun}`,
             columns: [
+                
                 { data: "DT_RowIndex" },
                 { data: "nama_bulan" },
                 { data: "tanggal_wisuda" },
@@ -162,12 +163,22 @@
 
         let formData = new FormData(this);
 
+        // Get additional data from the button that was clicked
+        const activeButton = $('.btn-edit[data-id]').last(); // Get the last clicked button
+        if (activeButton.length) {
+            formData.append('tahun', activeButton.data('tahun'));
+            formData.append('bulan', activeButton.data('bulan'));
+        }
+
         $.ajax({
             url: $(this).attr('action'),
             type: 'POST',
             data: formData,
             processData: false,
             contentType: false,
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
             beforeSend: function() {
                 Swal.fire({
                     title: 'Mengimport data...',
@@ -328,72 +339,48 @@
         }
     });
 
-    // Edit periode button handler - Updated with debugging
-    $(document).on('click', '.btn-edit', function(e) {
-        e.preventDefault();
-        console.log('Edit button clicked'); // Debug log
-        
-        const id = $(this).data('id');
-        const nama = $(this).data('nama');
-        const tanggal = $(this).data('tanggal');
-        const active = $(this).data('active');
+    // Edit periode button handler
+    // Ganti ini:
+$(document).on('click', '.btn-edit', function() {
+    const id = $(this).data('id');
+    const nama = $(this).data('nama');
+    const tanggal = $(this).data('tanggal');
+    const active = $(this).data('active');
 
-        console.log('Button data:', { id, nama, tanggal, active }); // Debug log
+    $('#nama_bulan').val(nama);
+    $('#tanggal_wisuda').val(tanggal);
+    $('#is_active').prop('checked', active == 1);
 
-        // Check if modal exists
-        if ($('#modalEditPeriode').length === 0) {
-            console.error('Modal #modalEditPeriode not found');
-            Swal.fire({
-                title: 'Error!',
-                text: 'Modal edit periode tidak ditemukan',
-                icon: 'error'
-            });
-            return;
-        }
+    const action = window.Laravel.updatePeriode.replace(':id', id);
+    $('#form-edit-periode').attr('action', action);
+    $('#modalEditPeriode').modal('show');
+});
 
-        $('#nama_bulan').val(nama);
-        $('#tanggal_wisuda').val(tanggal);
-        $('#is_active').prop('checked', active == 1);
+// Menjadi ini (lebih eksplisit):
+$(document).on('click', '.btn-edit[data-id]', function() {
+    const $button = $(this);
+    const id = $button.data('id');
+    const nama = $button.data('nama');
+    const tanggal = $button.data('tanggal');
+    const active = $button.data('active');
 
-        const action = window.Laravel.updatePeriode.replace(':id', id);
-        $('#form-edit-periode').attr('action', action);
-        
-        // Use Bootstrap 5 modal syntax
-        const editModal = new bootstrap.Modal(document.getElementById('modalEditPeriode'));
-        editModal.show();
-    });
+    console.log('Edit clicked:', {id, nama, tanggal, active}); // Debugging
 
-    // Also add a more general handler in case the specific class isn't working
-    $(document).on('click', '[data-action="edit-periode"]', function(e) {
-        e.preventDefault();
-        console.log('Alternative edit handler triggered');
-        
-        const id = $(this).data('id');
-        const nama = $(this).data('nama');
-        const tanggal = $(this).data('tanggal');
-        const active = $(this).data('active');
+    $('#nama_bulan').val(nama || '');
+    $('#tanggal_wisuda').val(tanggal || '');
+    $('#is_active').prop('checked', active == 1);
 
-        if ($('#modalEditPeriode').length === 0) {
-            Swal.fire({
-                title: 'Error!',
-                text: 'Modal edit periode tidak ditemukan',
-                icon: 'error'
-            });
-            return;
-        }
+    if (!window.Laravel || !window.Laravel.updatePeriode) {
+        console.error('Laravel.updatePeriode is not defined');
+        return;
+    }
 
-        $('#nama_bulan').val(nama);
-        $('#tanggal_wisuda').val(tanggal);
-        $('#is_active').prop('checked', active == 1);
+    const action = window.Laravel.updatePeriode.replace(':id', id);
+    $('#form-edit-periode').attr('action', action);
+    $('#modalEditPeriode').modal('show');
+});
 
-        const action = window.Laravel.updatePeriode.replace(':id', id);
-        $('#form-edit-periode').attr('action', action);
-        
-        const editModal = new bootstrap.Modal(document.getElementById('modalEditPeriode'));
-        editModal.show();
-    });
-
-    // Form submit handler for periode - Updated
+    // Form submit handler for periode
     $('#form-edit-periode').on('submit', function(e) {
         e.preventDefault();
 
@@ -406,37 +393,12 @@
             formData.append('bulan', activeButton.data('bulan'));
         }
 
-        // Check if this is updating an existing period with graduation date
-        const hasExistingDate = activeButton.data('tanggal') && activeButton.data('tanggal').trim() !== '';
-        const newDate = $('#tanggal_wisuda').val();
-        const isDateChanged = hasExistingDate && newDate && hasExistingDate !== newDate;
-
-        // Show confirmation if date is being changed
-        if (isDateChanged) {
-            Swal.fire({
-                title: 'Ubah Periode Wisuda?',
-                html: `
-                    <p>Anda akan mengubah tanggal wisuda periode ini.</p>
-                    <p><strong>Perhatian:</strong> Mahasiswa yang statusnya "Tidak Terverifikasi" akan direset menjadi "Belum Diproses" dan perlu melakukan konfirmasi ulang.</p>
-                    <p>Apakah Anda yakin ingin melanjutkan?</p>
-                `,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
-                confirmButtonText: 'Ya, Ubah!',
-                cancelButtonText: 'Batal'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    submitPeriodeForm(formData);
-                }
-            });
-        } else {
-            submitPeriodeForm(formData);
+        console.log('Form action:', $(this).attr('action')); // Debug
+        console.log('FormData entries:'); // Debug
+        for (let pair of formData.entries()) {
+            console.log(pair[0] + ': ' + pair[1]);
         }
-    });
 
-    function submitPeriodeForm(formData) {
         $.ajax({
             url: $(this).attr('action'),
             type: 'POST',
@@ -484,6 +446,7 @@
                 }
             },
             error: function(xhr) {
+                console.error('AJAX Error:', xhr); // Debug
                 let err = JSON.parse(xhr.responseText);
                 Swal.fire({
                     title: "Error!",
@@ -492,7 +455,7 @@
                 });
             }
         });
-    }
+    });
 
     // Add event handlers for accept/reject buttons
     $(document).on("click", ".btn-terima", function() {
