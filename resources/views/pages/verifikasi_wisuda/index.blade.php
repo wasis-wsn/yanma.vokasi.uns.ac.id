@@ -102,7 +102,7 @@
                                     <h5><i class="fa fa-check-circle"></i> Status Diverifikasi</h5>
                                     <p class="mb-0">Pengajuan telah diverifikasi oleh staff.</p>
                                 </div>
-
+                            
                             {{-- Jika status_id == 3 tampilkan alert biru --}}
                             @elseif($verifikasi->status_id == 3)
                                 <div class="alert alert-primary">
@@ -192,6 +192,8 @@
                         <div class="alert alert-success mt-3">
                             <i class="fa fa-check-circle"></i> Anda telah mengkonfirmasi untuk mengikuti wisuda.
                         </div>
+                        
+                        @elseif($verifikasi->status_id == '2')
                         <div class="card-header d-flex justify-content-between">
                             <div class="header-title">
                                 <h4 class="card-title">Alur Verifikasi Wisuda</h4>
@@ -255,6 +257,7 @@
                             </div>
                             @endif
                         </div>
+                        
                         @elseif($verifikasi->status_id == '3')
                         <div class="alert alert-danger mt-3">
                             <i class="fa fa-times-circle"></i> Mohon maaf, Anda belum memenuhi persyaratan untuk mengikuti wisuda periode ini. Informasi selengkapnya dapat dilihat pada kolom catatan.
@@ -474,7 +477,8 @@
 @include('pages.verifikasi_wisuda.modal_detail')
 @include('pages.verifikasi_wisuda.modal_proses')
 <!-- Add Edit Periode Modal -->
-<div class="modal fade" id="modalEditPeriode" tabindex="-1">
+<!-- Add Edit Periode Modal -->
+<div class="modal fade" id="modalEditPeriode" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
@@ -484,28 +488,38 @@
             <form id="form-edit-periode">
                 @csrf
                 <div class="modal-body">
-                    <div class="form-group mb-3">
-                        <label>Nama Bulan</label>
-                        <input type="text" id="nama_bulan" name="nama_bulan" class="form-control" readonly>
+                    <div class="mb-3">
+                        <label class="form-label">Nama Bulan</label>
+                        <input type="text" id="nama_bulan" class="form-control" readonly>
                     </div>
-                    <div class="form-group mb-3">
-                        <label>Tanggal Wisuda</label>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Tanggal Wisuda</label>
                         <input type="date" id="tanggal_wisuda" name="tanggal_wisuda" class="form-control">
-                        <small class="text-muted">
-                            <i class="fa fa-info-circle"></i> 
-                            Jika tanggal diubah, mahasiswa yang statusnya "Tidak Terverifikasi" akan direset menjadi "Belum Diproses" untuk konfirmasi ulang.
-                        </small>
+                        <div class="form-text">
+                            <i class="fas fa-info-circle"></i> Mengubah tanggal akan mereset status mahasiswa yang "Tidak Terverifikasi"
+                        </div>
                     </div>
-                    <div class="form-check">
-                        <input type="checkbox" id="is_active" name="is_active" class="form-check-input" value="1">
+                    
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="is_active" name="is_active" value="1">
                         <label class="form-check-label" for="is_active">
-                            Aktif (periode ini akan digunakan sebagai default saat import)
+                            Jadikan periode aktif
                         </label>
+                    </div>
+                    
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i> 
+                        <strong>Perhatian:</strong> Perubahan tanggal wisuda akan:
+                        <ul class="mt-2">
+                            <li>Mereset status "Tidak Terverifikasi" menjadi "Belum Diproses"</li>
+                            <li>Memberi notifikasi ke mahasiswa untuk konfirmasi ulang</li>
+                        </ul>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-primary">Simpan</button>
+                    <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
                 </div>
             </form>
         </div>
