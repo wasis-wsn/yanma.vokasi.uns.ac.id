@@ -102,7 +102,7 @@
                                     <h5><i class="fa fa-check-circle"></i> Status Diverifikasi</h5>
                                     <p class="mb-0">Pengajuan telah diverifikasi oleh staff.</p>
                                 </div>
-                            
+
                             {{-- Jika status_id == 3 tampilkan alert biru --}}
                             @elseif($verifikasi->status_id == 3)
                                 <div class="alert alert-primary">
@@ -192,50 +192,47 @@
                         <div class="alert alert-success mt-3">
                             <i class="fa fa-check-circle"></i> Anda telah mengkonfirmasi untuk mengikuti wisuda.
                         </div>
-                        
+
                         @elseif($verifikasi->status_id == '2')
                         <div class="card-header d-flex justify-content-between">
                             <div class="header-title">
-                                <h4 class="card-title">Alur Verifikasi Wisuda</h4>
-                                <p class="card-text">Panduan langkah-langkah untuk menyelesaikan proses verifikasi wisuda</p>
+                                <h4 class="card-title">Alur Penyelesaian Verifikasi Wisuda</h4>
+                                <br>
                             </div>
                         </div>
                         <div class="card-body">
                             <div class="iq-timeline0 m-0 d-flex align-items-center justify-content-between position-relative">
                                 <ul class="list-inline p-0 m-0">
-                                    <li>
-                                        <div class="timeline-dots timeline-dot1 border-primary text-primary"></div>
-                                        <h6 class="float-left mb-1">Mengajukan Surat Keterangan Lulus (SKL)</h6>
-                                        <div class="d-inline-block w-100">
-                                            <p>Mahasiswa mengajukan SKL melalui sistem yang akan otomatis membuat data verifikasi wisuda</p>
-                                        </div>
+                                    <li >
+                                        <div class="timeline-dots timeline-dot1 border-primary text-primary mx-auto"></div>
+                                        <h6 class="mt-3 mb-1"> Data calon wisudawan telah diverifikasi</h6>
                                     </li>
                                     <li>
                                         <div class="timeline-dots timeline-dot1 border-warning text-warning"></div>
-                                        <h6 class="float-left mb-1">Menunggu Verifikasi Staff</h6>
+                                        <h6 class="float-left mb-1">Sinkronisasi Data di Website Wisuda</h6>
                                         <div class="d-inline-block w-100">
-                                            <p>Staff akan memverifikasi data Anda dan menginput nomor seri ijazah serta periode wisuda</p>
+                                            <p>Calon wisudawan melakukan sinkronisasi data SIAKAD melalui <a href="https://wisuda.uns.ac.id" target="_blank">wisuda.uns.ac.id</a></p>
                                         </div>
                                     </li>
                                     <li>
                                         <div class="timeline-dots timeline-dot1 border-success text-success"></div>
-                                        <h6 class="float-left mb-1">Data Terverifikasi</h6>
+                                        <h6 class="float-left mb-1">Melihat PIN Akses Wisuda</h6>
                                         <div class="d-inline-block w-100">
-                                            <p>Setelah data terverifikasi, Anda akan melihat nomor seri ijazah dan jadwal wisuda pada halaman ini</p>
+                                            <p>Calon wisudawan melihat kode/PIN akses wisuda, tertera pada baris ke-6 dari bawah pada halaman tersebut.</p>
                                         </div>
                                     </li>
                                     <li>
                                         <div class="timeline-dots timeline-dot1 border-info text-info"></div>
-                                        <h6 class="float-left mb-1">Konfirmasi Keikutsertaan</h6>
+                                        <h6 class="float-left mb-1">Login dan Cetak Draft Ijazah</h6>
                                         <div class="d-inline-block w-100">
-                                            <p>Konfirmasi keikutsertaan wisuda dengan klik tombol "Ya, Saya Setuju" atau "Tidak, Saya Tidak Setuju"</p>
+                                            <p>Gunakan PIN tersebut untuk login ke sistem wisuda. Setelah masuk, calon wisudawan dapat mencetak draft ijazah untuk dicek kembali sebelum pencetakan final.</p>
                                         </div>
                                     </li>
                                     <li>
                                         <div class="timeline-dots timeline-dot1 border-success text-success"></div>
-                                        <h6 class="float-left mb-1">Terdaftar Sebagai Wisudawan</h6>
+                                        <h6 class="float-left mb-1">Penyerahan Berkas ke Akademik Pusat</h6>
                                         <div class="d-inline-block w-100">
-                                            <p>Setelah konfirmasi, Anda akan terdaftar sebagai calon wisudawan dan dapat mengurus berkas wisuda lainnya</p>
+                                            <p>Calon wisudawan harus menyerahkan dokumen persyaratan wisuda ke Akademik Pusat. Ketentuan dan daftar berkas dapat dilihat secara lengkap di <a href="https://wisuda.uns.ac.id" target="_blank">wisuda.uns.ac.id</a>.</p>
                                         </div>
                                     </li>
                                 </ul>
@@ -257,7 +254,7 @@
                             </div>
                             @endif
                         </div>
-                        
+
                         @elseif($verifikasi->status_id == '3')
                         <div class="alert alert-danger mt-3">
                             <i class="fa fa-times-circle"></i> Mohon maaf, Anda belum memenuhi persyaratan untuk mengikuti wisuda periode ini. Informasi selengkapnya dapat dilihat pada kolom catatan.
@@ -492,7 +489,7 @@
                         <label class="form-label">Nama Bulan</label>
                         <input type="text" id="nama_bulan" class="form-control" readonly>
                     </div>
-                    
+
                     <div class="mb-3">
                         <label class="form-label">Tanggal Wisuda</label>
                         <input type="date" id="tanggal_wisuda" name="tanggal_wisuda" class="form-control">
@@ -500,20 +497,19 @@
                             <i class="fas fa-info-circle"></i> Mengubah tanggal akan mereset status mahasiswa yang "Tidak Terverifikasi"
                         </div>
                     </div>
-                    
+
                     <div class="form-check mb-3">
                         <input class="form-check-input" type="checkbox" id="is_active" name="is_active" value="1">
-                        <label class="form-check-label" for="is_active">
-                            Jadikan periode aktif
+                        <label class="for-check-label" for="is_active">
+                            Jadikan periode aktifm
                         </label>
                     </div>
-                    
+
                     <div class="alert alert-warning">
-                        <i class="fas fa-exclamation-triangle"></i> 
+                        <i class="fas fa-exclamation-triangle"></i>
                         <strong>Perhatian:</strong> Perubahan tanggal wisuda akan:
                         <ul class="mt-2">
                             <li>Mereset status "Tidak Terverifikasi" menjadi "Belum Diproses"</li>
-                            <li>Memberi notifikasi ke mahasiswa untuk konfirmasi ulang</li>
                         </ul>
                     </div>
                 </div>
@@ -553,7 +549,7 @@
 <script>
     var year = $("#tahunDropdown").html();
     var status_table = $("#statusDropdown").data('status');
-    
+
     window.Laravel = {!!json_encode([
             'baseUrl' => url('/'),
             'export' => route('verifikasiWisuda.export'),

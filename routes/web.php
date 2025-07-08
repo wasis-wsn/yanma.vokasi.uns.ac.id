@@ -344,6 +344,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/{id}/tolak', [VerifikasiWisudaController::class, 'tolak'])->name('tolak')->middleware('role:staff');
         Route::post('/import', [VerifikasiWisudaController::class, 'import'])->name('import')->middleware('role:staff');
         Route::post('/{id}/konfirmasi', [VerifikasiWisudaController::class, 'konfirmasi'])->name('konfirmasi')->middleware('role:mahasiswa');
+        Route::post('/bulk-process', [VerifikasiWisudaController::class, 'bulkProcess'])->name('bulkProcess')->middleware('role:staff');
     });
 
     Route::name('transkrip.')->prefix('transkrip')->group(function () {

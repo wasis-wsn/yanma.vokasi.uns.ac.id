@@ -3,7 +3,7 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="modalImportLabel">Import Data Verifikasi Wisuda</h5>
+                <h5 class="modal-title" id="modalImportLabel">Import Data Konfirmasi Kehadiran</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form id="form-import" method="POST" enctype="multipart/form-data">
@@ -21,7 +21,7 @@
                     </div>
                     <div class="mb-3">
                         <label for="file_import" class="form-label">File Excel/CSV</label>
-                        <input type="file" class="form-control" name="file" id="file_import" 
+                        <input type="file" class="form-control" name="file" id="file_import"
                                accept=".xlsx,.xls,.csv,.txt,text/csv,application/csv,text/comma-separated-values" required>
                         <div class="form-text">Format yang didukung: Excel (.xlsx, .xls) atau CSV (.csv). Maksimal 10MB.</div>
                     </div>
