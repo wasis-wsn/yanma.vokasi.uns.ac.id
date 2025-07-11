@@ -27,16 +27,7 @@
                     </div>
                     <div class="alert alert-info">
                         <strong>Catatan:</strong>
-                        <ul class="mb-0">
-                            <li>File harus berisi kolom: <strong>nim, no_seri_ijazah, periode_wisuda, kode_akses</strong></li>
-                            <li>Periode Wisuda dalam format: YYYY-MM (contoh: 2024-03)</li>
-                            <li>Data mahasiswa harus sudah terdaftar di sistem</li>
-                            <li>Untuk CSV, gunakan koma (,) sebagai pemisah</li>
-                            <li>Contoh format CSV:<br>
-                                <code>nim,no_seri_ijazah,periode_wisuda,kode_akses<br>
-                                V3412325,123456789,2024-03,KODE001</code>
-                            </li>
-                        </ul>
+                        <p>Import sesuai dengan template yang sudah diberikan</p>
                     </div>
                 </div>
                 <div class="modal-footer">

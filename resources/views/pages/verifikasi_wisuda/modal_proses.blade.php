@@ -46,31 +46,11 @@
                     <div class="form-group mb-3">
                         <label class="form-label" for="catatan">Catatan untuk Mahasiswa</label>
                         <textarea class="form-control" id="catatan" rows="4" name="catatan"
-                                  placeholder="Berikan penjelasan mengenai status atau instruksi untuk mahasiswa..."></textarea>
-                        <small class="text-muted">Catatan ini akan ditampilkan pada halaman verifikasi wisuda mahasiswa</small>
-                        
+                                  placeholder="Catatan akan terisi otomatis sesuai status yang dipilih..."></textarea>
+                        <small class="text-muted">Catatan ini akan ditampilkan pada halaman verifikasi wisuda mahasiswa. Catatan akan otomatis terisi sesuai status yang dipilih, namun Anda dapat mengubahnya sesuai kebutuhan.</small>
+
                         {{-- Quick Action Buttons for Common Notes --}}
-                        <div class="mt-2">
-                            <small class="text-muted d-block mb-2">Catatan Cepat:</small>
-                            <div class="d-flex flex-wrap gap-1">
-                                <button type="button" class="btn btn-outline-primary btn-sm catatan-cepat" 
-                                        data-catatan="Data Anda telah diverifikasi dan siap untuk proses selanjutnya.">
-                                    Terverifikasi
-                                </button>
-                                <button type="button" class="btn btn-outline-warning btn-sm catatan-cepat" 
-                                        data-catatan="Mohon menunggu verifikasi dari staff terkait.">
-                                    Menunggu
-                                </button>
-                                <button type="button" class="btn btn-outline-danger btn-sm catatan-cepat" 
-                                        data-catatan="Data tidak dapat diverifikasi. Silakan hubungi bagian akademik untuk informasi lebih lanjut.">
-                                    Tidak Valid
-                                </button>
-                                <button type="button" class="btn btn-outline-info btn-sm catatan-cepat" 
-                                        data-catatan="Silakan konfirmasi keikutsertaan wisuda pada sistem.">
-                                    Konfirmasi
-                                </button>
-                            </div>
-                        </div>
+
                     </div>
                 </div>
                 <div class="modal-footer">

@@ -514,14 +514,22 @@ public function konfirmasi(Request $request, $id)
             return response()->json(['status' => false, 'message' => 'Anda tidak dapat melakukan konfirmasi pada saat ini.'], 400);
         }
 
-        // 4 = Terima (confirmed), 3 = Tolak (rejected) based on your table
+        // 4 = Terima (confirmed), 5 = Tolak (rejected) based on your table
         $status_id = $request->konfirmasi === 'setuju' ? '4' : '5';
 
-        $verifikasi->update([
+        $updateData = [
             'status_id' => $status_id,
-            'tanggal_konfirmasi' => now(),
             'catatan' => $request->catatan // Update catatan field with student's note
-        ]);
+        ];
+
+        // Only add tanggal_konfirmasi if the column exists
+        // Check if column exists in the table
+        $columns = \Schema::getColumnListing('verifikasi_wisuda');
+        if (in_array('tanggal_konfirmasi', $columns)) {
+            $updateData['tanggal_konfirmasi'] = now();
+        }
+
+        $verifikasi->update($updateData);
 
         // If student agrees, create transkrip and skpi records (only if periode_wisuda exists)
         if ($request->konfirmasi === 'setuju' && $verifikasi->periode_wisuda) {
@@ -579,12 +587,12 @@ public function bulkProcess(Request $request)
     try {
         $ids = explode(',', $request->selected_ids);
         $validIds = [];
-        
+
         // Use raw IDs directly like in perpanjangan system
         foreach ($ids as $id) {
             $trimmedId = trim($id);
             if (empty($trimmedId)) continue;
-            
+
             // Verify the record exists using raw ID
             $exists = VerifikasiWisuda::where('id', $trimmedId)->exists();
             if ($exists) {
@@ -656,7 +664,7 @@ public function bulkProcess(Request $request)
     } catch (\Exception $e) {
         \Log::error('Bulk process error: ' . $e->getMessage());
         \Log::error('Request data: ' . json_encode($request->all()));
-        
+
         return response()->json([
             'status' => false,
             'message' => 'Terjadi kesalahan: ' . $e->getMessage()

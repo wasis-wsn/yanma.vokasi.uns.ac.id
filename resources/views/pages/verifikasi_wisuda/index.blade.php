@@ -493,24 +493,19 @@
                     <div class="mb-3">
                         <label class="form-label">Tanggal Wisuda</label>
                         <input type="date" id="tanggal_wisuda" name="tanggal_wisuda" class="form-control">
-                        <div class="form-text">
-                            <i class="fas fa-info-circle"></i> Mengubah tanggal akan mereset status mahasiswa yang "Tidak Terverifikasi"
-                        </div>
                     </div>
 
                     <div class="form-check mb-3">
                         <input class="form-check-input" type="checkbox" id="is_active" name="is_active" value="1">
                         <label class="for-check-label" for="is_active">
-                            Jadikan periode aktifm
+                            Jadikan periode aktif
                         </label>
                     </div>
 
                     <div class="alert alert-warning">
                         <i class="fas fa-exclamation-triangle"></i>
                         <strong>Perhatian:</strong> Perubahan tanggal wisuda akan:
-                        <ul class="mt-2">
-                            <li>Mereset status "Tidak Terverifikasi" menjadi "Belum Diproses"</li>
-                        </ul>
+                        <p>Merubah status semua Calon Wisudawan menjadi "Belum Diproses"</p>
                     </div>
                 </div>
                 <div class="modal-footer">

@@ -209,7 +209,7 @@ Route::middleware('auth')->group(function () {
         Route::name('periodeWisuda.')->prefix('periodeWisuda')->group(function () {
             Route::get('/', [PeriodeWisudaController::class, 'index'])->name('index');
             Route::get('/list', [PeriodeWisudaController::class, 'list'])->name('list');
-            Route::put('/{id}', [PeriodeWisudaController::class, 'update'])->name('update');
+            Route::post('/{id}', [PeriodeWisudaController::class, 'update'])->name('update');
         });
     });
 

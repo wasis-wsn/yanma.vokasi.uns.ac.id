@@ -16,9 +16,9 @@
             ajax: `${window.Laravel.listData}?status=${status}&year=${year}`,
             columns: [
                 { data: "created_at", visible: false },
-                { 
-                    data: "id", 
-                    orderable: false, 
+                {
+                    data: "id",
+                    orderable: false,
                     searchable: false,
                     render: function(data, type, row) {
                         // Use raw ID like in perpanjangan system
@@ -51,9 +51,9 @@
             ajax: `${window.Laravel.listWisudawan}?year=${year}`,
             columns: [
                 { data: "created_at", visible: false },
-                { 
-                    data: "id", 
-                    orderable: false, 
+                {
+                    data: "id",
+                    orderable: false,
                     searchable: false,
                     render: function(data, type, row) {
                         // Use raw ID like in perpanjangan system
@@ -85,7 +85,6 @@
             destroy: true,
             ajax: `${window.Laravel.listPeriode}?tahun=${tahun}`,
             columns: [
-                
                 { data: "DT_RowIndex" },
                 { data: "nama_bulan" },
                 { data: "tanggal_wisuda" },
@@ -340,67 +339,107 @@
     });
 
     // Edit periode button handler
-    // Ganti ini:
-$(document).on('click', '.btn-edit', function() {
-    const id = $(this).data('id');
-    const nama = $(this).data('nama');
-    const tanggal = $(this).data('tanggal');
-    const active = $(this).data('active');
+    $(document).on('click', '.btn-edit[data-id]', function() {
+        const $button = $(this);
+        const id = $button.data('id');
+        const nama = $button.data('nama');
+        const tanggal = $button.data('tanggal');
+        const active = $button.data('active');
+        const bulan = $button.data('bulan');
+        const tahun = $button.data('tahun');
 
-    $('#nama_bulan').val(nama);
-    $('#tanggal_wisuda').val(tanggal);
-    $('#is_active').prop('checked', active == 1);
+        console.log('Edit clicked:', {id, nama, tanggal, active, bulan, tahun}); // Debugging
 
-    const action = window.Laravel.updatePeriode.replace(':id', id);
-    $('#form-edit-periode').attr('action', action);
-    $('#modalEditPeriode').modal('show');
-});
+        $('#nama_bulan').val(nama || '');
+        $('#tanggal_wisuda').val(tanggal || '');
+        $('#is_active').prop('checked', active == 1);
 
-// Menjadi ini (lebih eksplisit):
-$(document).on('click', '.btn-edit[data-id]', function() {
-    const $button = $(this);
-    const id = $button.data('id');
-    const nama = $button.data('nama');
-    const tanggal = $button.data('tanggal');
-    const active = $button.data('active');
+        // Store tahun and bulan in the button for later use
+        $('.btn-edit[data-id="' + id + '"]').attr('data-current-tahun', tahun || new Date().getFullYear());
+        $('.btn-edit[data-id="' + id + '"]').attr('data-current-bulan', bulan || 1);
 
-    console.log('Edit clicked:', {id, nama, tanggal, active}); // Debugging
+        if (!window.Laravel || !window.Laravel.updatePeriode) {
+            console.error('Laravel.updatePeriode is not defined');
+            return;
+        }
 
-    $('#nama_bulan').val(nama || '');
-    $('#tanggal_wisuda').val(tanggal || '');
-    $('#is_active').prop('checked', active == 1);
-
-    if (!window.Laravel || !window.Laravel.updatePeriode) {
-        console.error('Laravel.updatePeriode is not defined');
-        return;
-    }
-
-    const action = window.Laravel.updatePeriode.replace(':id', id);
-    $('#form-edit-periode').attr('action', action);
-    $('#modalEditPeriode').modal('show');
-});
+        const action = window.Laravel.updatePeriode.replace(':id', id);
+        $('#form-edit-periode').attr('action', action);
+        $('#modalEditPeriode').modal('show');
+    });
 
     // Form submit handler for periode
     $('#form-edit-periode').on('submit', function(e) {
         e.preventDefault();
 
         let formData = new FormData(this);
-        
-        // Get additional data from the button that was clicked
-        const activeButton = $('.btn-edit[data-id]').last();
+
+        // Get data from the currently selected periode
+        const currentAction = $(this).attr('action');
+        const periodeId = currentAction.split('/').pop();
+        const activeButton = $('.btn-edit[data-id="' + periodeId + '"]');
+
         if (activeButton.length) {
-            formData.append('tahun', activeButton.data('tahun'));
-            formData.append('bulan', activeButton.data('bulan'));
+            const tahun = activeButton.data('current-tahun') || activeButton.data('tahun') || yearPeriode;
+            const bulan = activeButton.data('current-bulan') || activeButton.data('bulan');
+
+            formData.append('tahun', tahun);
+            formData.append('bulan', bulan);
+
+            console.log('Appending tahun:', tahun, 'bulan:', bulan);
         }
 
-        console.log('Form action:', $(this).attr('action')); // Debug
-        console.log('FormData entries:'); // Debug
+        // Check if tanggal_wisuda changed to show confirmation
+        const originalDate = activeButton.data('tanggal');
+        const newDate = $('#tanggal_wisuda').val();
+
+        console.log('Form submission debug:', {
+            originalDate: originalDate,
+            newDate: newDate,
+            hasNewDate: !!newDate,
+            datesAreDifferent: originalDate !== newDate
+        });
+
+        // Show confirmation when there's a date
+        if (newDate) {
+            // Show confirmation dialog about status reset
+            Swal.fire({
+                title: 'Konfirmasi Perubahan Periode',
+                html: `
+                    <p>Anda akan mengubah periode wisuda.</p>
+                    <p><strong>Perhatian:</strong> Semua mahasiswa di database akan direset statusnya menjadi "Belum Diproses" (kecuali yang sudah dalam status "Belum Diproses").</p>
+                    <p>Apakah Anda yakin ingin melanjutkan?</p>
+                `,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Ya, Lanjutkan',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    formData.append('reset_status', '1');
+                    console.log('User confirmed, submitting with reset_status = 1');
+                    submitPeriodeForm(formData);
+                }
+            });
+        } else {
+            console.log('No date provided, submitting without reset');
+            submitPeriodeForm(formData);
+        }
+    });
+
+    function submitPeriodeForm(formData) {
+        const action = $('#form-edit-periode').attr('action');
+
+        // Debug: log all form data
+        console.log('Submitting form data:');
         for (let pair of formData.entries()) {
             console.log(pair[0] + ': ' + pair[1]);
         }
 
         $.ajax({
-            url: $(this).attr('action'),
+            url: action,
             type: 'POST',
             data: formData,
             processData: false,
@@ -418,13 +457,22 @@ $(document).on('click', '.btn-edit[data-id]', function() {
                 });
             },
             success: function(response) {
+                console.log('Response:', response);
+
                 if (response.status) {
+                    let message = response.message;
+                    if (response.reset_count > 0) {
+                        message += ` ${response.reset_count} mahasiswa telah direset statusnya.`;
+                    } else if (response.reset_count === 0 && formData.get('reset_status')) {
+                        message += ' Tidak ada mahasiswa yang perlu direset atau mahasiswa sudah dalam status "Belum Diproses".';
+                    }
+
                     Swal.fire({
                         title: "Berhasil!",
-                        text: response.message,
+                        text: message,
                         icon: "success",
                         showConfirmButton: false,
-                        timer: 1500,
+                        timer: 3000,
                     });
                     $('#modalEditPeriode').modal('hide');
                     if (periodeTable) {
@@ -446,7 +494,7 @@ $(document).on('click', '.btn-edit[data-id]', function() {
                 }
             },
             error: function(xhr) {
-                console.error('AJAX Error:', xhr); // Debug
+                console.error('AJAX Error:', xhr);
                 let err = JSON.parse(xhr.responseText);
                 Swal.fire({
                     title: "Error!",
@@ -455,7 +503,7 @@ $(document).on('click', '.btn-edit[data-id]', function() {
                 });
             }
         });
-    });
+    }
 
     // Add event handlers for accept/reject buttons
     $(document).on("click", ".btn-terima", function() {
@@ -636,6 +684,9 @@ $(document).on('click', '.btn-edit[data-id]', function() {
                     // Reset form first
                     $('#form-proses')[0].reset();
 
+                    // Reset manual catatan checkbox
+                    $('#manual_catatan').prop('checked', false);
+
                     // For edit mode, make verification fields editable; for process mode, keep them read-only
                     if (isEdit) {
                         // Edit mode - fields are editable
@@ -683,6 +734,26 @@ $(document).on('click', '.btn-edit[data-id]', function() {
                     // Set current status and notes
                     $('#status_id').val(data.status_id);
                     $('#catatan').val(data.catatan || '');
+
+                    // If there's existing catatan, check manual mode
+                    if (data.catatan && data.catatan.trim() !== '') {
+                        // Check if the existing catatan matches any default notes
+                        const defaultNotes = {
+                            '1': 'Mohon konfirmasi kesediaan untuk mengikuti prosesi wisuda yang akan diselenggarakan.',
+                            '2': 'Selamat! Data Anda telah terverifikasi. ',
+                            '3': 'Data tidak dapat diverifikasi. Silakan hubungi bagian akademik untuk informasi lebih lanjut.',
+                            '4': 'Anda telah terdaftar sebagai peserta wisuda. Informasi lebih lanjut akan disampaikan kemudian.',
+                            '5': 'Anda tidak mengikuti wisuda pada periode ini.',
+                            '6': 'Data Anda siap untuk dikonfirmasi. Silakan lakukan konfirmasi keikutsertaan wisuda.'
+                        };
+
+                        const currentStatusNote = defaultNotes[data.status_id];
+                        if (data.catatan !== currentStatusNote) {
+                            // If catatan doesn't match default, enable manual mode
+                            $('#manual_catatan').prop('checked', true);
+                            $('#catatan').attr('placeholder', 'Tulis catatan manual Anda di sini...');
+                        }
+                    }
 
                     // Show modal
                     $('#modalProses').modal('show');
@@ -768,25 +839,40 @@ $(document).on('click', '.btn-edit[data-id]', function() {
     // Handle status change to set default notes
     $('#status_id').on('change', function() {
         const statusId = $(this).val();
-        const defaultNotes = {
-            '1': 'Data Anda sedang dalam proses verifikasi. Mohon menunggu konfirmasi lebih lanjut.',
-            '2': 'Selamat! Data Anda telah terverifikasi. Silakan konfirmasi keikutsertaan wisuda pada sistem.',
-            '3': 'Data tidak dapat diverifikasi. Silakan hubungi bagian akademik untuk informasi lebih lanjut.',
-            '4': 'Anda telah terdaftar sebagai peserta wisuda. Informasi lebih lanjut akan disampaikan kemudian.',
-            '5': 'Anda tidak mengikuti wisuda pada periode ini.',
-            '6': 'Data Anda siap untuk dikonfirmasi. Silakan lakukan konfirmasi keikutsertaan wisuda.'
-        };
+        const manualCatatan = $('#manual_catatan').prop('checked');
 
-        // Set default note if available and current note is empty
-        if (defaultNotes[statusId] && $('#catatan').val().trim() === '') {
-            $('#catatan').val(defaultNotes[statusId]);
+        // Only auto-fill if manual catatan is not checked
+        if (!manualCatatan) {
+            const defaultNotes = {
+                '1': 'Mohon konfirmasi kesediaan untuk mengikuti prosesi wisuda yang akan diselenggarakan.',
+                '2': 'Selamat! Data Anda telah terverifikasi. ',
+                '3': 'Data tidak dapat diverifikasi. Silakan hubungi bagian akademik untuk informasi lebih lanjut.',
+                '4': 'Anda telah terdaftar sebagai peserta wisuda. Informasi lebih lanjut akan disampaikan kemudian.',
+                '5': 'Anda tidak mengikuti wisuda pada periode ini.',
+                '6': 'Data Anda siap untuk dikonfirmasi. Silakan lakukan konfirmasi keikutsertaan wisuda.'
+            };
+
+            // Set default note if available
+            if (defaultNotes[statusId]) {
+                $('#catatan').val(defaultNotes[statusId]);
+            } else {
+                $('#catatan').val(''); // Clear if no default note
+            }
         }
     });
 
-    // Handle quick action buttons for common notes
-    $(document).on('click', '.catatan-cepat', function() {
-        const catatan = $(this).data('catatan');
-        $('#catatan').val(catatan);
+    // Handle manual catatan checkbox
+    $('#manual_catatan').on('change', function() {
+        const isManual = $(this).prop('checked');
+
+        if (isManual) {
+            // Clear catatan for manual input
+            $('#catatan').val('').attr('placeholder', 'Tulis catatan manual Anda di sini...');
+        } else {
+            // Restore auto catatan based on current status
+            $('#catatan').attr('placeholder', 'Catatan akan terisi otomatis sesuai status yang dipilih...');
+            $('#status_id').trigger('change'); // Trigger status change to fill auto catatan
+        }
     });
 
     // Bulk action functionality for verifikasi table
@@ -866,7 +952,7 @@ $(document).on('click', '.btn-edit[data-id]', function() {
     // Handle bulk process form submission for verifikasi
     $('#form-bulk-process').submit(function(e) {
         e.preventDefault();
-        
+
         const selectedIds = $('.row-checkbox:checked').map(function() {
             return $(this).val();
         }).get();
@@ -886,10 +972,10 @@ $(document).on('click', '.btn-edit[data-id]', function() {
         formData.append('periode_wisuda', $('#form-bulk-process input[name="periode_wisuda"]').val());
         formData.append('selected_ids', selectedIds.join(','));
         formData.append('_token', $('meta[name="csrf-token"]').attr('content'));
-        
+
         $.ajax({
             url: window.Laravel.bulkProcess,
-            type: 'POST',
+            type: 'PUT',
             data: formData,
             processData: false,
             contentType: false,
@@ -908,7 +994,7 @@ $(document).on('click', '.btn-edit[data-id]', function() {
                     $('#select-all').prop('checked', false);
                     $('.row-checkbox').prop('checked', false);
                     updateBulkActionButton();
-                    
+
                     Swal.fire({
                         title: 'Berhasil!',
                         text: response.message,
@@ -941,7 +1027,7 @@ $(document).on('click', '.btn-edit[data-id]', function() {
     // Handle bulk process form submission for wisudawan
     $('#form-bulk-process-wisudawan').submit(function(e) {
         e.preventDefault();
-        
+
         const selectedIds = $('.row-checkbox-wisudawan:checked').map(function() {
             return $(this).val();
         }).get();
@@ -960,7 +1046,7 @@ $(document).on('click', '.btn-edit[data-id]', function() {
         formData.append('catatan', $('#form-bulk-process-wisudawan textarea[name="catatan"]').val());
         formData.append('selected_ids', selectedIds.join(','));
         formData.append('_token', $('meta[name="csrf-token"]').attr('content'));
-        
+
         $.ajax({
             url: window.Laravel.bulkProcess,
             type: 'POST',
@@ -982,7 +1068,7 @@ $(document).on('click', '.btn-edit[data-id]', function() {
                     $('#select-all-wisudawan').prop('checked', false);
                     $('.row-checkbox-wisudawan').prop('checked', false);
                     updateBulkActionButtonWisudawan();
-                    
+
                     Swal.fire({
                         title: 'Berhasil!',
                         text: response.message,
@@ -1010,5 +1096,4 @@ $(document).on('click', '.btn-edit[data-id]', function() {
             }
         });
     });
-
 })();
