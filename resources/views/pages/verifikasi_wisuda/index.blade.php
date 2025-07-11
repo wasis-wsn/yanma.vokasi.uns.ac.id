@@ -172,10 +172,14 @@
                         </div>
 
                         {{-- Confirmation section only for students WITH certificate serial number and eligible status --}}
-                        @if(!empty($verifikasi->no_seri_ijazah) && in_array($verifikasi->status_id, ['1','6']))
+                        @if(!empty($verifikasi->no_seri_ijazah) && in_array($verifikasi->status_id, ['1']))
                         <div class="mt-3">
                             <h6>Konfirmasi Keikutsertaan Wisuda</h6>
                             <p class="text-muted">Apakah Anda bersedia mengikuti wisuda pada periode ini?</p>
+                            <div class="alert alert-info">
+                                <i class="fa fa-info-circle"></i> 
+                                <strong>Perhatian:</strong> Baik memilih "Ya" maupun "Tidak", Anda wajib mengupload file konfirmasi terlebih dahulu.
+                            </div>
 
                             <div class="d-flex gap-3">
                                 <button type="button" class="btn btn-success" id="btn-setuju"
@@ -190,10 +194,19 @@
                         </div>
                         @elseif($verifikasi->status_id == '4')
                         <div class="alert alert-success mt-3">
-                            <i class="fa fa-check-circle"></i> Anda telah mengkonfirmasi untuk mengikuti wisuda.
+                            <i class="fa fa-check-circle"></i> Anda telah mengkonfirmasi untuk mengikuti wisuda dan status sudah valid.
                         </div>
-
-                        @elseif($verifikasi->status_id == '2')
+                        @elseif($verifikasi->status_id == '1' && !empty($verifikasi->tanggal_terbit))
+                        <div class="alert alert-warning mt-3">
+                            <i class="fa fa-clock-o"></i> File konfirmasi telah diupload. Status akan dikonfirmasi oleh admin.
+                            @if($verifikasi->tanggal_terbit)
+                                <br><small>Waktu upload: {{ \Carbon\Carbon::parse($verifikasi->tanggal_terbit)->translatedFormat('d F Y H:i') }} WIB</small>
+                            @endif
+                        </div>
+                        @elseif($verifikasi->status_id == '6')
+                        <div class="alert alert-success mt-3">
+                            <i class="fa fa-check-circle"></i> Anda telah mengkonfirmasi untuk mengikuti wisuda dan status sudah valid.
+                        </div>
                         <div class="card-header d-flex justify-content-between">
                             <div class="header-title">
                                 <h4 class="card-title">Alur Penyelesaian Verifikasi Wisuda</h4>
@@ -261,8 +274,11 @@
                         </div>
                         @elseif($verifikasi->status_id == '5')
                         <div class="alert alert-danger mt-3">
-                            <i class="fa fa-times-circle"></i> Anda telah menolak untuk mengikuti wisuda periode ini.
+                            <i class="fa fa-times-circle"></i> Anda tidak bersedia mengikuti wisuda periode ini.
                             Data Anda masih tercatat dalam sistem verifikasi wisuda.
+                            @if($verifikasi->tanggal_terbit)
+                                <br><small>Waktu upload konfirmasi: {{ \Carbon\Carbon::parse($verifikasi->tanggal_terbit)->translatedFormat('d F Y H:i') }} WIB</small>
+                            @endif
                         </div>
                         @endif
                         @else

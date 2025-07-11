@@ -495,12 +495,9 @@ public function tolak($id)
 public function konfirmasi(Request $request, $id)
 {
     $request->validate([
-        'konfirmasi' => ['required', 'in:setuju,tidak_setuju']
-    ], [
-        'required' => ':attribute wajib dipilih!',
-        'in' => ':attribute harus berisi setuju atau tidak setuju',
-    ], [
-        'konfirmasi' => 'Konfirmasi keikutsertaan'
+        'konfirmasi' => ['required', 'in:setuju,tidak_setuju'],
+        'file' => ['required', 'file', 'mimes:pdf', 'max:102400'],
+        'catatan' => ['nullable', 'string']
     ]);
 
     try {
@@ -509,65 +506,36 @@ public function konfirmasi(Request $request, $id)
             ->where('user_id', Auth::user()->id)
             ->firstOrFail();
 
-        // Check if student is eligible to confirm (status 1, 2, or 6)
-        if (!in_array($verifikasi->status_id, ['1', '2', '6'])) {
-            return response()->json(['status' => false, 'message' => 'Anda tidak dapat melakukan konfirmasi pada saat ini.'], 400);
-        }
-
-        // 4 = Terima (confirmed), 5 = Tolak (rejected) based on your table
-        $status_id = $request->konfirmasi === 'setuju' ? '4' : '5';
-
+        // Handle file upload
+        $fileName = 'KONFIRM_WISUDA_' . trim(Auth::user()->name) . '_' . Auth::user()->nim . '_' . time() . '.pdf';
+        $request->file('file')->storeAs('verifWisuda/konfirmasi/', $fileName, 'public');
+        
         $updateData = [
-            'status_id' => $status_id,
-            'catatan' => $request->catatan // Update catatan field with student's note
+            'file' => $fileName,
+            'tanggal_terbit' => now(), // Waktu upload untuk hitung 6 jam
+            'catatan' => $request->catatan
         ];
 
-        // Only add tanggal_konfirmasi if the column exists
-        // Check if column exists in the table
-        $columns = \Schema::getColumnListing('verifikasi_wisuda');
-        if (in_array('tanggal_konfirmasi', $columns)) {
-            $updateData['tanggal_konfirmasi'] = now();
+        if ($request->konfirmasi === 'setuju') {
+            // Status 1 = Belum Diproses (menunggu 6 jam untuk menjadi 6)
+            $updateData['status_id'] = '1';
+        } else {
+            // Status 5 = Tidak Bersedia
+            $updateData['status_id'] = '5';
         }
 
         $verifikasi->update($updateData);
 
-        // If student agrees, create transkrip and skpi records (only if periode_wisuda exists)
-        if ($request->konfirmasi === 'setuju' && $verifikasi->periode_wisuda) {
-            // Check if records don't already exist
-            $existingTranskrip = TranskripNilai::where('user_id', $verifikasi->user_id)
-                ->where('periode_wisuda', $verifikasi->periode_wisuda)
-                ->first();
-
-            $existingSKPI = SKPI::where('user_id', $verifikasi->user_id)
-                ->where('periode_wisuda', $verifikasi->periode_wisuda)
-                ->first();
-
-            if (!$existingTranskrip) {
-                TranskripNilai::create([
-                    'user_id' => $verifikasi->user_id,
-                    'status_id' => '1',
-                    'periode_wisuda' => $verifikasi->periode_wisuda,
-                ]);
-            }
-
-            if (!$existingSKPI) {
-                SKPI::create([
-                    'user_id' => $verifikasi->user_id,
-                    'status_id' => '1',
-                    'periode_wisuda' => $verifikasi->periode_wisuda,
-                ]);
-            }
-        }
-
         $message = $request->konfirmasi === 'setuju'
-            ? 'Terima kasih! Anda telah mengkonfirmasi keikutsertaan wisuda.'
-            : 'Konfirmasi berhasil disimpan. Anda tidak akan mengikuti wisuda periode ini.';
+            ? 'Terima kasih! File konfirmasi berhasil diupload. Status akan dikonfirmasi oleh admin.'
+            : 'File konfirmasi berhasil diupload. Anda tidak bersedia mengikuti wisuda periode ini.';
 
         return response()->json(['status' => true, 'message' => $message], 200);
     } catch (\Throwable $th) {
         return response()->json(['status' => false, 'message' => 'Terjadi kesalahan'], 500);
     }
 }
+
 public function bulkProcess(Request $request)
 {
     $request->validate([
@@ -672,3 +640,4 @@ public function bulkProcess(Request $request)
     }
 }
 }
+

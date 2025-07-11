@@ -1,84 +1,103 @@
-$('#btn-setuju').click(function() {
-    let id = $(this).data('id');
-    let action = window.Laravel.konfirmasi.replace(':id', id);
+$(document).ready(function() {
+    // Handle "Ya, Saya Setuju" button click
+    $(document).on('click', '#btn-setuju', function() {
+        const id = $(this).data('id');
+        $('#form-konfirmasi-setuju input[name="verifikasi_id"]').val(id);
+        $('#modalKonfirmasiSetuju').modal('show');
+    });
 
-    $('#form-konfirmasi').attr('action', action);
-    $('#modalKonfirmasiLabel').text('Konfirmasi Keikutsertaan Wisuda');
-    $('#konfirmasi-text').text('Apakah Anda yakin bersedia mengikuti wisuda pada periode ini?');
-    $('#konfirmasi_value').val('setuju');
-    $('#btn-konfirmasi-submit').removeClass('btn-danger').addClass('btn-success').text('Ya, Saya Setuju');
+    // Handle "Tidak, Saya Tidak Setuju" button click
+    $(document).on('click', '#btn-tidak-setuju', function() {
+        const id = $(this).data('id');
+        $('#form-konfirmasi-tolak input[name="verifikasi_id"]').val(id);
+        $('#modalKonfirmasiTolak').modal('show');
+    });
 
-    // Hide catatan field for agreement
-    $('#catatan-field').hide();
-
-    $('#modalKonfirmasi').modal('show');
-});
-
-$('#btn-tidak-setuju').click(function() {
-    let id = $(this).data('id');
-    let action = window.Laravel.konfirmasi.replace(':id', id);
-
-    $('#form-konfirmasi').attr('action', action);
-    $('#modalKonfirmasiLabel').text('Konfirmasi Penolakan Wisuda');
-    $('#konfirmasi-text').text('Apakah Anda yakin tidak bersedia mengikuti wisuda pada periode ini?');
-    $('#konfirmasi_value').val('tidak_setuju');
-    $('#btn-konfirmasi-submit').removeClass('btn-success').addClass('btn-danger').text('Ya, Saya Tidak Setuju');
-
-    // Show catatan field for rejection
-    $('#catatan-field').show();
-
-    $('#modalKonfirmasi').modal('show');
-});
-
-$("#form-konfirmasi").submit(function (e) {
-    e.preventDefault();
-    let formData = new FormData(this);
-
-    $.ajax({
-        url: $(this).attr("action"),
-        type: "POST",
-        headers: {
-            "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content"),
-        },
-        data: formData,
-        beforeSend: function () {
-            Swal.fire({
-                title: "Mohon Tunggu",
-                text: "Sedang memproses konfirmasi...",
-                allowOutsideClick: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                },
-            });
-        },
-        success: function (res) {
-            if (res.status) {
-                $("#form-konfirmasi")[0].reset();
-                $("#modalKonfirmasi").modal("hide");
-                Swal.fire({
-                    title: "Berhasil!",
-                    text: res.message,
-                    icon: "success",
-                });
-                window.location.reload();
-            } else {
-                Swal.fire({
-                    title: "Gagal!",
-                    text: res.message,
-                    icon: "error",
-                });
+    // Handle form submit for "Setuju" with file upload
+    $('#form-konfirmasi-setuju').on('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        const id = $('#form-konfirmasi-setuju input[name="verifikasi_id"]').val();
+        const url = window.Laravel.konfirmasi.replace(':id', id);
+        
+        $.ajax({
+            url: url,
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            beforeSend: function() {
+                $('#form-konfirmasi-setuju button[type="submit"]').prop('disabled', true)
+                    .html('<i class="fa fa-spinner fa-spin"></i> Mengupload...');
+            },
+            success: function(response) {
+                if (response.status) {
+                    $('#modalKonfirmasiSetuju').modal('hide');
+                    toastr.success(response.message);
+                    setTimeout(() => location.reload(), 2000);
+                } else {
+                    toastr.error(response.message);
+                }
+            },
+            error: function(xhr) {
+                let errorMessage = 'Terjadi kesalahan';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMessage = xhr.responseJSON.message;
+                } else if (xhr.responseJSON && xhr.responseJSON.errors) {
+                    const errors = Object.values(xhr.responseJSON.errors).flat();
+                    errorMessage = errors.join(', ');
+                }
+                toastr.error(errorMessage);
+            },
+            complete: function() {
+                $('#form-konfirmasi-setuju button[type="submit"]').prop('disabled', false)
+                    .html('<i class="fa fa-upload"></i> Upload & Konfirmasi Setuju');
             }
-        },
-        error: function (xhr, status, error) {
-            var err = JSON.parse(xhr.responseText);
-            Swal.fire({
-                title: "Gagal!",
-                text: err.message,
-                icon: "error",
-            });
-        },
-        cache: false,
-        contentType: false,
-        processData: false,
+        });
+    });
+
+    // Handle form submit for "Tidak Setuju" with file upload
+    $('#form-konfirmasi-tolak').on('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        const id = $('#form-konfirmasi-tolak input[name="verifikasi_id"]').val();
+        const url = window.Laravel.konfirmasi.replace(':id', id);
+        
+        $.ajax({
+            url: url,
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            beforeSend: function() {
+                $('#form-konfirmasi-tolak button[type="submit"]').prop('disabled', true)
+                    .html('<i class="fa fa-spinner fa-spin"></i> Mengupload...');
+            },
+            success: function(response) {
+                if (response.status) {
+                    $('#modalKonfirmasiTolak').modal('hide');
+                    toastr.success(response.message);
+                    setTimeout(() => location.reload(), 2000);
+                } else {
+                    toastr.error(response.message);
+                }
+            },
+            error: function(xhr) {
+                let errorMessage = 'Terjadi kesalahan';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMessage = xhr.responseJSON.message;
+                } else if (xhr.responseJSON && xhr.responseJSON.errors) {
+                    const errors = Object.values(xhr.responseJSON.errors).flat();
+                    errorMessage = errors.join(', ');
+                }
+                toastr.error(errorMessage);
+            },
+            complete: function() {
+                $('#form-konfirmasi-tolak button[type="submit"]').prop('disabled', false)
+                    .html('<i class="fa fa-upload"></i> Upload & Konfirmasi Tidak Bersedia');
+            }
+        });
     });
 });
