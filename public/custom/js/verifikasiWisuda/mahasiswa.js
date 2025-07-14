@@ -35,6 +35,8 @@ $(document).ready(function() {
                 if (response.status) {
                     $('#modalKonfirmasiSetuju').modal('hide');
                     toastr.success(response.message);
+                    // Hide confirmation buttons immediately
+                    $('.mt-3:has(#btn-setuju, #btn-tidak-setuju)').hide();
                     setTimeout(() => location.reload(), 2000);
                 } else {
                     toastr.error(response.message);
@@ -79,6 +81,8 @@ $(document).ready(function() {
                 if (response.status) {
                     $('#modalKonfirmasiTolak').modal('hide');
                     toastr.success(response.message);
+                    // Hide confirmation buttons immediately
+                    $('.mt-3:has(#btn-setuju, #btn-tidak-setuju)').hide();
                     setTimeout(() => location.reload(), 2000);
                 } else {
                     toastr.error(response.message);

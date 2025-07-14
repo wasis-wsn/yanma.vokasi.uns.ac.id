@@ -528,13 +528,14 @@ public function konfirmasi(Request $request, $id)
         $updateData = [
             'file' => $fileName,
             'tanggal_terbit' => now(),
-            'catatan' => $request->catatan
+            'catatan' => $request->catatan,
+            'file_validasi_uploaded' => true // Add flag to track file upload
         ];
 
         if ($request->konfirmasi === 'setuju') {
-            $updateData['status_id'] = '1';
+            $updateData['status_id'] = '1'; // Waiting for admin confirmation
         } else {
-            $updateData['status_id'] = '5';
+            $updateData['status_id'] = '5'; // Student declined
         }
 
         $verifikasi->update($updateData);

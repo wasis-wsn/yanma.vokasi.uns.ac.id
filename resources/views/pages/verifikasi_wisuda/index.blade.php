@@ -172,7 +172,7 @@
                         </div>
 
                         {{-- Confirmation section only for students WITH certificate serial number and eligible status --}}
-                        @if(!empty($verifikasi->no_seri_ijazah) && in_array($verifikasi->status_id, ['1']))
+                        @if(!empty($verifikasi->no_seri_ijazah) && in_array($verifikasi->status_id, ['1']) && empty($verifikasi->tanggal_terbit))
                         <div class="mt-3">
                             <h6>Konfirmasi Keikutsertaan Wisuda</h6>
                             <p class="text-muted">Apakah Anda bersedia mengikuti wisuda pada periode ini?</p>
@@ -198,7 +198,7 @@
                         </div>
                         @elseif($verifikasi->status_id == '1' && !empty($verifikasi->tanggal_terbit))
                         <div class="alert alert-warning mt-3">
-                            <i class="fa fa-clock-o"></i> File konfirmasi telah diupload. Status akan dikonfirmasi oleh admin.
+                            <i class="fa fa-clock-o"></i> File konfirmasi telah diupload. Menunggu konfirmasi admin.
                             @if($verifikasi->tanggal_terbit)
                                 <br><small>Waktu upload: {{ \Carbon\Carbon::parse($verifikasi->tanggal_terbit)->translatedFormat('d F Y H:i') }} WIB</small>
                             @endif

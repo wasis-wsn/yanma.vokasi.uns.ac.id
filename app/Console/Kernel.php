@@ -16,12 +16,20 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        // Jalankan setiap menit untuk testing - ubah ke hourly() untuk production
+        // Run every minute for testing - change to hourly() for production
         $schedule->command('wisuda:update-status')
                  ->everyMinute()
                  ->withoutOverlapping()
-                 ->sendOutputTo(storage_path('logs/wisuda-scheduler.log'))
-                 ->emailOutputOnFailure('admin@example.com'); // Optional: add your email
+                 ->appendOutputTo(storage_path('logs/wisuda-scheduler.log'))
+                 ->before(function() {
+                     \Log::info('Wisuda scheduler: Starting command execution at ' . now());
+                 })
+                 ->after(function() {
+                     \Log::info('Wisuda scheduler: Command execution completed at ' . now());
+                 })
+                 ->onFailure(function() {
+                     \Log::error('Wisuda scheduler: Command failed at ' . now());
+                 });
     }
 
     /**
