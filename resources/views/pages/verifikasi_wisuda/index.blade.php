@@ -177,9 +177,17 @@
                             <h6>Konfirmasi Keikutsertaan Wisuda</h6>
                             <p class="text-muted">Apakah Anda bersedia mengikuti wisuda pada periode ini?</p>
                             <div class="alert alert-info">
-                                <i class="fa fa-info-circle"></i> 
+                                <i class="fa fa-info-circle"></i>
                                 <strong>Perhatian:</strong> Baik memilih "Ya" maupun "Tidak", Anda wajib mengupload file konfirmasi terlebih dahulu.
                             </div>
+
+                            {{-- Show alert if status was reset to 1 by staff --}}
+                            @if($verifikasi->status_id == '1' && $verifikasi->file_validasi_uploaded === false && !empty($verifikasi->tanggal_proses))
+                            <div class="alert alert-warning">
+                                <i class="fa fa-exclamation-triangle"></i>
+                                <strong>Status Direset:</strong> Staff telah mengubah status Anda. Anda perlu mengupload ulang file validasi untuk melanjutkan proses konfirmasi.
+                            </div>
+                            @endif
 
                             <div class="d-flex gap-3">
                                 <button type="button" class="btn btn-success" id="btn-setuju"
@@ -478,17 +486,45 @@
         </div>
     </div>
 </div>
-@endcan
 
-{{-- Modal --}}
-@can('mahasiswa')
-@include('pages.verifikasi_wisuda.modal_konfirmasi')
-@include('pages.verifikasi_wisuda.modal_alur')
-@include('pages.verifikasi_wisuda.modal_tambah')
-@endcan
-@can('staff')
-@include('pages.verifikasi_wisuda.modal_detail')
-@include('pages.verifikasi_wisuda.modal_proses')
+<!-- Add Export Wisudawan Modal -->
+<div class="modal fade" id="modalExportWisudawan" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Export Data Wisudawan</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="form-export-wisudawan" method="POST">
+                @csrf
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Tahun</label>
+                        <select name="tahun" class="form-select" required>
+                            @foreach ($tahuns as $tahun)
+                            <option value="{{ $tahun->tahun }}" {{ $tahun->tahun == date('Y') ? 'selected' : '' }}>
+                                {{ $tahun->tahun }}
+                            </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <input type="hidden" name="type" value="wisudawan">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>Perhatian:</strong> Data wisudawan akan dihapus dari database setelah export berhasil.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fa fa-download"></i> Export & Hapus Data
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <!-- Add Edit Periode Modal -->
 <!-- Add Edit Periode Modal -->
 <div class="modal fade" id="modalEditPeriode" tabindex="-1" aria-hidden="true">

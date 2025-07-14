@@ -16,17 +16,23 @@ $(document).ready(function() {
     // Handle form submit for "Setuju" with file upload
     $('#form-konfirmasi-setuju').on('submit', function(e) {
         e.preventDefault();
-        
+
         const formData = new FormData(this);
         const id = $('#form-konfirmasi-setuju input[name="verifikasi_id"]').val();
         const url = window.Laravel.konfirmasi.replace(':id', id);
-        
+
+        // Add konfirmasi type
+        formData.append('konfirmasi', 'setuju');
+
         $.ajax({
             url: url,
             type: 'POST',
             data: formData,
             processData: false,
             contentType: false,
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
             beforeSend: function() {
                 $('#form-konfirmasi-setuju button[type="submit"]').prop('disabled', true)
                     .html('<i class="fa fa-spinner fa-spin"></i> Mengupload...');
@@ -62,17 +68,23 @@ $(document).ready(function() {
     // Handle form submit for "Tidak Setuju" with file upload
     $('#form-konfirmasi-tolak').on('submit', function(e) {
         e.preventDefault();
-        
+
         const formData = new FormData(this);
         const id = $('#form-konfirmasi-tolak input[name="verifikasi_id"]').val();
         const url = window.Laravel.konfirmasi.replace(':id', id);
-        
+
+        // Add konfirmasi type
+        formData.append('konfirmasi', 'tidak_setuju');
+
         $.ajax({
             url: url,
             type: 'POST',
             data: formData,
             processData: false,
             contentType: false,
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
             beforeSend: function() {
                 $('#form-konfirmasi-tolak button[type="submit"]').prop('disabled', true)
                     .html('<i class="fa fa-spinner fa-spin"></i> Mengupload...');

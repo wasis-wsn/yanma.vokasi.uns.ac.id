@@ -252,6 +252,9 @@
             xhrFields: {
                 responseType: 'blob'
             },
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
             beforeSend: function() {
                 Swal.fire({
                     title: 'Mengexport data...',
@@ -274,12 +277,18 @@
                     }
                 }
 
+                // If no filename from headers, create default
+                if (!filename) {
+                    const tahun = $('select[name="tahun"]').val() || new Date().getFullYear();
+                    filename = `Rekap_Data_Wisudawan_Tahun_${tahun}.xlsx`;
+                }
+
                 // Create download link
                 let blob = new Blob([response]);
                 let url = window.URL.createObjectURL(blob);
                 let a = document.createElement('a');
                 a.href = url;
-                a.download = filename || 'export.xlsx';
+                a.download = filename;
                 document.body.appendChild(a);
                 a.click();
                 window.URL.revokeObjectURL(url);
@@ -304,10 +313,21 @@
                 }
             },
             error: function(xhr) {
-                let err = JSON.parse(xhr.responseText);
+                let errorMessage = 'Terjadi kesalahan saat mengexport data';
+                
+                try {
+                    if (xhr.responseText) {
+                        let err = JSON.parse(xhr.responseText);
+                        errorMessage = err.message || errorMessage;
+                    }
+                } catch (parseError) {
+                    // If response is not JSON, use default message
+                    errorMessage = 'Terjadi kesalahan saat mengexport data';
+                }
+
                 Swal.fire({
                     title: "Error!",
-                    text: err.message || "Terjadi kesalahan saat mengexport data",
+                    text: errorMessage,
                     icon: "error",
                 });
             }

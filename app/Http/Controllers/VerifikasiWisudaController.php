@@ -298,16 +298,21 @@ class VerifikasiWisudaController extends Controller
         // Buat instance export dengan flag delete
         $export = new VerifWisudaExport($tahun, $type, true); // true = auto delete after export
 
-        // Download file
-        $response = Excel::download($export, $name . '.xlsx');
-
-        // Optional: Tambahkan flash message untuk notifikasi
-        session()->flash('success', 'Data berhasil diexport dan dihapus dari database');
-
-        return $response;
+        // Download file dengan proper headers
+        return Excel::download($export, $name . '.xlsx', \Maatwebsite\Excel\Excel::XLSX, [
+            'Content-Disposition' => 'attachment; filename="' . $name . '.xlsx"'
+        ]);
 
     } catch (\Exception $e) {
-        // Jika ada error, kembalikan pesan error
+        // Return JSON error response for AJAX requests
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Gagal export data: ' . $e->getMessage()
+            ], 500);
+        }
+        
+        // For non-AJAX requests, redirect back with error
         return back()->with('error', 'Gagal export data: ' . $e->getMessage());
     }
 }
@@ -375,6 +380,14 @@ class VerifikasiWisudaController extends Controller
                 'tanggal_proses' => new \DateTime(),
             ];
 
+            // If status is changed to 1 (Belum Diproses), clear file validation data
+            // This forces student to re-upload validation file
+            if ($request->status_id == '1') {
+                $updateData['tanggal_terbit'] = null;
+                $updateData['file_validasi_uploaded'] = false;
+                // Note: We keep the existing 'file' field (original upload) but clear validation file data
+            }
+
             $ajuan->update($updateData);
 
             // Only create transkrip and skpi if status is 2 (Terverifikasi) and data is complete
@@ -407,7 +420,12 @@ class VerifikasiWisudaController extends Controller
                 }
             }
 
-            return response()->json(['status' => true, 'message' => 'Status berhasil diperbarui!'], 200);
+            $message = 'Status berhasil diperbarui!';
+            if ($request->status_id == '1') {
+                $message .= ' Mahasiswa harus mengupload ulang file validasi.';
+            }
+
+            return response()->json(['status' => true, 'message' => $message], 200);
         } catch (\Throwable $th) {
             return response()->json(['status' => false, 'message' => 'terjadi kesalahan'], 500);
         }
@@ -603,6 +621,12 @@ public function bulkProcess(Request $request)
             $updateData['periode_wisuda'] = $request->periode_wisuda;
         }
 
+        // If status is changed to 1 (Belum Diproses), clear file validation data
+        if ($request->status_id == '1') {
+            $updateData['tanggal_terbit'] = null;
+            $updateData['file_validasi_uploaded'] = false;
+        }
+
         // Update all selected records using raw IDs
         $updated = VerifikasiWisuda::whereIn('id', $validIds)->update($updateData);
 
@@ -642,9 +666,14 @@ public function bulkProcess(Request $request)
             }
         }
 
+        $message = "Data berhasil diproses ({$updated} data berhasil diupdate)";
+        if ($request->status_id == '1') {
+            $message .= ". Mahasiswa yang diubah statusnya harus mengupload ulang file validasi.";
+        }
+
         return response()->json([
             'status' => true,
-            'message' => "Data berhasil diproses ({$updated} data berhasil diupdate)"
+            'message' => $message
         ], 200);
 
     } catch (\Exception $e) {
