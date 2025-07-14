@@ -17,7 +17,8 @@
         "nesbot/carbon": "^2.72",
         "phpoffice/phpword": "^1.2",
         "tecnickcom/tcpdf": "^6.6",
-        "yajra/laravel-datatables": "^10.0"
+        "yajra/laravel-datatables": "^10.0",
+        "yaza/laravel-google-drive-storage": "^4.1"
     },
     "require-dev": {
         "fakerphp/faker": "^1.9.1",

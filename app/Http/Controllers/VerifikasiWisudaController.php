@@ -506,21 +506,34 @@ public function konfirmasi(Request $request, $id)
             ->where('user_id', Auth::user()->id)
             ->firstOrFail();
 
-        // Handle file upload
-        $fileName = 'KONFIRM_WISUDA_' . trim(Auth::user()->name) . '_' . Auth::user()->nim . '_' . time() . '.pdf';
-        $request->file('file')->storeAs('verifWisuda/konfirmasi/', $fileName, 'public');
-        
+        $fileName = 'FILE VALIDASI_' . trim(Auth::user()->name) . '_' . Auth::user()->nim . '_' . time() . '.pdf';
+        $file = $request->file('file');
+
+        try {
+            $uploadResult = Storage::disk('google')->putFileAs('', $file, $fileName);
+
+            if ($uploadResult === false || $uploadResult === null) {
+                throw new \Exception('Google Drive upload returned false - upload failed');
+            }
+
+            $fileExists = Storage::disk('google')->exists($fileName);
+            if (!$fileExists) {
+                throw new \Exception('File was not found on Google Drive after upload');
+            }
+
+        } catch (\Exception $uploadException) {
+            throw $uploadException;
+        }
+
         $updateData = [
             'file' => $fileName,
-            'tanggal_terbit' => now(), // Waktu upload untuk hitung 6 jam
+            'tanggal_terbit' => now(),
             'catatan' => $request->catatan
         ];
 
         if ($request->konfirmasi === 'setuju') {
-            // Status 1 = Belum Diproses (menunggu 6 jam untuk menjadi 6)
             $updateData['status_id'] = '1';
         } else {
-            // Status 5 = Tidak Bersedia
             $updateData['status_id'] = '5';
         }
 
@@ -532,9 +545,10 @@ public function konfirmasi(Request $request, $id)
 
         return response()->json(['status' => true, 'message' => $message], 200);
     } catch (\Throwable $th) {
-        return response()->json(['status' => false, 'message' => 'Terjadi kesalahan'], 500);
+        return response()->json(['status' => false, 'message' => 'Terjadi kesalahan: ' . $th->getMessage()], 500);
     }
 }
+
 
 public function bulkProcess(Request $request)
 {
