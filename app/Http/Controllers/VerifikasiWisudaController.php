@@ -428,9 +428,12 @@ class VerifikasiWisudaController extends Controller
                 $aksi = '<button type="button" class="btn btn-primary btn-sm btn-proses me-1" data-nim="' . $row->user->nim . '" data-id="' . encodeId($row->id) . '" data-type="wisudawan">
                         <i class="fa fa-edit"></i> Edit
                     </button>';
-                $aksi .= '<button type="button" class="btn btn-warning btn-sm btn-proses" data-nim="' . $row->user->nim . '" data-id="' . encodeId($row->id) . '" data-type="wisudawan">
-                        <i class="fa fa-pen"></i> Proses
-                    </button>';
+                
+                if($row->status_id != 2) {
+                    $aksi .= '<button type="button" class="btn btn-warning btn-sm btn-proses" data-nim="' . $row->user->nim . '" data-id="' . encodeId($row->id) . '" data-type="wisudawan">
+                            <i class="fa fa-pen"></i> Proses
+                        </button>';
+                }
                 return $aksi;
             })
             ->editColumn('status_id', function ($row) {
