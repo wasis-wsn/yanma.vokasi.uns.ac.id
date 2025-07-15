@@ -207,13 +207,6 @@
                         @elseif($verifikasi->status_id == '1' && !empty($verifikasi->tanggal_terbit))
                         <div class="alert alert-warning mt-3">
                             <i class="fa fa-clock-o"></i> File konfirmasi telah diupload. Menunggu konfirmasi admin.
-                            @if($verifikasi->tanggal_terbit)
-                                <br><small>Waktu upload: {{ \Carbon\Carbon::parse($verifikasi->tanggal_terbit)->translatedFormat('d F Y H:i') }} WIB</small>
-                            @endif
-                        </div>
-                        @elseif($verifikasi->status_id == '6')
-                        <div class="alert alert-success mt-3">
-                            <i class="fa fa-check-circle"></i> Anda telah mengkonfirmasi untuk mengikuti wisuda dan status sudah valid.
                         </div>
                         <div class="card-header d-flex justify-content-between">
                             <div class="header-title">
@@ -275,7 +268,10 @@
                             </div>
                             @endif
                         </div>
-
+                        @elseif($verifikasi->status_id == '6')
+                        <div class="alert alert-success mt-3">
+                            <i class="fa fa-check-circle"></i> Data anda telah divalidasi oleh admin, silahkan konfirmasi kehadiran.
+                        </div>
                         @elseif($verifikasi->status_id == '3')
                         <div class="alert alert-danger mt-3">
                             <i class="fa fa-times-circle"></i> Mohon maaf, Anda belum memenuhi persyaratan untuk mengikuti wisuda periode ini. Informasi selengkapnya dapat dilihat pada kolom catatan.
@@ -284,16 +280,17 @@
                         <div class="alert alert-danger mt-3">
                             <i class="fa fa-times-circle"></i> Anda tidak bersedia mengikuti wisuda periode ini.
                             Data Anda masih tercatat dalam sistem verifikasi wisuda.
-                            @if($verifikasi->tanggal_terbit)
-                                <br><small>Waktu upload konfirmasi: {{ \Carbon\Carbon::parse($verifikasi->tanggal_terbit)->translatedFormat('d F Y H:i') }} WIB</small>
-                            @endif
+                        </div>
+                        @elseif($verifikasi->status_id == '7')
+                        <div class="alert alert-info mt-3">
+                            <i class="fa fa-check-circle"></i> Mohon untuk menunggu admin memvalidasi.
                         </div>
                         @endif
                         @else
                         <div class="alert alert-info">
                             <h5><i class="fa fa-info-circle"></i> Informasi</h5>
-                            <p>Anda belum terdaftar untuk wisuda. Data akan muncul di sini setelah staff melakukan
-                                import data verifikasi wisuda.</p>
+                            <p>Anda belum terdaftar untuk wisuda. Data akan muncul setelah staff melakukan
+                                import data.</p>
                         </div>
                         @endif
                         @endcan

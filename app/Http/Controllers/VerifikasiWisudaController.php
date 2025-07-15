@@ -311,7 +311,7 @@ class VerifikasiWisudaController extends Controller
                 'message' => 'Gagal export data: ' . $e->getMessage()
             ], 500);
         }
-        
+
         // For non-AJAX requests, redirect back with error
         return back()->with('error', 'Gagal export data: ' . $e->getMessage());
     }
@@ -446,7 +446,7 @@ class VerifikasiWisudaController extends Controller
                 $aksi = '<button type="button" class="btn btn-primary btn-sm btn-proses me-1" data-nim="' . $row->user->nim . '" data-id="' . encodeId($row->id) . '" data-type="wisudawan">
                         <i class="fa fa-edit"></i> Edit
                     </button>';
-                
+
                 if($row->status_id != 2) {
                     $aksi .= '<button type="button" class="btn btn-warning btn-sm btn-proses" data-nim="' . $row->user->nim . '" data-id="' . encodeId($row->id) . '" data-type="wisudawan">
                             <i class="fa fa-pen"></i> Proses
@@ -554,7 +554,7 @@ public function konfirmasi(Request $request, $id)
         ];
 
         if ($request->konfirmasi === 'setuju') {
-            $updateData['status_id'] = '1'; // Waiting for admin confirmation
+            $updateData['status_id'] = '7'; // Changed from '1' to '7'
         } else {
             $updateData['status_id'] = '5'; // Student declined
         }
