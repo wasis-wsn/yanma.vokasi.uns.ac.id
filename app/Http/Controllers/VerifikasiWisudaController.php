@@ -161,22 +161,43 @@ class VerifikasiWisudaController extends Controller
             'file' => 'File PDF'
         ]);
 
-        if (!$this->canStore()) {
-            return response()->json(['status' => false, 'message' => 'Anda tidak dapat mengajukan verifikasi wisuda'], 500);
-        }
-
         try {
             $fileName = 'VERIFWISUDA_' . trim(Auth::user()->name) . '_' . Auth::user()->nim . '_' . trim(Auth::user()->prodis->name) . '_' . time() . '.pdf';
             $request->file('file')->storeAs('verifWisuda/upload/', $fileName, 'public');
 
-            VerifikasiWisuda::create([
-                'user_id' => Auth::user()->id,
-                'status_id' => '1',
-                'file' => $fileName,
-            ]);
-            return response()->json(['status' => true, 'message' => 'Ajuan Berhasil Ditambahkan!'], 200);
+            // Check if user already has verifikasi wisuda record
+            $existingVerifikasi = VerifikasiWisuda::where('user_id', Auth::user()->id)->first();
+            
+            if ($existingVerifikasi) {
+                // Delete old file if exists
+                if ($existingVerifikasi->file) {
+                    Storage::disk('public')->delete('verifWisuda/upload/' . $existingVerifikasi->file);
+                }
+                
+                // Update existing record with new file and change status to 7 if currently 1
+                $updateData = ['file' => $fileName];
+                
+                if ($existingVerifikasi->status_id == '1') {
+                    $updateData['status_id'] = '7'; // Change status from 1 to 7
+                    $updateData['tanggal_terbit'] = now();
+                }
+                
+                $existingVerifikasi->update($updateData);
+                $message = 'File validasi berhasil diupload! Status Anda telah berubah menjadi "Menunggu Validasi Admin".';
+            } else {
+                // Create new record if doesn't exist
+                VerifikasiWisuda::create([
+                    'user_id' => Auth::user()->id,
+                    'status_id' => '7', // Set status to 7 instead of 1
+                    'file' => $fileName,
+                    'tanggal_terbit' => now(),
+                ]);
+                $message = 'File validasi berhasil diupload! Status Anda: "Menunggu Validasi Admin".';
+            }
+            
+            return response()->json(['status' => true, 'message' => $message], 200);
         } catch (\Throwable $th) {
-            return response()->json(['status' => false, 'message' => 'Terjadi Kesalahan'], 500);
+            return response()->json(['status' => false, 'message' => 'Terjadi Kesalahan: ' . $th->getMessage()], 500);
         }
     }
 
@@ -517,7 +538,6 @@ public function konfirmasi(Request $request, $id)
 {
     $request->validate([
         'konfirmasi' => ['required', 'in:setuju,tidak_setuju'],
-        'file' => ['required', 'file', 'mimes:pdf', 'max:102400'],
         'catatan' => ['nullable', 'string']
     ]);
 
@@ -527,43 +547,30 @@ public function konfirmasi(Request $request, $id)
             ->where('user_id', Auth::user()->id)
             ->firstOrFail();
 
-        $fileName = 'FILE VALIDASI_' . trim(Auth::user()->name) . '_' . Auth::user()->nim . '_' . time() . '.pdf';
-        $file = $request->file('file');
-
-        try {
-            $uploadResult = Storage::disk('google')->putFileAs('', $file, $fileName);
-
-            if ($uploadResult === false || $uploadResult === null) {
-                throw new \Exception('Google Drive upload returned false - upload failed');
-            }
-
-            $fileExists = Storage::disk('google')->exists($fileName);
-            if (!$fileExists) {
-                throw new \Exception('File was not found on Google Drive after upload');
-            }
-
-        } catch (\Exception $uploadException) {
-            throw $uploadException;
+        // Check if file is already uploaded
+        if (empty($verifikasi->file)) {
+            return response()->json([
+                'status' => false, 
+                'message' => 'Silakan upload file validasi terlebih dahulu.'
+            ], 400);
         }
 
         $updateData = [
-            'file' => $fileName,
             'tanggal_terbit' => now(),
             'catatan' => $request->catatan,
-            'file_validasi_uploaded' => true // Add flag to track file upload
         ];
 
         if ($request->konfirmasi === 'setuju') {
-            $updateData['status_id'] = '7'; // Changed from '1' to '7'
+            $updateData['status_id'] = '4'; // Status: Bersedia
         } else {
-            $updateData['status_id'] = '5'; // Student declined
+            $updateData['status_id'] = '5'; // Status: Tidak bersedia
         }
 
         $verifikasi->update($updateData);
 
         $message = $request->konfirmasi === 'setuju'
-            ? 'Terima kasih! File konfirmasi berhasil diupload. Status akan dikonfirmasi oleh admin.'
-            : 'File konfirmasi berhasil diupload. Anda tidak bersedia mengikuti wisuda periode ini.';
+            ? 'Terima kasih! Anda telah mengkonfirmasi keikutsertaan wisuda dengan status Bersedia.'
+            : 'Konfirmasi berhasil. Anda tidak bersedia mengikuti wisuda periode ini.';
 
         return response()->json(['status' => true, 'message' => $message], 200);
     } catch (\Throwable $th) {
@@ -687,4 +694,3 @@ public function bulkProcess(Request $request)
     }
 }
 }
-
