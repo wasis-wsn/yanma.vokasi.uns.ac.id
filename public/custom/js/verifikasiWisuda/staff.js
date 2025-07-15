@@ -191,7 +191,7 @@
                 if (response.status) {
                     Swal.fire({
                         title: "Berhasil!",
-                        text: response.message,
+                        // text: response.message,
                         icon: "success",
                         showConfirmButton: false,
                         timer: 1500,
@@ -314,7 +314,7 @@
             },
             error: function(xhr) {
                 let errorMessage = 'Terjadi kesalahan saat mengexport data';
-                
+
                 try {
                     if (xhr.responseText) {
                         let err = JSON.parse(xhr.responseText);

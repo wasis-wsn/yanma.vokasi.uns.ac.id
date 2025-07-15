@@ -81,7 +81,7 @@
                 <div class="card">
                     <div class="card-header d-flex justify-content-between">
                         <div class="header-title">
-                            <h4 class="card-title">Konfirmasi Kehadiran</h4>
+                            <h4 class="card-title">Verifikasi Wisuda</h4>
                         </div>
                     </div>
                     <div class="card-body">
@@ -192,11 +192,11 @@
                             <div class="d-flex gap-3">
                                 <button type="button" class="btn btn-success" id="btn-setuju"
                                     data-id="{{ encodeId($verifikasi->id) }}">
-                                    <i class="fa fa-check"></i> Ya, Saya Setuju
+                                    <i class="fa fa-check"></i> Bersedia
                                 </button>
                                 <button type="button" class="btn btn-danger" id="btn-tidak-setuju"
                                     data-id="{{ encodeId($verifikasi->id) }}">
-                                    <i class="fa fa-times"></i> Tidak, Saya Tidak Setuju
+                                    <i class="fa fa-times"></i> Tidak Bersedia
                                 </button>
                             </div>
                         </div>
@@ -524,8 +524,18 @@
         </div>
     </div>
 </div>
+@endcan
 
-<!-- Add Edit Periode Modal -->
+{{-- Modal --}}
+@can('mahasiswa')
+@include('pages.verifikasi_wisuda.modal_konfirmasi')
+@include('pages.verifikasi_wisuda.modal_alur')
+@include('pages.verifikasi_wisuda.modal_tambah')
+@endcan
+@can('staff')
+@include('pages.verifikasi_wisuda.modal_detail')
+@include('pages.verifikasi_wisuda.modal_proses')
+
 <!-- Add Edit Periode Modal -->
 <div class="modal fade" id="modalEditPeriode" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">

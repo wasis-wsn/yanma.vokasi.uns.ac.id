@@ -258,12 +258,6 @@ class SKLController extends Controller
                 'ss_ajuan_skl' => $ssAjuanName,
             ]);
 
-            // Create corresponding VerifikasiWisuda record
-            VerifikasiWisuda::create([
-                'user_id' => Auth::user()->id,
-                'status_id' => '1',
-            ]);
-
             return response()->json(['status' => true, 'message' => 'Ajuan Berhasil Ditambahkan!'], 200);
         } catch (\Throwable $th) {
             return response()->json(['status' => false, 'message' => 'Terjadi Kesalahan'], 500);
@@ -346,6 +340,19 @@ class SKLController extends Controller
             if ($request->status_id == '7') {
                 $data['tanggal_ambil'] = new \DateTime();
             }
+
+            // Create VerifikasiWisuda when SKL status becomes 6 or 7
+            if (in_array($request->status_id, ['6', '7'])) {
+                // Check if VerifikasiWisuda doesn't already exist for this user
+                $existingVerifikasi = VerifikasiWisuda::where('user_id', $ajuan->user_id)->first();
+                if (!$existingVerifikasi) {
+                    VerifikasiWisuda::create([
+                        'user_id' => $ajuan->user_id,
+                        'status_id' => '1',
+                    ]);
+                }
+            }
+
             $ajuan->update($data);
         } catch (\Throwable $th) {
             //throw $th;
