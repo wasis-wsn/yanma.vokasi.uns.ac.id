@@ -309,7 +309,7 @@ class LayananSeeder extends Seeder
                 'is_default' => '1',
                 // 'gate' => json_encode(["mahasiswa","staff","dekanat","subkoor"]),
                 'urutan' => '8',
-                'keterangan' => '<span style="color: rgb(35, 45, 66); font-family: Inter, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;, &quot;Segoe UI Symbol&quot;, &quot;Noto Color Emoji&quot;;">Ajukan Verifikasi wisuda jika sudah mendapat SKL. Verifikasi wisuda akan dilakukan jika sudah mendapatkan No Seri Ijazah Nasional.</span>',
+                'keterangan' => '<span style="color: rgb(35, 45, 66); font-family: Inter, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;, &quot;Segoe UI Symbol&quot;, &quot;Noto Color Emoji&quot;;">Silakan ajukan verifikasi wisuda setelah memenuhi semua persyaratan yang diperlukan.</span>',
             ],
             [
                 'id' => '9',
