@@ -183,7 +183,7 @@ class VerifikasiWisudaController extends Controller
                 }
                 
                 $existingVerifikasi->update($updateData);
-                $message = 'File validasi berhasil diupload! Status Anda telah berubah menjadi "Menunggu Validasi Admin".';
+                $message = 'File validasi berhasil diupload!';
             } else {
                 // Create new record if doesn't exist
                 VerifikasiWisuda::create([
@@ -192,7 +192,7 @@ class VerifikasiWisudaController extends Controller
                     'file' => $fileName,
                     'tanggal_terbit' => now(),
                 ]);
-                $message = 'File validasi berhasil diupload! Status Anda: "Menunggu Validasi Admin".';
+                $message = 'File validasi berhasil diupload!';
             }
             
             return response()->json(['status' => true, 'message' => $message], 200);
