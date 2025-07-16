@@ -29,6 +29,7 @@
                 { data: "user.name" },
                 { data: "user.nim" },
                 { data: "no_seri_ijazah" },
+                { data: "tanggal_terbit" },
                 { data: "periode_wisuda" },
                 { data: "status_id" },
                 { data: "action" },
@@ -37,7 +38,7 @@
             columnDefs: [
                 { className: "text-center", width: "3%", targets: [1, 2] },
                 { className: "text-wrap", targets: [3] },
-                { className: "btn-group-vertical", targets: [8] },
+                { className: "btn-group-vertical", targets: [9] },
             ],
             order: [[0, "desc"]],
         });
@@ -64,6 +65,7 @@
                 { data: "user.name" },
                 { data: "user.nim" },
                 { data: "no_seri_ijazah" },
+                { data: "tanggal_terbit" },
                 { data: "periode_wisuda" },
                 { data: "status_id" },
                 { data: "action" },
@@ -72,7 +74,7 @@
             columnDefs: [
                 { className: "text-center", width: "3%", targets: [1, 2] },
                 { className: "text-wrap", targets: [3] },
-                { className: "btn-group-vertical", targets: [8] },
+                { className: "btn-group-vertical", targets: [9] },
             ],
             order: [[0, "desc"]],
         });
@@ -424,10 +426,9 @@
         if (newDate) {
             // Show confirmation dialog about status reset
             Swal.fire({
-                title: 'Konfirmasi Perubahan Periode',
+                title: 'Konfirmasi Perubahan Periode Wisuda',
                 html: `
                     <p>Anda akan mengubah periode wisuda.</p>
-                    <p><strong>Perhatian:</strong> Semua mahasiswa di database akan direset statusnya menjadi "Belum Diproses" (kecuali yang sudah dalam status "Belum Diproses").</p>
                     <p>Apakah Anda yakin ingin melanjutkan?</p>
                 `,
                 icon: 'warning',
@@ -764,7 +765,7 @@
                             '3': 'Data tidak dapat diverifikasi. Silakan hubungi bagian akademik untuk informasi lebih lanjut.',
                             '4': 'Anda telah terdaftar sebagai peserta wisuda. Informasi lebih lanjut akan disampaikan kemudian.',
                             '5': 'Anda tidak mengikuti wisuda pada periode ini.',
-                            '6': 'Data Anda siap untuk dikonfirmasi. Silakan lakukan konfirmasi keikutsertaan wisuda.'
+                            '6': 'Data Anda siap untuk dikonfirmasi. Silakan lakukan konfirmasi kehadiran wisuda.'
                         };
 
                         const currentStatusNote = defaultNotes[data.status_id];
@@ -869,7 +870,7 @@
                 '3': 'Data tidak dapat diverifikasi. Silakan hubungi bagian akademik untuk informasi lebih lanjut.',
                 '4': 'Anda telah terdaftar sebagai peserta wisuda. Informasi lebih lanjut akan disampaikan kemudian.',
                 '5': 'Anda tidak mengikuti wisuda pada periode ini.',
-                '6': 'Data Anda siap untuk dikonfirmasi. Silakan lakukan konfirmasi keikutsertaan wisuda.'
+                '6': 'Data Anda siap untuk dikonfirmasi. Silakan lakukan konfirmasi kehadiran wisuda.'
             };
 
             // Set default note if available

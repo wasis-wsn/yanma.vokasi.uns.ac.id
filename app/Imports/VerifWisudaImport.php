@@ -90,6 +90,31 @@ class VerifWisudaImport implements ToModel, WithHeadingRow, WithValidation, Skip
             $hasChanges = true;
         }
 
+        // Handle tanggal_terbit field
+        if (isset($row['tanggal_terbit'])) {
+            $tanggalTerbit = null;
+            if (!empty($row['tanggal_terbit'])) {
+                // Try to parse different date formats
+                try {
+                    if (is_numeric($row['tanggal_terbit'])) {
+                        // Excel serial date
+                        $tanggalTerbit = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['tanggal_terbit'])->format('Y-m-d');
+                    } else {
+                        // String date
+                        $tanggalTerbit = \Carbon\Carbon::parse($row['tanggal_terbit'])->format('Y-m-d');
+                    }
+                } catch (\Exception $e) {
+                    // If parsing fails, keep the original value
+                    $tanggalTerbit = $row['tanggal_terbit'];
+                }
+            }
+            
+            if ($existing->tanggal_terbit != $tanggalTerbit) {
+                $updates['tanggal_terbit'] = $tanggalTerbit;
+                $hasChanges = true;
+            }
+        }
+
         // Update if there are changes and not confirmed yet
         if ($hasChanges && !in_array($existing->status_id, ['4', '5'])) {
             // Update the existing record

@@ -99,7 +99,7 @@ $(document).ready(function() {
         const button = $(this);
         
         Swal.fire({
-            title: 'Konfirmasi Keikutsertaan',
+            title: 'Konfirmasi Kehadiran Wisuda',
             text: 'Apakah Anda yakin bersedia mengikuti wisuda?',
             icon: 'question',
             showCancelButton: true,
@@ -120,7 +120,7 @@ $(document).ready(function() {
         const button = $(this);
         
         Swal.fire({
-            title: 'Konfirmasi Keikutsertaan',
+            title: 'Konfirmasi Kehadiran Wisuda',
             text: 'Apakah Anda yakin tidak bersedia mengikuti wisuda?',
             icon: 'warning',
             showCancelButton: true,

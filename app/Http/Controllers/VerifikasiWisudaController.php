@@ -77,6 +77,9 @@ class VerifikasiWisudaController extends Controller
                 }
                 return $tanggal_proses;
             })
+            ->editColumn('tanggal_terbit', function ($row) {
+                return $row->tanggal_terbit ? Carbon::parse($row->tanggal_terbit)->translatedFormat('d F Y') : '';
+            })
             ->editColumn('periode_wisuda', function ($row) {
                 $periode_wisuda = $row->periode_wisuda;
                 if ($periode_wisuda) {
@@ -96,7 +99,7 @@ class VerifikasiWisudaController extends Controller
             ->editColumn('status_id', function ($row) {
                 return '<button type="button" class="btn ' . $row->status->color . ' btn-sm" disabled>' . $row->status->name . '</button>';
             })
-            ->rawColumns(['action', 'tanggal_submit', 'status_id', 'tanggal_proses', 'periode_wisuda'])
+            ->rawColumns(['action', 'tanggal_submit', 'status_id', 'tanggal_proses', 'periode_wisuda', 'tanggal_terbit'])
             ->toJson();
     }
 
@@ -127,6 +130,9 @@ class VerifikasiWisudaController extends Controller
                 }
                 return $tanggal_proses;
             })
+            ->editColumn('tanggal_terbit', function ($row) {
+                return $row->tanggal_terbit ? Carbon::parse($row->tanggal_terbit)->translatedFormat('d F Y') : '';
+            })
             ->editColumn('periode_wisuda', function ($row) {
                 $periode_wisuda = $row->periode_wisuda;
                 if ($periode_wisuda) {
@@ -146,17 +152,17 @@ class VerifikasiWisudaController extends Controller
             ->editColumn('status_id', function ($row) {
                 return '<button type="button" class="btn ' . $row->status->color . ' btn-sm" disabled>' . $row->status->name . '</button>';
             })
-            ->rawColumns(['action', 'tanggal_submit', 'status_id', 'tanggal_proses', 'periode_wisuda'])
+            ->rawColumns(['action', 'tanggal_submit', 'status_id', 'tanggal_proses', 'periode_wisuda', 'tanggal_terbit'])
             ->toJson();
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'file' => ['required', 'file', 'mimes:pdf', 'max:102400']
+            'file' => ['required', 'file', 'mimes:pdf', 'max:10240']
         ], [
             'required' => ':attribute wajib diisi!',
-            'max' => 'ukuran :attribute tidak boleh lebih dari 100 MB',
+            'max' => 'ukuran :attribute tidak boleh lebih dari 10 MB',
         ], [
             'file' => 'File PDF'
         ]);
@@ -179,20 +185,20 @@ class VerifikasiWisudaController extends Controller
                 
                 if ($existingVerifikasi->status_id == '1') {
                     $updateData['status_id'] = '7'; // Change status from 1 to 7
-                    $updateData['tanggal_terbit'] = now();
+                    $updateData['tanggal_proses'] = now();
                 }
                 
                 $existingVerifikasi->update($updateData);
-                $message = 'File validasi berhasil diupload!';
+                $message = 'Dokumen Kehadiran Wisuda berhasil diupload!';
             } else {
                 // Create new record if doesn't exist
                 VerifikasiWisuda::create([
                     'user_id' => Auth::user()->id,
                     'status_id' => '7', // Set status to 7 instead of 1
                     'file' => $fileName,
-                    'tanggal_terbit' => now(),
+                    'tanggal_proses' => now(),
                 ]);
-                $message = 'File validasi berhasil diupload!';
+                $message = 'Dokumen Kehadiran Wisuda berhasil diupload!';
             }
             
             return response()->json(['status' => true, 'message' => $message], 200);
@@ -404,7 +410,7 @@ class VerifikasiWisudaController extends Controller
             // If status is changed to 1 (Belum Diproses), clear file validation data
             // This forces student to re-upload validation file
             if ($request->status_id == '1') {
-                $updateData['tanggal_terbit'] = null;
+                $updateData['tanggal_proses'] = null;
                 $updateData['file_validasi_uploaded'] = false;
                 // Note: We keep the existing 'file' field (original upload) but clear validation file data
             }
@@ -478,6 +484,9 @@ class VerifikasiWisudaController extends Controller
             ->editColumn('status_id', function ($row) {
                 return '<button type="button" class="btn ' . $row->status->color . ' btn-sm" disabled>' . $row->status->name . '</button>';
             })
+            ->editColumn('tanggal_terbit', function ($row) {
+                return $row->tanggal_terbit ? Carbon::parse($row->tanggal_terbit)->translatedFormat('d F Y') : '';
+            })
             ->editColumn('periode_wisuda', function ($row) {
                 $periode_wisuda = $row->periode_wisuda;
                 if ($periode_wisuda) {
@@ -494,7 +503,7 @@ class VerifikasiWisudaController extends Controller
                 }
                 return $periode_wisuda;
             })
-            ->rawColumns(['action', 'status_id', 'periode_wisuda'])
+            ->rawColumns(['action', 'status_id', 'periode_wisuda', 'tanggal_terbit'])
             ->make(true);
 }
 
@@ -556,7 +565,7 @@ public function konfirmasi(Request $request, $id)
         }
 
         $updateData = [
-            'tanggal_terbit' => now(),
+            'tanggal_proses' => now(),
             'catatan' => $request->catatan,
         ];
 
@@ -569,7 +578,7 @@ public function konfirmasi(Request $request, $id)
         $verifikasi->update($updateData);
 
         $message = $request->konfirmasi === 'setuju'
-            ? 'Terima kasih! Anda telah mengkonfirmasi keikutsertaan wisuda dengan status Bersedia.'
+            ? 'Terima kasih! Anda telah mengkonfirmasi kehadiran wisuda wisuda dengan status Bersedia.'
             : 'Konfirmasi berhasil. Anda tidak bersedia mengikuti wisuda periode ini.';
 
         return response()->json(['status' => true, 'message' => $message], 200);
@@ -630,7 +639,7 @@ public function bulkProcess(Request $request)
 
         // If status is changed to 1 (Belum Diproses), clear file validation data
         if ($request->status_id == '1') {
-            $updateData['tanggal_terbit'] = null;
+            $updateData['tanggal_proses'] = null;
             $updateData['file_validasi_uploaded'] = false;
         }
 
