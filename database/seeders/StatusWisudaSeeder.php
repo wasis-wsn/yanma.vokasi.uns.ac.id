@@ -20,7 +20,7 @@ class StatusWisudaSeeder extends Seeder
             ['id' =>  '4', 'name' => 'Bersedia', 'color' => 'btn-primary', 'gate' => '2'],
             ['id' =>  '5', 'name' => 'Tidak Bersedia', 'color' => 'btn-warning', 'gate' => '2'],
             ['id' =>  '6', 'name' => 'Valid', 'color' => 'btn-info', 'gate' => '2'],
-            ['id' =>  '7', 'name' => 'Diproses', 'color' => 'btn-secondary', 'gate' => '2'],
+            ['id' =>  '7', 'name' => 'Diproses', 'color' => 'btn-warning', 'gate' => '2'],
         ]);
     }
 }

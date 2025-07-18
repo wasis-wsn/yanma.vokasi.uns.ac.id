@@ -195,16 +195,15 @@
                                     <li class="list-group-item">5. KHS Terakhir</li>
                                     <li class="list-group-item">6. Bukti Pembayaran SPP Semester Terakhir (dapat diunduh dari SIAKAD)</li>
                                     <li class="list-group-item">7. KTP</li>
-                                    <li class="list-group-item">8. Bukti Penyerahan Skripsi/Tugas Akhir</li>
-                                    <li class="list-group-item">9. Surat Bebas Kopma</li>
-                                    <li class="list-group-item">10. Surat Bebas Perpustakaan</li>
-                                    <li class="list-group-item">11. Surat Bebas Laboratorium <span class="text-muted">(Jika Ada)</span></li>
-                                    <li class="list-group-item">12. Surat Keterangan Perpanjangan Masa Studi <span class="text-muted">(Jika Ada)</span></li>
-                                    <li class="list-group-item">13. Surat Keterangan Selang/Cuti <span class="text-muted">(Jika Ada)</span></li>
-                                    <li class="list-group-item">14. E-Journal <span class="text-muted">(Jika Ada)</span></li>
+                                    <li class="list-group-item">8. Surat Bebas Kopma</li>
+                                    <li class="list-group-item">9. Surat Bebas Perpustakaan</li>
+                                    <li class="list-group-item">10. Surat Bebas Laboratorium <span class="text-muted">(Jika Ada)</span></li>
+                                    <li class="list-group-item">11. Surat Keterangan Perpanjangan Masa Studi <span class="text-muted">(Jika Ada)</span></li>
+                                    <li class="list-group-item">12. Surat Keterangan Selang/Cuti <span class="text-muted">(Jika Ada)</span></li>
+                                    <li class="list-group-item">13. E-Journal <span class="text-muted">(Jika Ada)</span></li>
                                 </ul>
                                 <div class="mb-3">
-                                    <span class="text-danger fw-bold">Pastikan semua berkas lengkap, jika tidak lengkap pengajuan tidak akan diproses.</span>
+                                    <span class="text-danger fw-bold">Pastikan semua berkas lengkap.</span>
                                 </div>
                             </div>
 
@@ -224,7 +223,7 @@
                             @if(empty($verifikasi->file))
                             <div class="mt-3">
                                 <h6>Upload Dokumen Kehadiran Wisuda</h6>
-                                <p class="text-muted">Silakan Upload Dokumen Kehadiran Wisuda terlebih dahulu sebelum melakukan konfirmasi kehadiran wisuda.</p>
+                                <p class="text-muted">Silakan Upload Dokumen Kehadiran Wisuda terlebih dahulu sebelum bisa melakukan konfirmasi kehadiran wisuda.</p>
                                 
                                 <form id="form-upload-validasi" enctype="multipart/form-data">
                                     @csrf
@@ -342,7 +341,7 @@
                                         <div class="timeline-dots timeline-dot1 border-success text-success"></div>
                                         <h6 class="float-left mb-1">Melihat PIN Akses Wisuda</h6>
                                         <div class="d-inline-block w-100">
-                                            <p>Calon wisudawan melihat kode/PIN akses wisuda, tertera pada baris ke-6 dari bawah pada halaman tersebut.</p>
+                                            <p>Calon wisudawan melihat kode/PIN akses wisuda, tertera pada menu sinkron data siakad dari baris ke-6 dari bawah.</p>
                                         </div>
                                     </li>
                                     <li>

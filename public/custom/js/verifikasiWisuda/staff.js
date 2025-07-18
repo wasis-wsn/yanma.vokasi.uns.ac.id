@@ -761,8 +761,8 @@
                         // Check if the existing catatan matches any default notes
                         const defaultNotes = {
                             '1': 'Mohon konfirmasi kesediaan untuk mengikuti prosesi wisuda yang akan diselenggarakan.',
-                            '2': 'Selamat! Data Anda telah terverifikasi. ',
-                            '3': 'Data tidak dapat diverifikasi. Silakan hubungi bagian akademik untuk informasi lebih lanjut.',
+                            '2': 'Selamat! Data Anda telah terverifikasi, Sebagai peserta wisuda periode ini.',
+                            '3': 'Data tidak dapat diverifikasi.',
                             '4': 'Anda telah terdaftar sebagai peserta wisuda. Informasi lebih lanjut akan disampaikan kemudian.',
                             '5': 'Anda tidak mengikuti wisuda pada periode ini.',
                             '6': 'Data Anda siap untuk dikonfirmasi. Silakan lakukan konfirmasi kehadiran wisuda.'
@@ -866,8 +866,8 @@
         if (!manualCatatan) {
             const defaultNotes = {
                 '1': 'Mohon konfirmasi kesediaan untuk mengikuti prosesi wisuda yang akan diselenggarakan.',
-                '2': 'Selamat! Data Anda telah terverifikasi. ',
-                '3': 'Data tidak dapat diverifikasi. Silakan hubungi bagian akademik untuk informasi lebih lanjut.',
+                '2': 'Selamat! Data Anda telah terverifikasi, Sebagai peserta wisuda periode ini.',
+                '3': 'Data tidak dapat diverifikasi.',
                 '4': 'Anda telah terdaftar sebagai peserta wisuda. Informasi lebih lanjut akan disampaikan kemudian.',
                 '5': 'Anda tidak mengikuti wisuda pada periode ini.',
                 '6': 'Data Anda siap untuk dikonfirmasi. Silakan lakukan konfirmasi kehadiran wisuda.'
