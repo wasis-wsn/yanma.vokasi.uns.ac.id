@@ -183,24 +183,32 @@ class VerifikasiWisudaController extends Controller
                 'storage_method' => 'local'
             ];
 
+            // Get periode wisuda from existing record or use current period
+            $existingVerifikasi = VerifikasiWisuda::where('user_id', Auth::user()->id)->first();
+            $periodeWisuda = null;
+            
+            if ($existingVerifikasi && $existingVerifikasi->periode_wisuda) {
+                $periodeWisuda = $existingVerifikasi->periode_wisuda;
+            } else {
+                // Default to current month/year if no existing periode
+                $periodeWisuda = now()->format('Y-m');
+            }
+
             // Try Google Drive upload as secondary storage (optional)
             try {
                 $fileStorageService = app(FileStorageService::class);
-                $googleResult = $fileStorageService->store($request->file('file'), 'verifWisuda/upload', $fileName);
+                $googleResult = $fileStorageService->store($request->file('file'), 'verifWisuda/upload', $fileName, $periodeWisuda);
 
                 if ($googleResult['success'] && $googleResult['storage_method'] === 'google_drive') {
                     $storageResult['google_drive_id'] = $googleResult['google_drive_id'];
                     $storageResult['storage_method'] = 'google_drive';
-                    Log::info('File also uploaded to Google Drive: ' . $googleResult['google_drive_id']);
+                    Log::info('File also uploaded to Google Drive: ' . $googleResult['google_drive_id'] . ' (Periode: ' . $periodeWisuda . ')');
                 }
             } catch (\BadMethodCallException $methodException) {
                 Log::warning('Google Drive service method not available: ' . $methodException->getMessage());
             } catch (\Exception $serviceException) {
                 Log::warning('Google Drive upload failed, continuing with local storage: ' . $serviceException->getMessage());
             }
-
-            // Check if user already has verifikasi wisuda record
-            $existingVerifikasi = VerifikasiWisuda::where('user_id', Auth::user()->id)->first();
 
             if ($existingVerifikasi) {
                 // Delete old file if exists
@@ -244,6 +252,7 @@ class VerifikasiWisudaController extends Controller
                     'status_id' => '7',
                     'file' => $fileName,
                     'tanggal_proses' => now(),
+                    'periode_wisuda' => $periodeWisuda, // Set default periode wisuda
                 ];
 
                 // Only add storage info if columns exist and are provided

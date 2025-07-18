@@ -28,7 +28,7 @@ class FileStorageService
                !empty(env('GOOGLE_DRIVE_CLIENT_SECRET'));
     }
 
-    public function store($file, $path, $fileName = null)
+    public function store($file, $path, $fileName = null, $periodeWisuda = null)
     {
         $fileName = $fileName ?: $file->getClientOriginalName();
         $result = [
@@ -47,14 +47,18 @@ class FileStorageService
             try {
                 // Get the temporary file path for Google Drive upload
                 $tempPath = $file->getRealPath();
-                $googleResult = $this->googleDriveService->uploadFile($tempPath, $fileName);
+                $googleResult = $this->googleDriveService->uploadFile($tempPath, $fileName, null, $periodeWisuda);
 
                 if ($googleResult['success']) {
                     $result['google_drive_id'] = $googleResult['file_id'];
                     $result['storage_method'] = 'google_drive';
                     $result['success'] = true;
 
-                    Log::info("File uploaded to Google Drive: {$googleResult['file_id']}");
+                    $logMessage = "File uploaded to Google Drive: {$googleResult['file_id']}";
+                    if ($periodeWisuda) {
+                        $logMessage .= " (Periode: {$periodeWisuda})";
+                    }
+                    Log::info($logMessage);
                 } else {
                     Log::warning("Google Drive upload failed: " . ($googleResult['error'] ?? 'Unknown error'));
                     $result['error'] = $googleResult['error'] ?? 'Google Drive upload failed';

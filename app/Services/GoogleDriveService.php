@@ -139,7 +139,7 @@ class GoogleDriveService
     {
         try {
             $tokens = [];
-            
+
             // Get existing tokens if available
             if (Storage::disk('local')->exists('google_tokens.json')) {
                 $tokens = json_decode(Storage::disk('local')->get('google_tokens.json'), true) ?: [];
@@ -151,7 +151,7 @@ class GoogleDriveService
 
             // Store back to file
             Storage::disk('local')->put('google_tokens.json', json_encode($tokens));
-            
+
             Log::info('Refresh token stored successfully');
             return true;
         } catch (\Exception $e) {
@@ -160,12 +160,131 @@ class GoogleDriveService
         }
     }
 
-    public function uploadFile($filePath, $fileName, $folderId = null)
+    public function createFolder($folderName, $parentFolderId = null)
+    {
+        try {
+            // Check if folder already exists
+            $existingFolder = $this->findFolder($folderName, $parentFolderId);
+            if ($existingFolder) {
+                return [
+                    'success' => true,
+                    'folder_id' => $existingFolder->getId(),
+                    'name' => $existingFolder->getName()
+                ];
+            }
+
+            $fileMetadata = new \Google\Service\Drive\DriveFile([
+                'name' => $folderName,
+                'mimeType' => 'application/vnd.google-apps.folder'
+            ]);
+
+            if ($parentFolderId) {
+                $fileMetadata->setParents([$parentFolderId]);
+            } elseif (env('GOOGLE_DRIVE_FOLDER_ID')) {
+                $fileMetadata->setParents([env('GOOGLE_DRIVE_FOLDER_ID')]);
+            }
+
+            $folder = $this->service->files->create($fileMetadata, [
+                'fields' => 'id,name'
+            ]);
+
+            Log::info('Folder created in Google Drive: ' . $folder->getName() . ' (ID: ' . $folder->getId() . ')');
+
+            return [
+                'success' => true,
+                'folder_id' => $folder->getId(),
+                'name' => $folder->getName()
+            ];
+
+        } catch (\Exception $e) {
+            Log::error('Failed to create folder in Google Drive: ' . $e->getMessage());
+            return [
+                'success' => false,
+                'error' => $e->getMessage()
+            ];
+        }
+    }
+
+    public function findFolder($folderName, $parentFolderId = null)
+    {
+        try {
+            $query = "name='{$folderName}' and mimeType='application/vnd.google-apps.folder' and trashed=false";
+            
+            if ($parentFolderId) {
+                $query .= " and '{$parentFolderId}' in parents";
+            } elseif (env('GOOGLE_DRIVE_FOLDER_ID')) {
+                $query .= " and '" . env('GOOGLE_DRIVE_FOLDER_ID') . "' in parents";
+            }
+
+            $response = $this->service->files->listFiles([
+                'q' => $query,
+                'fields' => 'files(id,name)'
+            ]);
+
+            $files = $response->getFiles();
+            return !empty($files) ? $files[0] : null;
+
+        } catch (\Exception $e) {
+            Log::error('Failed to find folder in Google Drive: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    public function getOrCreatePeriodeWisudaFolder($periodeWisuda)
+    {
+        try {
+            if (!$periodeWisuda) {
+                return null;
+            }
+
+            // Format periode wisuda for folder name (e.g., "2024-03" -> "Periode Wisuda Maret 2024")
+            $folderName = $this->formatPeriodeWisudaFolderName($periodeWisuda);
+            
+            // First create/get "Verifikasi Wisuda" folder
+            $verifikasiFolder = $this->createFolder('Verifikasi Wisuda');
+            if (!$verifikasiFolder['success']) {
+                return null;
+            }
+
+            // Then create/get periode wisuda folder inside it
+            $periodeFolder = $this->createFolder($folderName, $verifikasiFolder['folder_id']);
+            if (!$periodeFolder['success']) {
+                return null;
+            }
+
+            return $periodeFolder['folder_id'];
+
+        } catch (\Exception $e) {
+            Log::error('Failed to get/create periode wisuda folder: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    private function formatPeriodeWisudaFolderName($periodeWisuda)
+    {
+        try {
+            $date = \Carbon\Carbon::createFromFormat('Y-m', $periodeWisuda);
+            $monthName = $date->translatedFormat('F');
+            $year = $date->year;
+            
+            return "Periode Wisuda {$monthName} {$year}";
+        } catch (\Exception $e) {
+            // Fallback to original format if parsing fails
+            return "Periode Wisuda {$periodeWisuda}";
+        }
+    }
+
+    public function uploadFile($filePath, $fileName, $folderId = null, $periodeWisuda = null)
     {
         try {
             // Check if we have a valid token
             if (!$this->client->getAccessToken()) {
                 throw new \Exception('No access token available');
+            }
+
+            // If periode wisuda is provided, get/create the appropriate folder
+            if ($periodeWisuda && !$folderId) {
+                $folderId = $this->getOrCreatePeriodeWisudaFolder($periodeWisuda);
             }
 
             $fileMetadata = new \Google\Service\Drive\DriveFile([
@@ -186,7 +305,11 @@ class GoogleDriveService
                 'fields' => 'id,name,webViewLink'
             ]);
 
-            Log::info('File uploaded to Google Drive successfully: ' . $file->getId());
+            $logMessage = 'File uploaded to Google Drive successfully: ' . $file->getId();
+            if ($periodeWisuda) {
+                $logMessage .= ' (Periode: ' . $periodeWisuda . ')';
+            }
+            Log::info($logMessage);
 
             return [
                 'success' => true,
@@ -206,7 +329,7 @@ class GoogleDriveService
                 Log::info('Attempting to refresh token and retry upload');
                 if ($this->refreshAccessToken()) {
                     try {
-                        return $this->uploadFile($filePath, $fileName, $folderId);
+                        return $this->uploadFile($filePath, $fileName, $folderId, $periodeWisuda);
                     } catch (\Exception $retryException) {
                         Log::error('Retry upload also failed: ' . $retryException->getMessage());
                     }
