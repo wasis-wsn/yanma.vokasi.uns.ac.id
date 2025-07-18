@@ -112,23 +112,50 @@ class GoogleDriveService
     private function refreshAccessToken()
     {
         try {
-            $accessToken = $this->client->fetchAccessTokenWithRefreshToken();
-
-            if (isset($accessToken['error'])) {
-                throw new \Exception('Token refresh failed: ' . $accessToken['error']);
+            $refreshToken = $this->getStoredRefreshToken();
+            if (!$refreshToken) {
+                throw new \Exception('No refresh token available');
             }
 
-            // ✅ Tambahkan ini agar access token tersimpan di client
-            $this->client->setAccessToken($accessToken);
+            $this->client->refreshToken($refreshToken);
+            $accessToken = $this->client->getAccessToken();
 
-            // ✅ Simpan refresh token baru jika tersedia
-            if (isset($accessToken['refresh_token'])) {
-                $this->storeRefreshToken($accessToken['refresh_token']);
+            if (!$accessToken) {
+                throw new \Exception('Failed to get access token after refresh');
             }
 
+            // Store the new access token
+            $this->storeTokens($accessToken);
+
+            Log::info('Access token refreshed successfully');
             return true;
         } catch (\Exception $e) {
             Log::error('Failed to refresh access token: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function storeRefreshToken($refreshToken)
+    {
+        try {
+            $tokens = [];
+            
+            // Get existing tokens if available
+            if (Storage::disk('local')->exists('google_tokens.json')) {
+                $tokens = json_decode(Storage::disk('local')->get('google_tokens.json'), true) ?: [];
+            }
+
+            // Update with new refresh token
+            $tokens['refresh_token'] = $refreshToken;
+            $tokens['updated_at'] = now()->toISOString();
+
+            // Store back to file
+            Storage::disk('local')->put('google_tokens.json', json_encode($tokens));
+            
+            Log::info('Refresh token stored successfully');
+            return true;
+        } catch (\Exception $e) {
+            Log::error('Error storing refresh token: ' . $e->getMessage());
             return false;
         }
     }

@@ -16,9 +16,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Facades\Excel;
 use Yajra\DataTables\Facades\DataTables;
 use App\Services\FileStorageService;
+// use App\Services\GoogleDriveService;
 
 
 class VerifikasiWisudaController extends Controller
@@ -191,6 +193,8 @@ class VerifikasiWisudaController extends Controller
                     $storageResult['storage_method'] = 'google_drive';
                     Log::info('File also uploaded to Google Drive: ' . $googleResult['google_drive_id']);
                 }
+            } catch (\BadMethodCallException $methodException) {
+                Log::warning('Google Drive service method not available: ' . $methodException->getMessage());
             } catch (\Exception $serviceException) {
                 Log::warning('Google Drive upload failed, continuing with local storage: ' . $serviceException->getMessage());
             }
