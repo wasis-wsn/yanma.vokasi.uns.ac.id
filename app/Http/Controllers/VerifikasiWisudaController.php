@@ -132,8 +132,8 @@ class VerifikasiWisudaController extends Controller
                 }
                 return $tanggal_proses;
             })
-            ->editColumn('tanggal_proses', function ($row) {
-                return $row->tanggal_proses ? Carbon::parse($row->tanggal_proses)->translatedFormat('d F Y') : '';
+            ->editColumn('tanggal_terbit', function ($row) {
+                return $row->tanggal_terbit ? Carbon::parse($row->tanggal_terbit)->translatedFormat('d F Y') : '';
             })
             ->editColumn('periode_wisuda', function ($row) {
                 $periode_wisuda = $row->periode_wisuda;
@@ -154,17 +154,17 @@ class VerifikasiWisudaController extends Controller
             ->editColumn('status_id', function ($row) {
                 return '<button type="button" class="btn ' . $row->status->color . ' btn-sm" disabled>' . $row->status->name . '</button>';
             })
-            ->rawColumns(['action', 'tanggal_submit', 'status_id', 'tanggal_proses', 'periode_wisuda', 'tanggal_proses'])
+            ->rawColumns(['action', 'tanggal_submit', 'status_id', 'tanggal_proses', 'periode_wisuda', 'tanggal_terbit'])
             ->toJson();
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'file' => ['required', 'file', 'mimes:pdf', 'max:102400']
+            'file' => ['required', 'file', 'mimes:pdf', 'max:10240']
         ], [
             'required' => ':attribute wajib diisi!',
-            'max' => 'ukuran :attribute tidak boleh lebih dari 100 MB',
+            'max' => 'ukuran :attribute tidak boleh lebih dari 10 MB',
         ], [
             'file' => 'File PDF'
         ]);
@@ -554,8 +554,8 @@ class VerifikasiWisudaController extends Controller
             ->editColumn('status_id', function ($row) {
                 return '<button type="button" class="btn ' . $row->status->color . ' btn-sm" disabled>' . $row->status->name . '</button>';
             })
-            ->editColumn('tanggal_proses', function ($row) {
-                return $row->tanggal_proses ? Carbon::parse($row->tanggal_proses)->translatedFormat('d F Y') : '';
+            ->editColumn('tanggal_terbit', function ($row) {
+                return $row->tanggal_terbit ? Carbon::parse($row->tanggal_terbit)->translatedFormat('d F Y') : '';
             })
             ->editColumn('periode_wisuda', function ($row) {
                 $periode_wisuda = $row->periode_wisuda;
@@ -573,7 +573,7 @@ class VerifikasiWisudaController extends Controller
                 }
                 return $periode_wisuda;
             })
-            ->rawColumns(['action', 'status_id', 'periode_wisuda', 'tanggal_proses'])
+            ->rawColumns(['action', 'status_id', 'periode_wisuda', 'tanggal_terbit'])
             ->make(true);
 }
 
