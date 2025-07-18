@@ -1,7 +1,6 @@
 <?php
 
 return [
-
     /*
     |--------------------------------------------------------------------------
     | Default Filesystem Disk
@@ -29,7 +28,6 @@ return [
     */
 
     'disks' => [
-
         'local' => [
             'driver' => 'local',
             'root' => storage_path('app'),
@@ -54,14 +52,23 @@ return [
             'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
             'throw' => false,
         ],
+
         'google' => [
             'driver' => 'google',
             'clientId' => env('GOOGLE_DRIVE_CLIENT_ID'),
             'clientSecret' => env('GOOGLE_DRIVE_CLIENT_SECRET'),
             'refreshToken' => env('GOOGLE_DRIVE_REFRESH_TOKEN'),
-            // 'folderId' => env('GOOGLE_DRIVE_FOLDER_ID'),
-            'folder' => env('GOOGLE_DRIVE_FOLDER'),
-        ]
+            'folder' => env('GOOGLE_DRIVE_FOLDER_ID'),
+            // 'teamDriveId' => env('GOOGLE_DRIVE_TEAM_DRIVE_ID'),
+            
+        ],
+
+        // Add backup storage
+        'backup' => [
+            'driver' => 'local',
+            'root' => storage_path('app/backup'),
+            'throw' => false,
+        ],
     ],
 
     /*
@@ -78,5 +85,4 @@ return [
     'links' => [
         public_path('storage') => storage_path('app/public'),
     ],
-
 ];

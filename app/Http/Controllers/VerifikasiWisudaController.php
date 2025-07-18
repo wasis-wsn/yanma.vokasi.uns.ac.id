@@ -18,6 +18,8 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
 use Yajra\DataTables\Facades\DataTables;
+use App\Services\FileStorageService;
+
 
 class VerifikasiWisudaController extends Controller
 {
@@ -77,8 +79,8 @@ class VerifikasiWisudaController extends Controller
                 }
                 return $tanggal_proses;
             })
-            ->editColumn('tanggal_terbit', function ($row) {
-                return $row->tanggal_terbit ? Carbon::parse($row->tanggal_terbit)->translatedFormat('d F Y') : '';
+            ->editColumn('tanggal_proses', function ($row) {
+                return $row->tanggal_proses ? Carbon::parse($row->tanggal_proses)->translatedFormat('d F Y') : '';
             })
             ->editColumn('periode_wisuda', function ($row) {
                 $periode_wisuda = $row->periode_wisuda;
@@ -99,7 +101,7 @@ class VerifikasiWisudaController extends Controller
             ->editColumn('status_id', function ($row) {
                 return '<button type="button" class="btn ' . $row->status->color . ' btn-sm" disabled>' . $row->status->name . '</button>';
             })
-            ->rawColumns(['action', 'tanggal_submit', 'status_id', 'tanggal_proses', 'periode_wisuda', 'tanggal_terbit'])
+            ->rawColumns(['action', 'tanggal_submit', 'status_id', 'tanggal_proses', 'periode_wisuda', 'tanggal_proses'])
             ->toJson();
     }
 
@@ -130,8 +132,8 @@ class VerifikasiWisudaController extends Controller
                 }
                 return $tanggal_proses;
             })
-            ->editColumn('tanggal_terbit', function ($row) {
-                return $row->tanggal_terbit ? Carbon::parse($row->tanggal_terbit)->translatedFormat('d F Y') : '';
+            ->editColumn('tanggal_proses', function ($row) {
+                return $row->tanggal_proses ? Carbon::parse($row->tanggal_proses)->translatedFormat('d F Y') : '';
             })
             ->editColumn('periode_wisuda', function ($row) {
                 $periode_wisuda = $row->periode_wisuda;
@@ -152,57 +154,125 @@ class VerifikasiWisudaController extends Controller
             ->editColumn('status_id', function ($row) {
                 return '<button type="button" class="btn ' . $row->status->color . ' btn-sm" disabled>' . $row->status->name . '</button>';
             })
-            ->rawColumns(['action', 'tanggal_submit', 'status_id', 'tanggal_proses', 'periode_wisuda', 'tanggal_terbit'])
+            ->rawColumns(['action', 'tanggal_submit', 'status_id', 'tanggal_proses', 'periode_wisuda', 'tanggal_proses'])
             ->toJson();
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'file' => ['required', 'file', 'mimes:pdf', 'max:10240']
+            'file' => ['required', 'file', 'mimes:pdf', 'max:102400']
         ], [
             'required' => ':attribute wajib diisi!',
-            'max' => 'ukuran :attribute tidak boleh lebih dari 10 MB',
+            'max' => 'ukuran :attribute tidak boleh lebih dari 100 MB',
         ], [
             'file' => 'File PDF'
         ]);
 
         try {
             $fileName = 'VERIFWISUDA_' . trim(Auth::user()->name) . '_' . Auth::user()->nim . '_' . trim(Auth::user()->prodis->name) . '_' . time() . '.pdf';
-            $request->file('file')->storeAs('verifWisuda/upload/', $fileName, 'public');
+
+            // Always store locally first as primary storage
+            $localPath = $request->file('file')->storeAs('verifWisuda/upload/', $fileName, 'public');
+            $storageResult = [
+                'success' => true,
+                'local_path' => $localPath,
+                'google_drive_id' => null,
+                'storage_method' => 'local'
+            ];
+
+            // Try Google Drive upload as secondary storage (optional)
+            try {
+                $fileStorageService = app(FileStorageService::class);
+                $googleResult = $fileStorageService->store($request->file('file'), 'verifWisuda/upload', $fileName);
+
+                if ($googleResult['success'] && $googleResult['storage_method'] === 'google_drive') {
+                    $storageResult['google_drive_id'] = $googleResult['google_drive_id'];
+                    $storageResult['storage_method'] = 'google_drive';
+                    Log::info('File also uploaded to Google Drive: ' . $googleResult['google_drive_id']);
+                }
+            } catch (\Exception $serviceException) {
+                Log::warning('Google Drive upload failed, continuing with local storage: ' . $serviceException->getMessage());
+            }
 
             // Check if user already has verifikasi wisuda record
             $existingVerifikasi = VerifikasiWisuda::where('user_id', Auth::user()->id)->first();
-            
+
             if ($existingVerifikasi) {
                 // Delete old file if exists
                 if ($existingVerifikasi->file) {
                     Storage::disk('public')->delete('verifWisuda/upload/' . $existingVerifikasi->file);
                 }
-                
-                // Update existing record with new file and change status to 7 if currently 1
-                $updateData = ['file' => $fileName];
-                
+
+                // Update existing record with new file and storage info
+                $updateData = [
+                    'file' => $fileName,
+                ];
+
+                // Only add storage info if columns exist and are provided
+                if (isset($storageResult['storage_method'])) {
+                    try {
+                        $updateData['storage_method'] = $storageResult['storage_method'];
+                    } catch (\Exception $e) {
+                        Log::info('storage_method column does not exist, skipping');
+                    }
+                }
+
+                if (isset($storageResult['google_drive_id']) && $storageResult['google_drive_id']) {
+                    try {
+                        $updateData['google_drive_id'] = $storageResult['google_drive_id'];
+                    } catch (\Exception $e) {
+                        Log::info('google_drive_id column does not exist, skipping');
+                    }
+                }
+
                 if ($existingVerifikasi->status_id == '1') {
-                    $updateData['status_id'] = '7'; // Change status from 1 to 7
+                    $updateData['status_id'] = '7';
                     $updateData['tanggal_proses'] = now();
                 }
-                
+
                 $existingVerifikasi->update($updateData);
-                $message = 'Dokumen Kehadiran Wisuda berhasil diupload!';
+                $message = 'File validasi berhasil diupload!';
             } else {
-                // Create new record if doesn't exist
-                VerifikasiWisuda::create([
+                // Create new record
+                $createData = [
                     'user_id' => Auth::user()->id,
-                    'status_id' => '7', // Set status to 7 instead of 1
+                    'status_id' => '7',
                     'file' => $fileName,
                     'tanggal_proses' => now(),
-                ]);
-                $message = 'Dokumen Kehadiran Wisuda berhasil diupload!';
+                ];
+
+                // Only add storage info if columns exist and are provided
+                if (isset($storageResult['storage_method'])) {
+                    try {
+                        $createData['storage_method'] = $storageResult['storage_method'];
+                    } catch (\Exception $e) {
+                        Log::info('storage_method column does not exist, skipping');
+                    }
+                }
+
+                if (isset($storageResult['google_drive_id']) && $storageResult['google_drive_id']) {
+                    try {
+                        $createData['google_drive_id'] = $storageResult['google_drive_id'];
+                    } catch (\Exception $e) {
+                        Log::info('google_drive_id column does not exist, skipping');
+                    }
+                }
+
+                VerifikasiWisuda::create($createData);
+                $message = 'File validasi berhasil diupload!';
             }
-            
+
+            // Add storage method info to response
+            if ($storageResult['storage_method'] === 'google_drive') {
+                $message .= ' (File tersimpan di Google Drive dan lokal)';
+            } else {
+                $message .= ' (File tersimpan secara lokal)';
+            }
+
             return response()->json(['status' => true, 'message' => $message], 200);
         } catch (\Throwable $th) {
+            Log::error('Store file error: ' . $th->getMessage());
             return response()->json(['status' => false, 'message' => 'Terjadi Kesalahan: ' . $th->getMessage()], 500);
         }
     }
@@ -484,8 +554,8 @@ class VerifikasiWisudaController extends Controller
             ->editColumn('status_id', function ($row) {
                 return '<button type="button" class="btn ' . $row->status->color . ' btn-sm" disabled>' . $row->status->name . '</button>';
             })
-            ->editColumn('tanggal_terbit', function ($row) {
-                return $row->tanggal_terbit ? Carbon::parse($row->tanggal_terbit)->translatedFormat('d F Y') : '';
+            ->editColumn('tanggal_proses', function ($row) {
+                return $row->tanggal_proses ? Carbon::parse($row->tanggal_proses)->translatedFormat('d F Y') : '';
             })
             ->editColumn('periode_wisuda', function ($row) {
                 $periode_wisuda = $row->periode_wisuda;
@@ -503,7 +573,7 @@ class VerifikasiWisudaController extends Controller
                 }
                 return $periode_wisuda;
             })
-            ->rawColumns(['action', 'status_id', 'periode_wisuda', 'tanggal_terbit'])
+            ->rawColumns(['action', 'status_id', 'periode_wisuda', 'tanggal_proses'])
             ->make(true);
 }
 
@@ -559,7 +629,7 @@ public function konfirmasi(Request $request, $id)
         // Check if file is already uploaded
         if (empty($verifikasi->file)) {
             return response()->json([
-                'status' => false, 
+                'status' => false,
                 'message' => 'Silakan upload file validasi terlebih dahulu.'
             ], 400);
         }

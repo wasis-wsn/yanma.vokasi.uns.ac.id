@@ -31,6 +31,7 @@ use App\Http\Controllers\UndurDiriController;
 use App\Http\Controllers\VerifikasiWisudaController;
 use App\Http\Controllers\PeriodeWisudaController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\GoogleAuthController;
 
 /*
 |--------------------------------------------------------------------------
@@ -461,4 +462,20 @@ Route::middleware('auth')->group(function () {
         Route::delete('/destroy/{id}', [LegalisirController::class, 'destroy'])->name('destroy')->middleware('role:fo');
         Route::post('/proses/{id}', [LegalisirController::class, 'proses'])->name('proses')->middleware('role:fo');
     });
+});
+
+use App\Services\GoogleDriveService;
+use Illuminate\Http\Request;
+
+Route::get('/google/setup-token', function (GoogleDriveService $service) {
+    return redirect()->to($service->getAuthUrl());
+});
+
+Route::get('/google/callback', function (Request $request, GoogleDriveService $service) {
+    $code = $request->get('code');
+    if ($code && $service->handleCallback($code)) {
+        return '✅ Refresh token berhasil disimpan!';
+    }
+
+    return '❌ Gagal menyimpan refresh token.';
 });
