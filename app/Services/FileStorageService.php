@@ -35,12 +35,12 @@ class FileStorageService
             'success' => false,
             'local_path' => null,
             'google_drive_id' => null,
-            'storage_method' => 'local',
+            'storage_method' => 'none',
             'error' => null
         ];
 
-        // This service is now only for Google Drive backup
-        // Primary storage should be handled by the controller
+        // This service is for Google Drive storage only
+        // No local storage for validation files
 
         // Try to upload to Google Drive if configured and service is available
         if ($this->googleDriveService && $this->googleDriveService->isConfigured()) {
@@ -60,7 +60,7 @@ class FileStorageService
                     }
                     Log::info($logMessage);
                 } else {
-                    Log::warning("Google Drive upload failed: " . ($googleResult['error'] ?? 'Unknown error'));
+                    Log::error("Google Drive upload failed: " . ($googleResult['error'] ?? 'Unknown error'));
                     $result['error'] = $googleResult['error'] ?? 'Google Drive upload failed';
                 }
             } catch (\Exception $e) {
@@ -68,7 +68,7 @@ class FileStorageService
                 $result['error'] = 'Google Drive upload error: ' . $e->getMessage();
             }
         } else {
-            Log::info("Google Drive not configured or service unavailable");
+            Log::error("Google Drive not configured or service unavailable");
             $result['error'] = 'Google Drive not configured';
         }
 
@@ -79,12 +79,12 @@ class FileStorageService
     {
         $deleted = false;
 
-        // Delete local file
+        // Delete local file only if it exists (cleanup from previous versions)
         if ($localPath && Storage::disk('public')->exists($localPath)) {
             try {
                 Storage::disk('public')->delete($localPath);
                 $deleted = true;
-                Log::info("Local file deleted: {$localPath}");
+                Log::info("Legacy local file deleted: {$localPath}");
             } catch (\Exception $e) {
                 Log::error("Failed to delete local file {$localPath}: " . $e->getMessage());
             }

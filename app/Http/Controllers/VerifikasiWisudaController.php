@@ -174,19 +174,18 @@ class VerifikasiWisudaController extends Controller
         try {
             $fileName = 'VERIFWISUDA_' . trim(Auth::user()->name) . '_' . Auth::user()->nim . '_' . trim(Auth::user()->prodis->name) . '_' . time() . '.pdf';
 
-            // Always store locally first as primary storage
-            $localPath = $request->file('file')->storeAs('verifWisuda/upload/', $fileName, 'public');
+            // Initialize storage result for Google Drive only
             $storageResult = [
-                'success' => true,
-                'local_path' => $localPath,
+                'success' => false,
+                'local_path' => null,
                 'google_drive_id' => null,
-                'storage_method' => 'local'
+                'storage_method' => 'none'
             ];
 
             // Get periode wisuda from existing record or use current period
             $existingVerifikasi = VerifikasiWisuda::where('user_id', Auth::user()->id)->first();
             $periodeWisuda = null;
-            
+
             if ($existingVerifikasi && $existingVerifikasi->periode_wisuda) {
                 $periodeWisuda = $existingVerifikasi->periode_wisuda;
             } else {
@@ -194,7 +193,7 @@ class VerifikasiWisudaController extends Controller
                 $periodeWisuda = now()->format('Y-m');
             }
 
-            // Try Google Drive upload as secondary storage (optional)
+            // Try Google Drive upload as primary storage (required)
             try {
                 $fileStorageService = app(FileStorageService::class);
                 $googleResult = $fileStorageService->store($request->file('file'), 'verifWisuda/upload', $fileName, $periodeWisuda);
@@ -202,23 +201,28 @@ class VerifikasiWisudaController extends Controller
                 if ($googleResult['success'] && $googleResult['storage_method'] === 'google_drive') {
                     $storageResult['google_drive_id'] = $googleResult['google_drive_id'];
                     $storageResult['storage_method'] = 'google_drive';
-                    Log::info('File also uploaded to Google Drive: ' . $googleResult['google_drive_id'] . ' (Periode: ' . $periodeWisuda . ')');
+                    $storageResult['success'] = true;
+                    Log::info('File uploaded to Google Drive: ' . $googleResult['google_drive_id'] . ' (Periode: ' . $periodeWisuda . ')');
+                } else {
+                    throw new \Exception('Google Drive upload failed: ' . ($googleResult['error'] ?? 'Unknown error'));
                 }
             } catch (\BadMethodCallException $methodException) {
-                Log::warning('Google Drive service method not available: ' . $methodException->getMessage());
+                Log::error('Google Drive service method not available: ' . $methodException->getMessage());
+                throw new \Exception('File storage service not available');
             } catch (\Exception $serviceException) {
-                Log::warning('Google Drive upload failed, continuing with local storage: ' . $serviceException->getMessage());
+                Log::error('Google Drive upload failed: ' . $serviceException->getMessage());
+                throw new \Exception('Failed to upload file to Google Drive: ' . $serviceException->getMessage());
             }
 
             if ($existingVerifikasi) {
-                // Delete old file if exists
-                if ($existingVerifikasi->file) {
+                // Delete old local file if exists (cleanup from previous versions)
+                if ($existingVerifikasi->file && !$existingVerifikasi->google_drive_id) {
                     Storage::disk('public')->delete('verifWisuda/upload/' . $existingVerifikasi->file);
                 }
 
                 // Update existing record with new file and storage info
                 $updateData = [
-                    'file' => $fileName,
+                    'file' => $fileName, // Keep filename for reference
                 ];
 
                 // Only add storage info if columns exist and are provided
@@ -244,13 +248,13 @@ class VerifikasiWisudaController extends Controller
                 }
 
                 $existingVerifikasi->update($updateData);
-                $message = 'File validasi berhasil diupload!';
+                $message = 'File validasi berhasil diupload ke Google Drive!';
             } else {
                 // Create new record
                 $createData = [
                     'user_id' => Auth::user()->id,
                     'status_id' => '7',
-                    'file' => $fileName,
+                    'file' => $fileName, // Keep filename for reference
                     'tanggal_proses' => now(),
                     'periode_wisuda' => $periodeWisuda, // Set default periode wisuda
                 ];
@@ -273,14 +277,7 @@ class VerifikasiWisudaController extends Controller
                 }
 
                 VerifikasiWisuda::create($createData);
-                $message = 'File validasi berhasil diupload!';
-            }
-
-            // Add storage method info to response
-            if ($storageResult['storage_method'] === 'google_drive') {
-                $message .= ' (File tersimpan di Google Drive dan lokal)';
-            } else {
-                $message .= ' (File tersimpan secara lokal)';
+                $message = 'File validasi berhasil diupload ke Google Drive!';
             }
 
             return response()->json(['status' => true, 'message' => $message], 200);
@@ -455,16 +452,46 @@ class VerifikasiWisudaController extends Controller
             $ajuan = VerifikasiWisuda::findOrFail($id);
 
             $fileName = 'VERIFWISUDA_' . trim(Auth::user()->name) . '_' . Auth::user()->nim . '_' . trim(Auth::user()->prodis->name) . '_' . time() . '.pdf';
-            $request->file('file')->storeAs('verifWisuda/upload/', $fileName, 'public');
-            Storage::disk('public')->delete('verifWisuda/upload/' . $ajuan->file);
 
-            $ajuan->update([
-                'file' => $fileName,
-            ]);
+            // Upload to Google Drive only
+            try {
+                $fileStorageService = app(FileStorageService::class);
+                $googleResult = $fileStorageService->store($request->file('file'), 'verifWisuda/upload', $fileName, $ajuan->periode_wisuda);
+
+                if (!$googleResult['success'] || $googleResult['storage_method'] !== 'google_drive') {
+                    throw new \Exception('Google Drive upload failed: ' . ($googleResult['error'] ?? 'Unknown error'));
+                }
+
+                // Delete old local file if exists (cleanup from previous versions)
+                if ($ajuan->file && !$ajuan->google_drive_id) {
+                    Storage::disk('public')->delete('verifWisuda/upload/' . $ajuan->file);
+                }
+
+                $updateData = [
+                    'file' => $fileName,
+                ];
+
+                // Update Google Drive info
+                if ($googleResult['google_drive_id']) {
+                    try {
+                        $updateData['google_drive_id'] = $googleResult['google_drive_id'];
+                        $updateData['storage_method'] = 'google_drive';
+                    } catch (\Exception $e) {
+                        Log::info('Google Drive columns do not exist, skipping');
+                    }
+                }
+
+                $ajuan->update($updateData);
+
+                Log::info('File updated in Google Drive: ' . $googleResult['google_drive_id'] . ' (Periode: ' . $ajuan->periode_wisuda . ')');
+            } catch (\Exception $e) {
+                Log::error('Failed to update file in Google Drive: ' . $e->getMessage());
+                throw new \Exception('Failed to upload file to Google Drive: ' . $e->getMessage());
+            }
         } catch (\Throwable $th) {
-            return response()->json(['status' => false, 'message' => 'Terjadi Kesalahan'], 500);
+            return response()->json(['status' => false, 'message' => 'Terjadi Kesalahan: ' . $th->getMessage()], 500);
         }
-        return response()->json(['status' => true, 'message' => 'Ajuan Berhasil Diedit!'], 200);
+        return response()->json(['status' => true, 'message' => 'File berhasil diupdate di Google Drive!'], 200);
     }
 
     public function proses(Request $request, $id)
