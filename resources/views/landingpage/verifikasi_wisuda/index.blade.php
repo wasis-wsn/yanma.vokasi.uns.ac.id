@@ -34,21 +34,21 @@
                 <h3>Verifikasi Wisuda</h3>
                 <h5>Alur Baru Verifikasi Wisuda Sekolah Vokasi UNS</h5>
                 <ol>
-                    <li>Hanya mahasiswa yang Surat Keterangan Lulus (SKL)-nya sudah terbit dan nomor ijazahnya sudah keluar yang bisa mengajukan berkas verifikasi wisuda.</li>
-                    <li>Upload berkas verifikasi wisuda dan verifikasi wisuda hanya bisa dilakukan pada saat jadwal verifikasi wisuda sudah dibuka.</li>
-                    <li>Data akan muncul saat Akademik Sekolah Vokasi melakukan import data mahasiswa. Data tersebut berdasarkan update nomor ijazah dari Akademik Pusat, bukan ditentukan oleh Akademik Sekolah Vokasi.</li>
+                    <li><b>Hanya mahasiswa yang Surat Keterangan Lulus (SKL)-nya sudah terbit dan nomor ijazahnya sudah keluar</b> yang bisa mengajukan berkas verifikasi wisuda.</li>
+                    <li><b>Upload berkas verifikasi wisuda dan verifikasi wisuda hanya bisa dilakukan pada saat jadwal verifikasi wisuda sudah dibuka.</b></li>
+                    <li>Data akan muncul saat Akademik Sekolah Vokasi melakukan import data mahasiswa.<b> Data tersebut berdasarkan update nomor ijazah dari Akademik Pusat, bukan ditentukan oleh Akademik Sekolah Vokasi.</b></li>
                     <li>Log in ke web <a href="https://yanma.vokasi.uns.ac.id/login" target="_blank">https://yanma.vokasi.uns.ac.id/</a> menggunakan email SSO.</li>
                     <li>Pilih menu "Verifikasi Wisuda".</li>
                     <li>Upload berkas persyaratan verifikasi wisuda.</li>
-                    <li>Mohon ditunggu dan cek secara berkala di web yanma untuk validasi dokumen oleh Akademik Sekolah Vokasi.</li>
-                    <li>Jika berkas sudah divalidasi oleh Akademik Sekolah Vokasi, mahasiswa bisa segera melakukan konfirmasi kehadiran wisuda.</li>
-                    <li>Mahasiswa yang memilih konfirmasi kehadiran "Bersedia" ajuan akan diverifikasi oleh Akademik Sekolah Vokasi untuk mengikuti wisuda pada periode tersebut.</li>
-                    <li>Mahasiswa yang memilih konfirmasi kehadiran "Tidak Bersedia" ajuan tidak akan diverifikasi untuk wisuda periode tersebut dan akan masuk dalam antrian verifikasi wisuda pada periode berikutnya.</li>
-                    <li>Status verifikasi dapat dilihat diweb yanma atau bisa juga cek berkala di web <a href="https://wisuda.uns.ac.id/" target="_blank">https://wisuda.uns.ac.id/</a> (log in web wisuda > pilih menu sinkron data > scroll kebawah, cari kolom "Pin Kode Akses Wisuda"), jika sudah ada angkanya berarti sudah diverifikasi oleh Akademik Sekolah Vokasi.</li>
-                    <li>Jika sudah diverifikasi, cek data pada menu sinkron data dan silahkan segera melakukan sinkronisasi data.</li>
-                    <li>Cetak draft ijazah diweb wisuda pada menu Cetak > Draft Ijazah.</li>
-                    <li><b>Bagi mahasiswa yang sudah diverifikasi tidak bisa mengundurkan diri dengan alasan apapun.</b></li>
-                    <li>Wajib bergabung digrup telegram wisuda (link grup ada dihalaman awal web wisuda).</li>
+                    <li><b>Mohon ditunggu dan cek secara berkala</b> di web yanma untuk <b>validasi dokumen</b> oleh Akademik Sekolah Vokasi.</li>
+                    <li>Jika berkas sudah divalidasi oleh Akademik Sekolah Vokasi, mahasiswa bisa <b>segera melakukan konfirmasi kehadiran wisuda.</b></li>
+                    <li>Mahasiswa yang memilih konfirmasi kehadiran <b>"Bersedia"</b> ajuan akan diverifikasi oleh Akademik Sekolah Vokasi untuk mengikuti wisuda pada periode tersebut.</li>
+                    <li>Mahasiswa yang memilih konfirmasi kehadiran <b>"Tidak Bersedia"</b> ajuan tidak akan diverifikasi untuk wisuda periode tersebut dan <b>akan masuk dalam antrian verifikasi wisuda pada periode berikutnya.</b></li>
+                    <li>Status verifikasi dapat dilihat diweb yanma atau bisa juga cek berkala di web <a href="https://wisuda.uns.ac.id/" target="_blank">https://wisuda.uns.ac.id/</a> (log in web wisuda > pilih menu sinkron data > scroll kebawah, cari kolom "Pin Kode Akses Wisuda"), <b>jika sudah ada angkanya berarti sudah diverifikasi oleh Akademik Sekolah Vokasi.</b></li>
+                    <li>Jika sudah diverifikasi, <b>cek data pada menu sinkron data dan silahkan segera melakukan sinkronisasi data.</b></li>
+                    <li><b>Cetak draft ijazah</b> diweb wisuda pada menu Cetak > Draft Ijazah.</li>
+                    <li>Bagi mahasiswa <b>yang sudah diverifikasi tidak bisa mengundurkan diri</b> dengan alasan apapun.</li>
+                    <li><b>Wajib bergabung digrup telegram wisuda</b> (link grup ada dihalaman awal web wisuda).</li>
                 </ol>
             </div>
         </section>
