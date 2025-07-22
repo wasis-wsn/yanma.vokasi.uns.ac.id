@@ -86,6 +86,15 @@ Route::name('legalisir.')->prefix('legalisir')->group(function () {
     Route::get('/detail', [LegalisirController::class, 'detail'])->name('detail');
 });
 
+/* * * * * * * * * * * * * * * *  *
+*                                 *
+*   LandingPage Verifikasi Wisuda *
+*                                 *
+* * * * * * * * * * * * * * * * * */
+Route::name('verifikasiWisuda.')->prefix('verifikasiWisuda')->group(function () {
+        Route::get('/informasi', [VerifikasiWisudaController::class, 'landingPage'])->name('landingPage');
+    });
+
 /* * * * * * * * * * * * * * *
 *                            *
 *   LandingPage Akreditasi   *

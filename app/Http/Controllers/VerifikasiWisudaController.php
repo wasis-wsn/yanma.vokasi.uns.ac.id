@@ -25,6 +25,10 @@ use App\Services\FileStorageService;
 
 class VerifikasiWisudaController extends Controller
 {
+    public function landingPage(Request $request)
+    {
+        return view('landingpage.verifikasi_wisuda.index');
+    }
     public function index(Request $request)
     {
         $layanan = Layanan::where('url_mhs', $request->url())->orWhere('url_staff', $request->url())->first();

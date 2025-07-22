@@ -91,7 +91,11 @@
                                 <div class="col-xl-3 col-md-6 d-flex" data-aos="zoom-out">
                                     <div class="service-item position-relative">
                                         <h4>
-                                            <a href="{{$layanan->url_mhs}}" class="stretched-link">{{$layanan->name}}</a>
+                                            @if($layanan->name == 'Verifikasi Wisuda')
+                                                <a href="/verifikasiWisuda/informasi" class="stretched-link">{{$layanan->name}}</a>
+                                            @else
+                                                <a href="{{$layanan->url_mhs}}" class="stretched-link">{{$layanan->name}}</a>
+                                            @endif
                                         </h4>
                                     </div>
                                 </div><!-- End Service Item -->
