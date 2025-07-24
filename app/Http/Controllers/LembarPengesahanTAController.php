@@ -102,7 +102,7 @@ class LembarPengesahanTAController extends Controller
             $mahasiswa = User::findOrFail($user_id);
             if(!is_null($mahasiswa->pengajuanTTDTA)) {
                 return response()->json([
-                    'status' => false, 
+                    'status' => false,
                     'message' => 'Tidak dapat mengajukan karena mahasiswa sudah pernah mengajukan TTD Lembar Pengesahan TA'
                     ], 500);
             }
@@ -120,7 +120,41 @@ class LembarPengesahanTAController extends Controller
     {
         $id = decodeId($id);
         $data = PengajuanTTDTA::with('user', 'status')->where('id', $id)->first();
-        return response()->json(['data' => $data], 200);
+        return response()->json(['status' => true, 'data' => $data], 200);
+    }
+
+    public function listStaff(Request $request)
+    {
+        $list = PengajuanTTDTA::with('user.prodis', 'status')->whereYear('created_at', $request->year);
+        if ($request->status != 'all') $list = $list->where('status_id', $request->status);
+        $list = $list->orderBy('created_at', 'desc')->get();
+
+        return DataTables::of($list)
+            ->addIndexColumn()
+            ->addColumn('action', function ($row) {
+                // Staff users get no action buttons, only view
+                return '<button type="button" class="btn btn-info btn-sm btn-detail-ta" data-id="' . encodeId($row->id) . '">
+                            <i class="fa fa-eye"></i> Review
+                        </button>';
+            })
+            ->editColumn('created_at', function ($row) {
+                return Carbon::parse($row->created_at)->translatedFormat('d F Y') . '<br/>' . Carbon::parse($row->created_at)->translatedFormat('H:i:s') . ' WIB';
+            })
+            ->editColumn('status_id', function ($row) {
+                return '<button type="button" class="btn ' . $row->status->color . ' btn-sm" disabled>' . $row->status->name . '</button>';
+            })
+            ->editColumn('tanggal_ambil', function ($row) {
+                $tanggal_ambil = $row->tanggal_ambil;
+                if ($tanggal_ambil) {
+                    $tanggal_ambil = Carbon::parse($row->tanggal_ambil)->translatedFormat('d F Y') . '<br/>' . Carbon::parse($row->tanggal_ambil)->translatedFormat('H:i:s') . ' WIB';
+                }
+                return $tanggal_ambil;
+            })
+            ->editColumn('catatan', function ($row) {
+                return wordwrap($row->catatan, 20, "<br>");
+            })
+            ->rawColumns(['action', 'created_at', 'status_id', 'tanggal_ambil', 'catatan'])
+            ->toJson();
     }
 
     public function proses(Request $request, $id)

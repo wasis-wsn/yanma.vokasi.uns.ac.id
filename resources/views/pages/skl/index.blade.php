@@ -67,126 +67,128 @@
     <div class="conatiner-fluid content-inner mt-n5 py-0">
         <div class="row">
             <div class="col-sm-12">
-                @cannot('staff')
+                @can('mahasiswa')
                     <div class="card">
                         <div class="card-header d-flex justify-content-between">
                             <div class="header-title">
-                                @can('mahasiswa')
-                                    <h4 class="card-title">Layanan Surat Keterangan Lulus</h4>
-                                @endcan
-                                @canany(['dekanat','subkoor','fo','adminprodi'])
-                                    <h4 class="card-title">Pengajuan TTD TA</h4>
-                                @endcanany
+                                <h4 class="card-title">Layanan Surat Keterangan Lulus</h4>
                             </div>
                         </div>
                         <div class="card-body">
-                            @can('mahasiswa')
-                                <p>
-                                    {!! $layanan->keterangan !!}
-                                </p>
-                                <h6 class="mb-2">Alur Ajuan Layanan Surat Keterangan Lulus</h6>
-                                <div class="iq-timeline0 m-0 d-flex align-items-center justify-content-between position-relative">
-                                    <ul class="list-inline p-0 m-0">
+                            <p>
+                                {!! $layanan->keterangan !!}
+                            </p>
+                            <h6 class="mb-2">Alur Ajuan Layanan Surat Keterangan Lulus</h6>
+                            <div class="iq-timeline0 m-0 d-flex align-items-center justify-content-between position-relative">
+                                <ul class="list-inline p-0 m-0">
+                                    <li>
+                                        <div class="timeline-dots timeline-dot1 border-primary text-primary"></div>
+                                        <h6 class="float-left mb-1">Mengajukan Tanda Tangan Lembar Pengesahan Tugas Akhir</h6>
+                                        <div class="d-inline-block w-100">
+                                            <p>Mahasiswa mengumpulkan berkas Lembar Pengesahan TA yang sudah di TTD Kaprodi dan Dosen Pembimbing ke Front Office SV UNS</p>
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <div class="timeline-dots timeline-dot1 border-success text-success"></div>
+                                        <h6 class="float-left mb-1">Mengajukan SKL di Siakad UNS</h6>
+                                        <div class="d-inline-block w-100">
+                                            <p>Silahkan mengajukan SKL melalui <a href="https://siakad.uns.ac.id/" target="_blank" rel="noopener noreferrer">Siakad</a></p>
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <div class="timeline-dots timeline-dot1 border-danger text-danger"></div>
+                                        <h6 class="float-left mb-1">Mengajukan SKL di sistem ini</h6>
+                                        <div class="d-inline-block w-100">
+                                            <p>Silahkan tambah ajuan dengan cara klik "Pengajuan SKL" pada tombol dibawah, kemudian klik "Ajukan Surat Keterangan Lulus" dan upload file yang diperlukan</p>
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <div class="timeline-dots timeline-dot1 border-primary text-primary"></div>
+                                        <h6 class="float-left mb-1">Cek Status Ajuan</h6>
+                                        <div class="d-inline-block w-100">
+                                            <p>Cek Status Ajuan Anda dengan cara klik "Pengajuan SKL" pada tombol dibawah,</p>
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <div class="timeline-dots timeline-dot1 border-warning text-warning"></div>
+                                        <h6 class="float-left mb-1">Status Ajuan Selesai</h6>
+                                        <div class="d-inline-block w-100">
+                                            <p>Silahkan mengambil SKL di Front Office Sekolah Vokasi pada hari Senin-Jum'at pukul 08.00 - 15.30 WIB</p>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                            @if (count($templates) > 0)
+                            <p class="text-dark">
+                                Template File:
+                                <ul class="text-dark">
+                                    @foreach ($templates as $item)
                                         <li>
-                                            <div class="timeline-dots timeline-dot1 border-primary text-primary"></div>
-                                            <h6 class="float-left mb-1">Mengajukan Tanda Tangan Lembar Pengesahan Tugas Akhir</h6>
-                                            <div class="d-inline-block w-100">
-                                                <p>Mahasiswa mengumpulkan berkas Lembar Pengesahan TA yang sudah di TTD Kaprodi dan Dosen Pembimbing ke Front Office SV UNS</p>
-                                            </div>
+                                            {{$item->template}}
+                                            (<a href="{{asset('storage/template/'.$item->file)}}">download</a>)
                                         </li>
-                                        <li>
-                                            <div class="timeline-dots timeline-dot1 border-success text-success"></div>
-                                            <h6 class="float-left mb-1">Mengajukan SKL di Siakad UNS</h6>
-                                            <div class="d-inline-block w-100">
-                                                <p>Silahkan mengajukan SKL melalui <a href="https://siakad.uns.ac.id/" target="_blank" rel="noopener noreferrer">Siakad</a></p>
-                                            </div>
-                                        </li>
-                                        <li>
-                                            <div class="timeline-dots timeline-dot1 border-danger text-danger"></div>
-                                            <h6 class="float-left mb-1">Mengajukan SKL di sistem ini</h6>
-                                            <div class="d-inline-block w-100">
-                                                <p>Silahkan tambah ajuan dengan cara klik "Pengajuan SKL" pada tombol dibawah, kemudian klik "Ajukan Surat Keterangan Lulus" dan upload file yang diperlukan</p>
-                                            </div>
-                                        </li>
-                                        <li>
-                                            <div class="timeline-dots timeline-dot1 border-primary text-primary"></div>
-                                            <h6 class="float-left mb-1">Cek Status Ajuan</h6>
-                                            <div class="d-inline-block w-100">
-                                                <p>Cek Status Ajuan Anda dengan cara klik "Pengajuan SKL" pada tombol dibawah,</p>
-                                            </div>
-                                        </li>
-                                        <li>
-                                            <div class="timeline-dots timeline-dot1 border-warning text-warning"></div>
-                                            <h6 class="float-left mb-1">Status Ajuan Selesai</h6>
-                                            <div class="d-inline-block w-100">
-                                                <p>Silahkan mengambil SKL di Front Office Sekolah Vokasi pada hari Senin-Jum'at pukul 08.00 - 15.30 WIB</p>
-                                            </div>
-                                        </li>
-                                    </ul>
-                                </div>
-                                @if (count($templates) > 0)
-                                <p class="text-dark">
-                                    Template File:
-                                    <ul class="text-dark">
-                                        @foreach ($templates as $item)
-                                            <li>
-                                                {{$item->template}}
-                                                (<a href="{{asset('storage/template/'.$item->file)}}">download</a>)
-                                            </li>
-                                        @endforeach
-                                    </ul>
-                                </p>
-                                @endif
-                            @endcan
+                                    @endforeach
+                                </ul>
+                            </p>
+                            @endif
+                        </div>
+                    </div>
+                @endcan
+                @canany(['dekanat','subkoor','fo','adminprodi','staff'])
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between">
+                            <div class="header-title">
+                                <h4 class="card-title">Pengajuan TTD TA</h4>
+                            </div>
+                        </div>
+                        <div class="card-body">
                             @can('fo')
                                 <div class="d-flex justify-content-end pb-4 px-4">
                                     <button type="button" class="btn btn-primary mx-2" id="tambahTA">Tambah Ajuan</button>
                                 </div>
                             @endcan
-                            @canany(['dekanat','subkoor','fo','adminprodi'])
-                                <div class="d-flex justify-content-end pb-4">
-                                    <div class="dropdown mx-2">
-                                        <button class="btn btn-light btn-sm dropdown-toggle" type="button" id="status_ta" data-bs-toggle="dropdown" data-status="all" aria-expanded="false">Semua</button>
-                                        <ul class="dropdown-menu" aria-labelledby="status_ta">
-                                            <li><a class="dropdown-item status-ta" href="#" data-status="all">Semua</a></li>
-                                            @foreach ($status_ta as $st)
-                                            <li><a class="dropdown-item status-ta" href="#" data-status="{{ $st->id }}">{{ $st->name }}</a></li>
-                                            @endforeach
-                                        </ul>
-                                    </div>
-                                    <div class="dropdown mx-2">
-                                        <button class="btn btn-light btn-sm dropdown-toggle" type="button" id="tahun_ta" data-bs-toggle="dropdown" aria-expanded="false">{{ date('Y') }}</button>
-                                        <ul class="dropdown-menu" aria-labelledby="tahun_ta">
-                                            @foreach ($tahuns as $tahun)
-                                            <li><a class="dropdown-item tahun-ta" href="#" data-year="{{ $tahun->tahun }}">{{ $tahun->tahun }}</a></li>
-                                            @endforeach
-                                        </ul>
-                                    </div>
+                            <div class="d-flex justify-content-end pb-4">
+                                <div class="dropdown mx-2">
+                                    <button class="btn btn-light btn-sm dropdown-toggle" type="button" id="status_ta" data-bs-toggle="dropdown" data-status="all" aria-expanded="false">Semua</button>
+                                    <ul class="dropdown-menu" aria-labelledby="status_ta">
+                                        <li><a class="dropdown-item status-ta" href="#" data-status="all">Semua</a></li>
+                                        @foreach ($status_ta as $st)
+                                        <li><a class="dropdown-item status-ta" href="#" data-status="{{ $st->id }}">{{ $st->name }}</a></li>
+                                        @endforeach
+                                    </ul>
                                 </div>
-                                <div class="table-responsive">
-                                    <table id="ttdTA-datatable" class="table table-striped w-100">
-                                        <thead>
-                                            <tr>
-                                                <th>#</th>
-                                                <th>Nama</th>
-                                                <th>Nim</th>
-                                                <th>Status</th>
-                                                <th>Tanggal Submit</th>
-                                                <th>Tanggal Ambil</th>
-                                                @can('fo')
-                                                <th>Aksi</th>
-                                                @endcan
-                                                <th>Catatan</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="show_data_ta">
-                                        </tbody>
-                                    </table>
+                                <div class="dropdown mx-2">
+                                    <button class="btn btn-light btn-sm dropdown-toggle" type="button" id="tahun_ta" data-bs-toggle="dropdown" aria-expanded="false">{{ date('Y') }}</button>
+                                    <ul class="dropdown-menu" aria-labelledby="tahun_ta">
+                                        @foreach ($tahuns as $tahun)
+                                        <li><a class="dropdown-item tahun-ta" href="#" data-year="{{ $tahun->tahun }}">{{ $tahun->tahun }}</a></li>
+                                        @endforeach
+                                    </ul>
                                 </div>
-                            @endcanany
+                            </div>
+                            <div class="table-responsive">
+                                <table id="ttdTA-datatable" class="table table-striped w-100">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Nama</th>
+                                            <th>Nim</th>
+                                            <th>Status</th>
+                                            <th>Tanggal Submit</th>
+                                            <th>Tanggal Ambil</th>
+                                            @can('fo')
+                                            <th>Aksi</th>
+                                            @endcan
+                                            <th>Catatan</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="show_data_ta">
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
-                @endcannot
+                @endcanany
                 <div class="card">
                     @can('mahasiswa')
                         <div class="card-header">
@@ -398,6 +400,8 @@
             var year = $("#tahunDropdown").html();
             var status_table = $("#statusDropdown").data('status');
             var prodi_table = $("#prodiDropdown").data('prodi');
+            var year_ta = $("#tahun_ta").html();
+            var status_table_ta = $("#status_ta").data('status');
             window.Laravel = {};
             window.Laravel.skl = {!! json_encode([
                 'baseUrl' => url('/'),
@@ -406,8 +410,13 @@
                 'getData' => route('skl.show', ':id'),
                 'routeProses' => route('skl.proses', ':id'),
             ]) !!};
+            window.Laravel.TA = {!! json_encode([
+                'listData' => route('TA.listStaff'),
+                'routeShow' => route('TA.show', ':id'),
+            ]) !!};
         </script>
         <script src="{{ asset('custom/js/skl/staff.js') }}?q{{Str::random(5)}}"></script>
+        <script src="{{ asset('custom/js/ta/staff.js') }}?q{{Str::random(5)}}"></script>
     @endcan
     {{-- Front Office Scripts --}}
     @can('fo')

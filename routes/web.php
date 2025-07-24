@@ -320,9 +320,10 @@ Route::middleware('auth')->group(function () {
 
     Route::name('TA.')->prefix('TA')->group(function () {
         Route::get('/', [LembarPengesahanTAController::class, 'listFo'])->name('listFo')->middleware('role:fo');
+        Route::get('/listStaff', [LembarPengesahanTAController::class, 'listStaff'])->name('listStaff')->middleware('role:staff');
         Route::get('/listDekanat', [LembarPengesahanTAController::class, 'listDekanat'])->name('listDekanat')->middleware('role:dekanat,subkoor,adminprodi');
         Route::post('/TA', [LembarPengesahanTAController::class, 'store'])->name('store')->middleware('role:mahasiswa,fo');
-        Route::get('/show/{id}', [LembarPengesahanTAController::class, 'showTA'])->name('show')->middleware('role:mahasiswa,staff,dekanat,subkoor,fo,adminprodi');
+        Route::get('/show/{id}', [LembarPengesahanTAController::class, 'show'])->name('show')->middleware('role:mahasiswa,staff,dekanat,subkoor,fo,adminprodi');
         Route::post('/proses/{id}', [LembarPengesahanTAController::class, 'proses'])->name('proses')->middleware('role:fo');
         Route::delete('/delete/{id}', [LembarPengesahanTAController::class, 'destroy'])->name('destroy')->middleware('role:fo');
     });
