@@ -169,7 +169,7 @@ class TranskripNilaiController extends Controller
     public function update(Request $request, $id)
     {
         $request->validate([
-            'no_surat' => ['required_if:status,2'],
+            'no_surat' => ['required'],
             'status_id' => ['required'],
         ], [
             'required' => ':attribute wajib diisi!',
