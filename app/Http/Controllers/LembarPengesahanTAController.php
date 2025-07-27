@@ -2,7 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Layanan;
 use App\Models\PengajuanTTDTA;
+use App\Models\StatusPengesahanTA;
+use App\Models\Tahun;
+use App\Models\Template;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -11,6 +15,31 @@ use Yajra\DataTables\Facades\DataTables;
 
 class LembarPengesahanTAController extends Controller
 {
+    public function index(Request $request)
+    {
+        $layanan = Layanan::where('url_mhs', $request->url())->orWhere('url_staff', $request->url())->first();
+
+        // If no layanan found by URL, try to find by a specific identifier or create default
+        if (!$layanan) {
+            // Try to find by name or create a fallback
+            $layanan = Layanan::where('name', 'LIKE', '%TTD%')->orWhere('name', 'LIKE', '%Pengesahan%')->first();
+
+            // If still not found, create a default object to prevent errors
+            if (!$layanan) {
+                $layanan = (object) [
+                    'id' => null,
+                    'keterangan' => 'Layanan Pengajuan Tanda Tangan Lembar Pengesahan Tugas Akhir'
+                ];
+            }
+        }
+
+        $templates = $layanan->id ? Template::where('layanan_id', $layanan->id)->get() : collect();
+        $tahuns = Tahun::select('tahun')->orderBy('tahun', 'desc')->get();
+        $status_ta = StatusPengesahanTA::all();
+
+        return view('pages.ttd-ta.index', compact('status_ta', 'tahuns', 'templates', 'layanan'));
+    }
+
     public function listFo(Request $request)
     {
         $list = PengajuanTTDTA::with('user.prodis', 'status')->whereYear('created_at', $request->year);

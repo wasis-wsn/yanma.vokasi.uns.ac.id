@@ -9,16 +9,12 @@
             background-color: #f1f1f1;
             color: black;
             border: 1px solid #dee2e6!important;
-            /* border-right: 1px solid #dee2e6!important;
-            border-left: 1px solid #dee2e6!important;
-            border-bottom: 1px solid rgba(0, 0, 0, 0) !important; */
             border-top-left-radius: .25rem!important;
             border-top-right-radius: .25rem!important;
             border-bottom-left-radius: -.75rem!important;
             border-bottom-right-radius: -.75rem!important;
             text-align: center;
             vertical-align: middle;
-            /* padding: .5rem 1.5rem; */
             width: 200px;
         }
 
@@ -32,7 +28,6 @@
             border-bottom-right-radius: -.75rem!important;
             text-align: center;
             vertical-align: middle;
-            /* padding: .5rem 1.5rem; */
             width: 200px;
         }
 
@@ -82,13 +77,6 @@
                             <div class="iq-timeline0 m-0 d-flex align-items-center justify-content-between position-relative">
                                 <ul class="list-inline p-0 m-0">
                                     <li>
-                                        <div class="timeline-dots timeline-dot1 border-primary text-primary"></div>
-                                        <h6 class="float-left mb-1">Mengajukan Tanda Tangan Lembar Pengesahan Tugas Akhir</h6>
-                                        <div class="d-inline-block w-100">
-                                            <p>Mahasiswa mengumpulkan berkas Lembar Pengesahan TA yang sudah di TTD Kaprodi dan Dosen Pembimbing ke Front Office SV UNS</p>
-                                        </div>
-                                    </li>
-                                    <li>
                                         <div class="timeline-dots timeline-dot1 border-success text-success"></div>
                                         <h6 class="float-left mb-1">Mengajukan SKL di Siakad UNS</h6>
                                         <div class="d-inline-block w-100">
@@ -99,14 +87,14 @@
                                         <div class="timeline-dots timeline-dot1 border-danger text-danger"></div>
                                         <h6 class="float-left mb-1">Mengajukan SKL di sistem ini</h6>
                                         <div class="d-inline-block w-100">
-                                            <p>Silahkan tambah ajuan dengan cara klik "Pengajuan SKL" pada tombol dibawah, kemudian klik "Ajukan Surat Keterangan Lulus" dan upload file yang diperlukan</p>
+                                            <p>Silahkan tambah ajuan dengan cara klik "Ajukan Surat Keterangan Lulus" pada tombol dibawah dan upload file yang diperlukan</p>
                                         </div>
                                     </li>
                                     <li>
                                         <div class="timeline-dots timeline-dot1 border-primary text-primary"></div>
                                         <h6 class="float-left mb-1">Cek Status Ajuan</h6>
                                         <div class="d-inline-block w-100">
-                                            <p>Cek Status Ajuan Anda dengan cara klik "Pengajuan SKL" pada tombol dibawah,</p>
+                                            <p>Cek Status Ajuan Anda pada tabel dibawah</p>
                                         </div>
                                     </li>
                                     <li>
@@ -134,160 +122,64 @@
                         </div>
                     </div>
                 @endcan
-                @canany(['dekanat','subkoor','fo','adminprodi','staff'])
-                    <div class="card">
-                        <div class="card-header d-flex justify-content-between">
-                            <div class="header-title">
-                                <h4 class="card-title">Pengajuan TTD TA</h4>
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            @can('fo')
-                                <div class="d-flex justify-content-end pb-4 px-4">
-                                    <button type="button" class="btn btn-primary mx-2" id="tambahTA">Tambah Ajuan</button>
-                                </div>
-                            @endcan
-                            <div class="d-flex justify-content-end pb-4">
-                                <div class="dropdown mx-2">
-                                    <button class="btn btn-light btn-sm dropdown-toggle" type="button" id="status_ta" data-bs-toggle="dropdown" data-status="all" aria-expanded="false">Semua</button>
-                                    <ul class="dropdown-menu" aria-labelledby="status_ta">
-                                        <li><a class="dropdown-item status-ta" href="#" data-status="all">Semua</a></li>
-                                        @foreach ($status_ta as $st)
-                                        <li><a class="dropdown-item status-ta" href="#" data-status="{{ $st->id }}">{{ $st->name }}</a></li>
-                                        @endforeach
-                                    </ul>
-                                </div>
-                                <div class="dropdown mx-2">
-                                    <button class="btn btn-light btn-sm dropdown-toggle" type="button" id="tahun_ta" data-bs-toggle="dropdown" aria-expanded="false">{{ date('Y') }}</button>
-                                    <ul class="dropdown-menu" aria-labelledby="tahun_ta">
-                                        @foreach ($tahuns as $tahun)
-                                        <li><a class="dropdown-item tahun-ta" href="#" data-year="{{ $tahun->tahun }}">{{ $tahun->tahun }}</a></li>
-                                        @endforeach
-                                    </ul>
-                                </div>
-                            </div>
-                            <div class="table-responsive">
-                                <table id="ttdTA-datatable" class="table table-striped w-100">
-                                    <thead>
-                                        <tr>
-                                            <th>#</th>
-                                            <th>Nama</th>
-                                            <th>Nim</th>
-                                            <th>Status</th>
-                                            <th>Tanggal Submit</th>
-                                            <th>Tanggal Ambil</th>
-                                            @can('fo')
-                                            <th>Aksi</th>
-                                            @endcan
-                                            <th>Catatan</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="show_data_ta">
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                @endcanany
+
                 <div class="card">
                     @can('mahasiswa')
-                        <div class="card-header">
-                            <div class="border-bottom">
-                                <button type="button" class="selected btn-skl btn-sm btn-ta mt-1" data-pengajuan="pengajuanTTDTA">Pengajuan Lembar Pengesahan TA
-                                </button>
-                                <button type="button" class="unselect btn-skl btn-sm mt-1" data-pengajuan="pengajuanSKL">Pengajuan SKL
-                                </button>
+                        <div class="card-header d-flex justify-content-between">
+                            <div class="header-title">
+                                <h4 class="card-title">Pengajuan Surat Keterangan Lulus</h4>
                             </div>
                         </div>
                         <div class="card-body">
-                            <div class="section-skl" id="pengajuanTTDTA">
-                                @if (auth()->user()->pengajuanTTDTA == null)
-                                    <div class="d-flex justify-content-center">
-                                        <button type="button" class="btn btn-success" id="tambahTA" data-id="{{auth()->user()->id}}">Saya Sudah Menyerahkan Lembar Pengesahan TA</button>
-                                    </div>
-                                @else
-                                    <div class="table-responsive">
-                                        <table class="table table-borderless">
-                                            <tr>
-                                                <td width="30%">Tanggal Mengajukan</td>
-                                                <td>: {{ \Carbon\Carbon::parse(auth()->user()->pengajuanTTDTA->created_at)->translatedFormat('d F Y H:i:s') }} WIB</td>
-                                            </tr>
-                                            <tr>
-                                                <td>Status</td>
-                                                <td>:
-                                                    <button type="button" class="{{auth()->user()->pengajuanTTDTA->status->color}} btn-sm mt-1" disabled>{{auth()->user()->pengajuanTTDTA->status->name}}
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td width="30%">Tanggal Diambil</td>
-                                                <td>:
-                                                    {{ (auth()->user()->pengajuanTTDTA->tanggal_ambil) ? \Carbon\Carbon::parse(auth()->user()->pengajuanTTDTA->tanggal_ambil)->translatedFormat('d F Y H:i:s'). 'WIB' : '' }}
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td>Catatan</td>
-                                                <td>: {{auth()->user()->pengajuanTTDTA->catatan}}</td>
-                                            </tr>
-                                        </table>
-                                    </div>
-                                @endif
-                            </div>
-                            <div class="section-skl" id="pengajuanSKL" hidden>
-                                @if (auth()->user()->skl == null)
-                                    <div class="d-flex justify-content-center">
-                                        @if (auth()->user()->pengajuanTTDTA != null && (in_array(auth()->user()->pengajuanTTDTA->status_id, ['4', '5'])))
-                                            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalTambah">Ajukan Surat Keterangan Lulus</button>
-                                            @include('pages.skl.modal_tambah')
-                                        @else
-                                            <p>Anda tidak dapat mengajukan SKL karena Lembar Pengesahan TA Anda belum di tanda tangani oleh Dekanat</p>
-                                        @endif
-                                    </div>
-                                @else
-                                    @include('pages.skl.modal_edit')
-                                    <div class="table-responsive">
-                                        <table class="table table-borderless">
-                                            <tr>
-                                                <td width="30%">Tanggal Mengajukan</td>
-                                                <td>: {{ \Carbon\Carbon::parse(auth()->user()->skl->created_at)->translatedFormat('d F Y H:i:s') }} WIB</td>
-                                            </tr>
-                                            <tr>
-                                                <td width="30%">Tanggal Diproses</td>
-                                                <td>:
-                                                    {{ (auth()->user()->skl->tanggal_proses) ? \Carbon\Carbon::parse(auth()->user()->skl->tanggal_proses)->translatedFormat('d F Y H:i:s'). 'WIB' : '' }}
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td>Status</td>
-                                                <td>:
-                                                    <button type="button" class="{{auth()->user()->skl->status->color}} btn-sm mt-1" disabled>{{auth()->user()->skl->status->name}}
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td width="30%">Tanggal Diambil</td>
-                                                <td>:
-                                                    {{ (auth()->user()->skl->tanggal_ambil) ? \Carbon\Carbon::parse(auth()->user()->skl->tanggal_ambil)->translatedFormat('d F Y H:i:s'). 'WIB' : '' }}
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td width="30%">File Upload</td>
-                                                <td>:
-                                                    <a href="{{ url('storage/skl/upload/'. auth()->user()->skl->lembar_revisi) }}" target="_blank" class="btn btn-sm btn-primary">Lembar Revisi</a>
-                                                    <a href="{{ url('storage/skl/upload/'. auth()->user()->skl->ss_ajuan_skl) }}" target="_blank" class="btn btn-sm btn-primary">SS SKL Siakad</a>
-                                                    @if (auth()->user()->skl->status_id == '2')
-                                                        <button type="button" class="btn btn-sm btn-warning btn-edit" data-id="{{ encodeId(auth()->user()->skl->id) }}">Ajukan Revisi</button>
-                                                    @endif
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td>Catatan</td>
-                                                <td>: {{auth()->user()->skl->catatan}}</td>
-                                            </tr>
-                                        </table>
-                                    </div>
-                                @endif
-                            </div>
+                            @if (auth()->user()->skl == null)
+                                <div class="d-flex justify-content-center">
+                                    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalTambah">Ajukan Surat Keterangan Lulus</button>
+                                    @include('pages.skl.modal_tambah')
+                                </div>
+                            @else
+                                @include('pages.skl.modal_edit')
+                                <div class="table-responsive">
+                                    <table class="table table-borderless">
+                                        <tr>
+                                            <td width="30%">Tanggal Mengajukan</td>
+                                            <td>: {{ \Carbon\Carbon::parse(auth()->user()->skl->created_at)->translatedFormat('d F Y H:i:s') }} WIB</td>
+                                        </tr>
+                                        <tr>
+                                            <td width="30%">Tanggal Diproses</td>
+                                            <td>:
+                                                {{ (auth()->user()->skl->tanggal_proses) ? \Carbon\Carbon::parse(auth()->user()->skl->tanggal_proses)->translatedFormat('d F Y H:i:s'). 'WIB' : '' }}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>Status</td>
+                                            <td>:
+                                                <button type="button" class="{{auth()->user()->skl->status->color}} btn-sm mt-1" disabled>{{auth()->user()->skl->status->name}}
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td width="30%">Tanggal Diambil</td>
+                                            <td>:
+                                                {{ (auth()->user()->skl->tanggal_ambil) ? \Carbon\Carbon::parse(auth()->user()->skl->tanggal_ambil)->translatedFormat('d F Y H:i:s'). 'WIB' : '' }}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td width="30%">File Upload</td>
+                                            <td>:
+                                                <a href="{{ url('storage/skl/upload/'. auth()->user()->skl->lembar_revisi) }}" target="_blank" class="btn btn-sm btn-primary">Lembar Revisi</a>
+                                                <a href="{{ url('storage/skl/upload/'. auth()->user()->skl->ss_ajuan_skl) }}" target="_blank" class="btn btn-sm btn-primary">SS SKL Siakad</a>
+                                                @if (auth()->user()->skl->status_id == '2')
+                                                    <button type="button" class="btn btn-sm btn-warning btn-edit" data-id="{{ encodeId(auth()->user()->skl->id) }}">Ajukan Revisi</button>
+                                                @endif
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>Catatan</td>
+                                            <td>: {{auth()->user()->skl->catatan}}</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            @endif
                         </div>
                     @endcan
                     @cannot('mahasiswa')
@@ -334,7 +226,6 @@
                                 <table id="skl-datatable" class="table table-striped" width="100%">
                                     <thead>
                                         <tr>
-
                                             <th hidden>created_at</th>
                                             <td>No</td>
                                             <td>Nama</td>
@@ -362,8 +253,6 @@
 
     {{-- Modal --}}
     @can('fo')
-        @include('pages.skl.modal_proses_ta')
-        @include('pages.skl.modal_tambah_ta')
         @include('modals.proses')
     @endcan
     @can('staff')
@@ -372,7 +261,6 @@
     @cannot('mahasiswa')
         @include('modals.export')
         @include('pages.skl.modal_detail_skl')
-        @include('pages.skl.modal_detail_ta')
     @endcannot
 
 @endsection
@@ -388,7 +276,6 @@
         <script>
             window.Laravel = {!! json_encode([
                 'baseUrl' => url('/'),
-                'addTA' => route('TA.store'),
                 'revisi' => route('skl.revisi', ':id'),
                 'getData' => route('skl.show', ':id'),
             ]) !!};
@@ -400,8 +287,6 @@
             var year = $("#tahunDropdown").html();
             var status_table = $("#statusDropdown").data('status');
             var prodi_table = $("#prodiDropdown").data('prodi');
-            var year_ta = $("#tahun_ta").html();
-            var status_table_ta = $("#status_ta").data('status');
             window.Laravel = {};
             window.Laravel.skl = {!! json_encode([
                 'baseUrl' => url('/'),
@@ -410,39 +295,17 @@
                 'getData' => route('skl.show', ':id'),
                 'routeProses' => route('skl.proses', ':id'),
             ]) !!};
-            window.Laravel.TA = {!! json_encode([
-                'listData' => route('TA.listStaff'),
-                'routeShow' => route('TA.show', ':id'),
-            ]) !!};
         </script>
         <script src="{{ asset('custom/js/skl/staff.js') }}?q{{Str::random(5)}}"></script>
-        <script src="{{ asset('custom/js/ta/staff.js') }}?q{{Str::random(5)}}"></script>
     @endcan
     {{-- Front Office Scripts --}}
     @can('fo')
-        {{-- TA Scripts --}}
-        <script>
-            let year_ta = $("#tahun_ta").html();
-            let status_table_ta = $("#status_ta").data('status');
-
-            window.Laravel = {};
-            window.Laravel.TA = {!! json_encode([
-                'listData' => route('TA.listFo'),
-                'getMhs' => route('get_mhs'),
-                'routeAdd' => route('TA.store'),
-                'routeProses' => route('TA.proses', ':id'),
-                'routeShow' => route('TA.show', ':id'),
-                'deleteData' => route('TA.destroy', ':id'),
-            ]) !!};
-        </script>
-        <script src="{{ asset('custom/js/ta/fo.js') }}?q{{Str::random(5)}}"></script>
-
-        {{-- SKL Scripts --}}
         <script>
             let year = $("#tahunDropdown").html();
             let status_table = $("#statusDropdown").data('status');
             let prodi_table = $("#prodiDropdown").data('prodi');
 
+            window.Laravel = {};
             window.Laravel.skl = {!! json_encode([
                 'baseUrl' => url('/'),
                 'listData' => route('skl.listFo'),
@@ -455,25 +318,12 @@
 
     {{-- Dekanat Scripts --}}
     @canany(['dekanat','subkoor','adminprodi'])
-        {{-- TA Scripts --}}
-        <script>
-            let year_ta = $("#tahun_ta").html();
-            let status_table_ta = $("#status_ta").data('status');
-
-            window.Laravel = {};
-            window.Laravel.TA = {!! json_encode([
-                'listData' => route('TA.listDekanat'),
-                'routeShow' => route('TA.show', ':id'),
-            ]) !!};
-        </script>
-        <script src="{{ asset('custom/js/ta/dekanat.js') }}?q{{Str::random(5)}}"></script>
-
-        {{-- SKL Scripts --}}
         <script>
             let year = $("#tahunDropdown").html();
             let status_table = $("#statusDropdown").data('status');
             let prodi_table = $("#prodiDropdown").data('prodi');
 
+            window.Laravel = {};
             window.Laravel.skl = {!! json_encode([
                 'baseUrl' => url('/'),
                 'export' => route('skl.export'),

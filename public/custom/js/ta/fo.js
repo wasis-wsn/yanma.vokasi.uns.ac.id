@@ -237,8 +237,8 @@ $("#show_data_ta").on("click", ".btn-proses", function () {
     $("#form-proses-ta").attr("action", action);
     $("#form-proses textarea").val("");
     $.ajax({
-        url: window.Laravel.skl.getData.replace(":id", id),
-        type: "POST",
+        url: window.Laravel.TA.getData.replace(":id", id),
+        type: "GET",
         headers: {
             "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content"),
         },

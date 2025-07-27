@@ -27,9 +27,8 @@ class SKLController extends Controller
         $tahuns = Tahun::select('tahun')->orderBy('tahun', 'desc')->get();
         $status = StatusSKL::all(); // status SKL
         $prodis = Prodi::all();
-        $status_ta = StatusPengesahanTA::all();
         $templates = Template::where('layanan_id', $layanan->id)->get();
-        return view('pages.skl.index', compact('tahuns', 'layanan', 'status', 'prodis', 'status_ta', 'templates'));
+        return view('pages.skl.index', compact('tahuns', 'layanan', 'status', 'prodis', 'templates'));
     }
 
     public function listStaff(Request $request)
