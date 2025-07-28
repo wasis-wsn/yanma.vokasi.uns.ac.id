@@ -276,7 +276,7 @@ $("#form-tambah").submit(function (e) {
                         $("#modalTambah").modal("hide");
                         Swal.fire({
                             title: "Berhasil!",
-                            text: res.message + ' Nomor Antrian: ' + res.queue_number,
+                            text: res.message,
                             icon: "success",
                         });
                         table.ajax.reload();
