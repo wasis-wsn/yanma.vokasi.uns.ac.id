@@ -14,6 +14,10 @@ const initializeDataTable = (status, year) => {
             { data: "keperluan" },
             { data: "no_surat" },
             { data: "status_id" },
+            { 
+                data: "queue_number",
+                className: "queue-info",
+            },
             { data: "catatan" },
             { data: "action" },
         ],
@@ -63,8 +67,26 @@ $(".status-menu").click(function () {
     table = initializeDataTable(status_table, year);
 });
 
-setInterval(function () {
-    table.ajax.reload(null, false); // user paging is not reset on reload
+// Cek update antrian setiap 30 detik
+setInterval(function() {
+    if ($('#modalDetail').is(':visible') || $('.dataTables_filter input').is(':focus')) {
+        $.ajax({
+            url: '/suket/queue-status',
+            type: "GET",
+            success: function(res) {
+                if (res.status) {
+                    // Update tabel
+                    table.ajax.reload(null, false);
+                    
+                    // Update modal detail jika terbuka
+                    if ($('#modalDetail').is(':visible')) {
+                        $("#detail-queue-number").text(res.user_queue);
+                        $("#detail-total-queue").text(res.total_waiting);
+                    }
+                }
+            }
+        });
+    }
 }, 30000);
 
 $("#show_data").on("click", ".btn-detail", function () {
@@ -99,6 +121,16 @@ $("#show_data").on("click", ".btn-detail", function () {
                     "class",
                     `btn ${res.data.status.color} btn-small`
                 );
+                $("#detail-queue-number").text(res.data.queue_number);
+                $.ajax({
+                    url: '/suket/queue-status',
+                    type: 'GET',
+                    success: function(queueRes) {
+                        if (queueRes.status) {
+                            $("#detail-total-queue").text(queueRes.total_waiting);
+                        }
+                    }
+                });
                 const canProses = ["1", "3", "4", "5", "6"];
                 // console.log(canProses.includes(res.data.status_id));
                 if (canProses.includes(res.data.status_id)) {
@@ -219,6 +251,9 @@ $("#form-proses").submit(function (e) {
                     showConfirmButton: false,
                     timer: 1500
                 });
+                if (res.status_id && [5,6,7].includes(parseInt(res.status_id))) {
+                    updateQueueNumbers();
+                }
                 table.ajax.reload();
             } 
         },
@@ -235,3 +270,4 @@ $("#form-proses").submit(function (e) {
         processData: false,
     });
 });
+

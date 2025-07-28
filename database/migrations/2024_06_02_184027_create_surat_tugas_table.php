@@ -17,6 +17,10 @@ return new class extends Migration
             // $table->unsignedBigInteger('status_id')->default(1);
             $table->foreignId('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->foreignId('status_id')->nullable()->references('id')->on('status_kemahasiswaans')->onDelete('set null');
+            // kolom dari migration kedua sudah dimasukkan di sini
+            $table->integer('queue_number')->nullable()->after('status_id');
+            $table->enum('queue_status', ['waiting', 'processed'])->default('waiting')->after('queue_number');
+
             $table->string('catatan')->nullable();
             $table->string('file')->nullable();
             $table->string('surat_hasil')->nullable();

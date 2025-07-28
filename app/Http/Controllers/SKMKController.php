@@ -14,6 +14,7 @@ use App\Exports\SKMKExport;
 use App\Models\Layanan;
 use App\Models\Semester;
 use App\Models\StatusKemahasiswaan;
+use App\Models\Prodi;
 use App\Models\Tahun;
 use App\Models\TahunAkademik;
 use App\Models\Template;
@@ -29,11 +30,12 @@ class SKMKController extends Controller
         $layanan = Layanan::where('url_mhs', $request->url())->orWhere('url_staff', $request->url())->first();
         $tahuns = Tahun::select('tahun')->orderBy('tahun', 'desc')->get();
         $status = StatusKemahasiswaan::all();
+        $prodis = Prodi::all();
         $templates = Template::where('layanan_id', $layanan->id)->get();
         $tahunAkademik = TahunAkademik::orderBy('tahun_akademik', 'desc')->limit('6')->get();
         $semester = Semester::all();
         session(['layanan' => $layanan]);
-        return view('pages.skmk.index', compact('tahuns', 'layanan', 'status', 'templates', 'tahunAkademik', 'semester'));
+        return view('pages.skmk.index', compact('tahuns', 'layanan', 'status', 'templates', 'prodis', 'tahunAkademik', 'semester'));
     }
 
     public function listMahasiswa()
@@ -74,10 +76,24 @@ class SKMKController extends Controller
             ->editColumn('status_id', function ($row) {
                 return '<button type="button" class="btn ' . $row->status->color . ' btn-sm" disabled>' . $row->status->name . '</button>';
             })
+            ->editColumn('queue_number', function ($row) {
+                if ($row->queue_status === 'processed') {
+                    return "Selesai";
+                }
+                $currentQueue = SKMK::whereDate('created_at', today())
+                                ->where('queue_status', 'waiting')
+                                ->orderBy('queue_number', 'asc')
+                                ->first();
+                
+                $position = $row->queue_number;
+                $current = $currentQueue ? $currentQueue->queue_number : 0;
+                
+                return "Antrian $position (Sekarang: $current)";
+            })
             ->editColumn('catatan', function ($row) {
                 return wordwrap($row->catatan, 20, '<br>');
             })
-            ->rawColumns(['action', 'created_at', 'tanggal_proses', 'status_id', 'catatan'])
+            ->rawColumns(['action', 'created_at', 'keperluan', 'tanggal_proses', 'status_id', 'catatan', 'queue_number'])
             ->toJson();
     }
 
@@ -86,6 +102,13 @@ class SKMKController extends Controller
         $list = SKMK::with('user.prodis', 'status')->whereYear('created_at', $request->year);
         if ($request->status != 'all') $list = $list->where('status_id', $request->status);
         $list = $list->orderBy('created_at', 'desc')->get();
+        $totalWaiting = SKMK::whereDate('created_at', today())
+                ->where('queue_status', 'waiting')
+                ->count();
+
+        $list->each(function($item) use ($totalWaiting) {
+            $item->total_waiting = $totalWaiting;
+        });
 
         return DataTables::of($list)
             ->addIndexColumn()
@@ -123,10 +146,24 @@ class SKMKController extends Controller
             ->editColumn('status_id', function ($row) {
                 return '<button type="button" class="btn ' . $row->status->color . ' btn-sm" disabled>' . $row->status->name . '</button>';
             })
+            ->editColumn('queue_number', function ($row) {
+                if ($row->queue_status === 'processed') {
+                    return "Selesai";
+                }
+                $currentQueue = SKMK::whereDate('created_at', today())
+                                ->where('queue_status', 'waiting')
+                                ->orderBy('queue_number', 'asc')
+                                ->first();
+                
+                $position = $row->queue_number;
+                $current = $currentQueue ? $currentQueue->queue_number : 0;
+                
+                return "Antrian $position (Sekarang: $current)";
+            })
             ->editColumn('catatan', function ($row) {
                 return wordwrap($row->catatan, 20, '<br>');
             })
-            ->rawColumns(['action', 'tanggal_submit', 'tanggal_proses', 'status_id', 'catatan'])
+            ->rawColumns(['action', 'tanggal_submit', 'tanggal_proses', 'status_id', 'queue_number', 'catatan'])
             ->toJson();
     }
 
@@ -135,6 +172,13 @@ class SKMKController extends Controller
         $list = SKMK::with('user.prodis', 'status')->whereYear('created_at', $request->year);
         if ($request->status != 'all') $list = $list->where('status_id', $request->status);
         $list = $list->orderBy('created_at', 'desc')->get();
+        $totalWaiting = SKMK::whereDate('created_at', today())
+                ->where('queue_status', 'waiting')
+                ->count();
+
+        $list->each(function($item) use ($totalWaiting) {
+            $item->total_waiting = $totalWaiting;
+        });
 
         return DataTables::of($list)
             ->addIndexColumn()
@@ -156,6 +200,20 @@ class SKMKController extends Controller
             })
             ->editColumn('status_id', function ($row) {
                 return '<button type="button" class="btn ' . $row->status->color . ' btn-sm" disabled>' . $row->status->name . '</button>';
+            })
+            ->editColumn('queue_number', function ($row) {
+                if ($row->queue_status === 'processed') {
+                    return "Selesai";
+                }
+                $currentQueue = SKMK::whereDate('created_at', today())
+                                ->where('queue_status', 'waiting')
+                                ->orderBy('queue_number', 'asc')
+                                ->first();
+                
+                $position = $row->queue_number;
+                $current = $currentQueue ? $currentQueue->queue_number : 0;
+                
+                return "Antrian $position (Sekarang: $current)";
             })
             ->editColumn('catatan', function ($row) {
                 return wordwrap($row->catatan, 20, '<br>');
@@ -169,6 +227,14 @@ class SKMKController extends Controller
         $list = SKMK::with('user.prodis', 'status')->whereYear('created_at', $request->year);
         if ($request->status != 'all') $list = $list->where('status_id', $request->status);
         $list = $list->orderBy('created_at', 'desc')->get();
+        
+        $totalWaiting = SKMK::whereDate('created_at', today())
+                ->where('queue_status', 'waiting')
+                ->count();
+
+        $list->each(function($item) use ($totalWaiting) {
+            $item->total_waiting = $totalWaiting;
+        });
 
         return DataTables::of($list)
             ->addIndexColumn()
@@ -190,6 +256,20 @@ class SKMKController extends Controller
             })
             ->editColumn('status_id', function ($row) {
                 return '<button type="button" class="btn ' . $row->status->color . ' btn-sm" disabled>' . $row->status->name . '</button>';
+            })
+            ->editColumn('queue_number', function ($row) {
+                if ($row->queue_status === 'processed') {
+                    return "Selesai";
+                }
+                $currentQueue = SKMK::whereDate('created_at', today())
+                                ->where('queue_status', 'waiting')
+                                ->orderBy('queue_number', 'asc')
+                                ->first();
+                
+                $position = $row->queue_number;
+                $current = $currentQueue ? $currentQueue->queue_number : 0;
+                
+                return "Antrian $position (Sekarang: $current)";
             })
             ->editColumn('catatan', function ($row) {
                 return wordwrap($row->catatan, 20, '<br>');
@@ -228,6 +308,12 @@ class SKMKController extends Controller
         try {
             $fileName = 'SKMK-' . auth()->user()->nim . '-' . auth()->user()->name . '-' . time() . '.pdf';
             $request->file->storeAs('skmk/upload/', $fileName, 'public');
+            // Generate nomor antrian terlepas dari siapa yang mengajukan
+            $lastQueue = SKMK::whereDate('created_at', today())
+                            ->orderBy('queue_number', 'desc')
+                            ->first();
+
+            $queueNumber = $lastQueue ? $lastQueue->queue_number + 1 : 1;
 
             SKMK::create([
                 'user_id' => Auth::user()->id,
@@ -241,6 +327,8 @@ class SKMKController extends Controller
                 'instansi_ortu' => $request->instansi_ortu,
                 'alamat_instansi' => $request->alamat_instansi,
                 'file' => $fileName,
+                'queue_number' => $queueNumber,
+                'queue_status' => 'waiting',
             ]);
         } catch (\Throwable $th) {
             return response()->json(['status' => false, 'message' => 'Terjadi Kesalahan'], 500);
@@ -391,6 +479,7 @@ class SKMKController extends Controller
             // ajuan diproses
             if (in_array($request->status_id, ['5', '6'])) {
                 $data_update['no_surat'] = $request->no_surat;
+                $data_update['queue_status'] = 'processed';
                 $return['message'] = 'Ajuan Berhasil Diproses!';
             } elseif (in_array($request->status_id, ['7', '8'])) { //status ditolak
                 // Hapus file upload jika ajuan ditolak
@@ -405,10 +494,17 @@ class SKMKController extends Controller
                 $request->file->storeAs('skmk/hasil/', $fileName, 'public');
                 
                 $data_update['surat_hasil'] = $fileName;
+                $data_update['queue_status'] = 'processed';
                 $return['message'] = 'Ajuan telah selesai!';
             }
             
             $ajuan->update($data_update);
+            // Hitung antrian yang tersisa
+            $waitingCount = SKMK::where('queue_status', 'waiting')
+            ->whereDate('created_at', today())
+            ->count();
+
+            $return['waiting_count'] = $waitingCount;
 
         } catch (\Throwable $th) {
             $return['status'] = false;
@@ -446,5 +542,82 @@ class SKMKController extends Controller
         $docFile = $ajuan->user->nim . '-' . $ajuan->user->name . '-SKMK' . time() . '.docx';
         $templateProcessor->saveAs($docFile);
         return response()->download($docFile)->deleteFileAfterSend(true);
+    }
+    
+    private function generateQueueNumber()
+    {
+        $lastQueue = SKMK::whereDate('created_at', today())
+                        ->orderBy('queue_number', 'desc')
+                        ->first();
+        
+        return $lastQueue ? $lastQueue->queue_number + 1 : 1;
+    }
+
+    public function updateQueue()
+    {
+        try {
+            // Ambil semua antrian hari ini yang masih waiting, diurutkan berdasarkan queue_number
+            $waitingQueues = SKMK::whereDate('created_at', today())
+                            ->where('queue_status', 'waiting')
+                            ->orderBy('queue_number', 'asc')
+                            ->get();
+            
+            $newQueueNumber = 1;
+            
+            // Update nomor antrian untuk semua yang waiting
+            foreach ($waitingQueues as $queue) {
+                $queue->update(['queue_number' => $newQueueNumber++]);
+            }
+            
+            $totalWaiting = SKMK::whereDate('created_at', today())
+                            ->where('queue_status', 'waiting')
+                            ->count();
+            
+            return response()->json([
+                'status' => true,
+                'total_waiting' => $totalWaiting,
+                'current_queue' => $waitingQueues->first()->queue_number ?? null
+            ]);
+            
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Gagal mengupdate antrian'
+            ], 500);
+        }
+    }
+
+    public function queueStatus()
+{
+    $userQueue = SKMK::where('user_id', Auth::id())
+                    ->whereDate('created_at', today())
+                    ->where('queue_status', 'waiting')
+                    ->first();
+    
+    // Get the current queue number (lowest waiting)
+    $currentQueue = SKMK::whereDate('created_at', today())
+                    ->where('queue_status', 'waiting')
+                    ->orderBy('queue_number', 'asc')
+                    ->first();
+    
+    $totalWaiting = SKMK::whereDate('created_at', today())
+                    ->where('queue_status', 'waiting')
+                    ->count();
+    
+    return response()->json([
+        'status' => true,
+        'user_queue' => $userQueue ? $userQueue->queue_number : null,
+        'total_waiting' => $totalWaiting,
+        'current_queue' => $currentQueue ? $currentQueue->queue_number : null
+    ]);
+}
+
+    private function getQueueInfo($queueNumber)
+    {
+        $totalWaiting = SKMK::whereDate('created_at', today())
+                        ->where('queue_status', 'waiting')
+                        ->count();
+        
+        return "Antrian $queueNumber dari $totalWaiting";
     }
 }

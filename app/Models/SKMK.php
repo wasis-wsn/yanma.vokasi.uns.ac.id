@@ -41,4 +41,18 @@ class SKMK extends Model
     {
         return $this->belongsTo(Semester::class, 'semester_id', 'id');
     }
+
+    public function scopeWaitingQueue($query)
+    {
+        return $query->where('queue_status', 'waiting')
+                    ->whereDate('created_at', today())
+                    ->orderBy('queue_number', 'asc');
+    }
+
+    public function scopeProcessedQueue($query)
+    {
+        return $query->where('queue_status', 'processed')
+                    ->whereDate('created_at', today())
+                    ->orderBy('queue_number', 'asc');
+    }
 }

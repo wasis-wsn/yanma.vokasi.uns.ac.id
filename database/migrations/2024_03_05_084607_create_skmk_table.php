@@ -19,6 +19,10 @@ return new class extends Migration
             $table->foreignId('status_id')->nullable()->references('id')->on('status_kemahasiswaans')->onDelete('set null');
             $table->foreignId('tahun_akademik_id')->nullable()->references('id')->on('tahun_akademiks')->onDelete('set null');
             $table->foreignId('semester_id')->nullable()->references('id')->on('semesters')->onDelete('set null');
+            // kolom dari migration kedua sudah dimasukkan di sini
+            $table->integer('queue_number')->nullable()->after('status_id');
+            $table->enum('queue_status', ['waiting', 'processed'])->default('waiting')->after('queue_number');
+
             $table->string('semester_romawi')->nullable();
             // $table->string('tahun_akademik')->nullable();
             $table->string('nama_ortu')->nullable();

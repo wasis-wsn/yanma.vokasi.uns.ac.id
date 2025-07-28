@@ -14,6 +14,10 @@ const initializeDataTable = (status, year) => {
             { data: "mulai_kegiatan" },
             { data: "is_dana" },
             { data: "status_id" },
+            { 
+                data: "queue_number",
+                className: "queue-info"
+            },
             { data: "catatan" },
             { data: "id" },
         ],
@@ -58,10 +62,23 @@ $(".status-menu").click(function () {
     table = initializeDataTable(status_table, year);
 });
 
-setInterval(function () {
-    refreshCount();
-    table.ajax.reload(null, false); // user paging is not reset on reload
-}, 300000);
+setInterval(function() {
+    if ($('#modalDetail').is(':visible')) {
+        $.ajax({
+            url: window.Laravel.queueStatus,
+            type: "GET",
+            success: function(res) {
+                if (res.status) {
+                    $("#detail-queue-number").text(res.user_queue);
+                    $("#detail-total-queue").text(res.total_waiting);
+                    
+                    // Update juga di tabel
+                    table.ajax.reload(null, false);
+                }
+            }
+        });
+    }
+}, 30000); // 30 detik
 
 $("#show_data").on("click", ".btn-detail", function () {
     let id = $(this).data("id");
@@ -79,6 +96,7 @@ $("#show_data").on("click", ".btn-detail", function () {
                 $("#detail-pembina").html(": " + res.data.ormawa.pembina.name);
                 $("#detail-ormawa").html(": " + res.data.ormawa.name);
                 $("#detail-kegiatan").html(": " + res.data.nama_kegiatan);
+                $("#detail-antrian").html(": " + res.data.queue_number);
                 $("#detail-ketua").html(
                     ": " +
                         res.data.ketua.nim +

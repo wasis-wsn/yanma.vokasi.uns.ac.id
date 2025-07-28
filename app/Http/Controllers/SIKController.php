@@ -14,6 +14,7 @@ use App\Exports\SIKExport;
 use App\Models\Layanan;
 use App\Models\Lpj;
 use App\Models\StatusKemahasiswaan;
+use App\Models\Prodi;
 use App\Models\Tahun;
 use App\Models\Template;
 use Illuminate\Validation\Rule;
@@ -28,9 +29,10 @@ class SIKController extends Controller
         $layanan = Layanan::where('url_mhs', $request->url())->orWhere('url_staff', $request->url())->first();
         $tahuns = Tahun::select('tahun')->orderBy('tahun', 'desc')->get();
         $status = StatusKemahasiswaan::all();
+        $prodis = Prodi::all();
         $templates = Template::where('layanan_id', $layanan->id)->get();
         session(['layanan' => $layanan]);
-        return view('pages.sik.index', compact('tahuns', 'layanan', 'status', 'templates'));
+        return view('pages.sik.index', compact('tahuns', 'layanan', 'status', 'templates', 'prodis'));
     }
 
     public function listOrmawa()
@@ -75,6 +77,20 @@ class SIKController extends Controller
             ->editColumn('status_id', function ($row) {
                 return '<button type="button" class="btn ' . $row->status->color . ' btn-sm" disabled>' . $row->status->name . '</button>';
             })
+            ->editColumn('queue_number', function ($row) {
+                if ($row->queue_status === 'processed') {
+                    return "Selesai";
+                }
+                $currentQueue = SIK::whereDate('created_at', today())
+                                ->where('queue_status', 'waiting')
+                                ->orderBy('queue_number', 'asc')
+                                ->first();
+                
+                $position = $row->queue_number;
+                $current = $currentQueue ? $currentQueue->queue_number : 0;
+                
+                return "Antrian $position (Sekarang: $current)";
+            })
             ->editColumn('is_dana', function ($row) {
                 $jenis = $row->is_dana == '0' ? 'Non Dana' : 'Dana';
                 return $jenis;
@@ -88,7 +104,7 @@ class SIKController extends Controller
             ->editColumn('catatan', function ($row) {
                 return wordwrap($row->catatan, 20, '<br>');
             })
-            ->rawColumns(['id', 'created_at', 'tanggal_proses', 'status_id', 'mulai_kegiatan', 'is_dana', 'nama_kegiatan', 'tempat', 'catatan'])
+            ->rawColumns(['id', 'created_at', 'tanggal_proses', 'status_id', 'mulai_kegiatan', 'is_dana', 'nama_kegiatan', 'tempat', 'catatan', 'queue_number'])
             ->toJson();
     }
 
@@ -97,6 +113,14 @@ class SIKController extends Controller
         $list = SIK::with('ketua.prodis', 'status', 'ormawa.pembina')->whereYear('created_at', $request->year);
         if ($request->status != 'all') $list = $list->where('status_id', $request->status);
         $list = $list->orderBy('created_at', 'desc')->get();
+        
+        $totalWaiting = SIK::whereDate('created_at', today())
+                ->where('queue_status', 'waiting')
+                ->count();
+
+        $list->each(function($item) use ($totalWaiting) {
+            $item->total_waiting = $totalWaiting;
+        });
 
         return DataTables::of($list)
             ->addIndexColumn()
@@ -139,6 +163,20 @@ class SIKController extends Controller
             ->editColumn('status_id', function ($row) {
                 return '<button type="button" class="btn ' . $row->status->color . ' btn-sm" disabled>' . $row->status->name . '</button>';
             })
+            ->editColumn('queue_number', function ($row) {
+                if ($row->queue_status === 'processed') {
+                    return "Selesai";
+                }
+                $currentQueue = SIK::whereDate('created_at', today())
+                                ->where('queue_status', 'waiting')
+                                ->orderBy('queue_number', 'asc')
+                                ->first();
+                
+                $position = $row->queue_number;
+                $current = $currentQueue ? $currentQueue->queue_number : 0;
+                
+                return "Antrian $position (Sekarang: $current)";
+            })
             ->editColumn('is_dana', function ($row) {
                 $jenis = $row->is_dana == '0' ? 'Non Dana' : 'Dana';
                 return $jenis;
@@ -161,6 +199,14 @@ class SIKController extends Controller
         $list = SIK::with('ketua.prodis', 'status', 'ormawa.pembina')->whereYear('created_at', $request->year);
         if ($request->status != 'all') $list = $list->where('status_id', $request->status);
         $list = $list->orderBy('created_at', 'desc')->get();
+        
+        $totalWaiting = SIK::whereDate('created_at', today())
+                ->where('queue_status', 'waiting')
+                ->count();
+
+        $list->each(function($item) use ($totalWaiting) {
+            $item->total_waiting = $totalWaiting;
+        });
 
         return DataTables::of($list)
             ->addIndexColumn()
@@ -186,6 +232,20 @@ class SIKController extends Controller
             })
             ->editColumn('status_id', function ($row) {
                 return '<button type="button" class="btn ' . $row->status->color . ' btn-sm" disabled>' . $row->status->name . '</button>';
+            })
+            ->editColumn('queue_number', function ($row) {
+                if ($row->queue_status === 'processed') {
+                    return "Selesai";
+                }
+                $currentQueue = SIK::whereDate('created_at', today())
+                                ->where('queue_status', 'waiting')
+                                ->orderBy('queue_number', 'asc')
+                                ->first();
+                
+                $position = $row->queue_number;
+                $current = $currentQueue ? $currentQueue->queue_number : 0;
+                
+                return "Antrian $position (Sekarang: $current)";
             })
             ->editColumn('is_dana', function ($row) {
                 $jenis = $row->is_dana == '0' ? 'Non Dana' : 'Dana';
@@ -209,6 +269,14 @@ class SIKController extends Controller
         $list = SIK::with('ketua.prodis', 'status', 'ormawa.pembina')->whereYear('created_at', $request->year);
         if ($request->status != 'all') $list = $list->where('status_id', $request->status);
         $list = $list->orderBy('created_at', 'desc')->get();
+        
+        $totalWaiting = SIK::whereDate('created_at', today())
+                ->where('queue_status', 'waiting')
+                ->count();
+
+        $list->each(function($item) use ($totalWaiting) {
+            $item->total_waiting = $totalWaiting;
+        });
 
         return DataTables::of($list)
             ->addIndexColumn()
@@ -234,6 +302,20 @@ class SIKController extends Controller
             })
             ->editColumn('status_id', function ($row) {
                 return '<button type="button" class="btn ' . $row->status->color . ' btn-sm" disabled>' . $row->status->name . '</button>';
+            })
+            ->editColumn('queue_number', function ($row) {
+                if ($row->queue_status === 'processed') {
+                    return "Selesai";
+                }
+                $currentQueue = SIK::whereDate('created_at', today())
+                                ->where('queue_status', 'waiting')
+                                ->orderBy('queue_number', 'asc')
+                                ->first();
+                
+                $position = $row->queue_number;
+                $current = $currentQueue ? $currentQueue->queue_number : 0;
+                
+                return "Antrian $position (Sekarang: $current)";
             })
             ->editColumn('is_dana', function ($row) {
                 $jenis = $row->is_dana == '0' ? 'Non Dana' : 'Dana';
@@ -312,6 +394,13 @@ class SIKController extends Controller
             $namaKegiatan = str_replace(' ', '', $request->nama_kegiatan);
             $fileName = 'SIK-' . $ormawa . '-' . $namaKegiatan . '-' . time() . '.pdf';
             $request->file->storeAs('sik/upload/', $fileName, 'public');
+            
+            // Generate nomor antrian terlepas dari siapa yang mengajukan
+            $lastQueue = SIK::whereDate('created_at', today())
+                            ->orderBy('queue_number', 'desc')
+                            ->first();
+
+            $queueNumber = $lastQueue ? $lastQueue->queue_number + 1 : 1;
 
             SIK::create([
                 'ormawa_id' => Auth::user()->id,
@@ -326,11 +415,13 @@ class SIKController extends Controller
                 'selesai_kegiatan' => $request->selesai_kegiatan,
                 'tempat' => $request->tempat,
                 'file' => $fileName,
+                'queue_number' => $queueNumber,
+                'queue_status' => 'waiting'
             ]);
-            return response()->json(['status' => true, 'message' => 'Ajuan Berhasil Ditambahkan!'], 200);
-        } catch (\Throwable $th) {
-            return response()->json(['status' => false, 'message' => 'Terjadi Kesalahan'], 500);
+          } catch (\Throwable $th) {
+            return response()->json(['status' => false, 'message' => 'Terjadi Kesalahan', 'queue_number' => $queueNumber], 500);
         }
+        return response()->json(['status' => true, 'message' => 'Ajuan Berhasil Ditambahkan!'], 200);
     }
 
     public function show(string $id)
@@ -484,6 +575,7 @@ class SIKController extends Controller
 
             if (in_array($request->status_id, ['5', '6'])) { // ajuan diproses
                 $data_update['no_surat'] = $request->no_surat;
+                $data_update['queue_status'] = 'processed'; // Update status antrian
                 $return['message'] = 'Ajuan Berhasil Diproses!';
             } elseif (in_array($request->status_id, ['7', '8'])) { //status ditolak
                 // Hapus file upload jika ajuan ditolak
@@ -500,6 +592,7 @@ class SIKController extends Controller
                 $request->file->storeAs('sik/hasil/', $fileName, 'public');
 
                 $data_update['surat_hasil'] = $fileName;
+                $data_update['queue_status'] = 'processed'; // Update status antrian
                 $return['message'] = 'Ajuan telah selesai!';
 
                 Lpj::create([
@@ -509,6 +602,12 @@ class SIKController extends Controller
             }
 
             $ajuan->update($data_update);
+            // Hitung antrian yang tersisa
+            $waitingCount = SIK::where('queue_status', 'waiting')
+            ->whereDate('created_at', today())
+            ->count();
+
+            $return['waiting_count'] = $waitingCount;
         } catch (\Throwable $th) {
             $return['status'] = false;
             $return['message'] = 'Terjadi Kesalahan!';
@@ -558,4 +657,82 @@ class SIKController extends Controller
             return redirect()->route('sik.index')->with('error', 'Terjadi Kesalahan');
         }
     }
+    
+    private function generateQueueNumber()
+    {
+        $lastQueue = SIK::whereDate('created_at', today())
+                        ->orderBy('queue_number', 'desc')
+                        ->first();
+        
+        return $lastQueue ? $lastQueue->queue_number + 1 : 1;
+    }
+
+    public function updateQueue()
+    {
+        try {
+            // Ambil semua antrian hari ini yang masih waiting, diurutkan berdasarkan queue_number
+            $waitingQueues = SIK::whereDate('created_at', today())
+                            ->where('queue_status', 'waiting')
+                            ->orderBy('queue_number', 'asc')
+                            ->get();
+            
+            $newQueueNumber = 1;
+            
+            // Update nomor antrian untuk semua yang waiting
+            foreach ($waitingQueues as $queue) {
+                $queue->update(['queue_number' => $newQueueNumber++]);
+            }
+            
+            $totalWaiting = SIK::whereDate('created_at', today())
+                            ->where('queue_status', 'waiting')
+                            ->count();
+            
+            return response()->json([
+                'status' => true,
+                'total_waiting' => $totalWaiting,
+                'current_queue' => $waitingQueues->first()->queue_number ?? null
+            ]);
+            
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Gagal mengupdate antrian'
+            ], 500);
+        }
+    }
+
+    public function queueStatus()
+{
+    $userQueue = SIK::where('user_id', Auth::id())
+                    ->whereDate('created_at', today())
+                    ->where('queue_status', 'waiting')
+                    ->first();
+    
+    // Get the current queue number (lowest waiting)
+    $currentQueue = SIK::whereDate('created_at', today())
+                    ->where('queue_status', 'waiting')
+                    ->orderBy('queue_number', 'asc')
+                    ->first();
+    
+    $totalWaiting = SIK::whereDate('created_at', today())
+                    ->where('queue_status', 'waiting')
+                    ->count();
+    
+    return response()->json([
+        'status' => true,
+        'user_queue' => $userQueue ? $userQueue->queue_number : null,
+        'total_waiting' => $totalWaiting,
+        'current_queue' => $currentQueue ? $currentQueue->queue_number : null
+    ]);
 }
+
+    private function getQueueInfo($queueNumber)
+    {
+        $totalWaiting = SIK::whereDate('created_at', today())
+                        ->where('queue_status', 'waiting')
+                        ->count();
+        
+        return "Antrian $queueNumber dari $totalWaiting";
+    }
+}
+

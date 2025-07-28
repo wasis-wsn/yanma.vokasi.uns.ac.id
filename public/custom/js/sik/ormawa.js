@@ -13,6 +13,10 @@ var table = $("#suket-datatable").DataTable({
         { data: "mulai_kegiatan" },
         { data: "is_dana" },
         { data: "status_id" },
+        { 
+            data: "queue_number",
+            className: "queue-info"
+        },
         { data: "catatan" },
         { data: "id" },
     ],
@@ -29,9 +33,23 @@ var table = $("#suket-datatable").DataTable({
     ],
 });
 
-setInterval(function () {
-    table.ajax.reload(null, false); // user paging is not reset on reload
-}, 300000);
+setInterval(function() {
+    if ($('#modalDetail').is(':visible')) {
+        $.ajax({
+            url: window.Laravel.queueStatus,
+            type: "GET",
+            success: function(res) {
+                if (res.status) {
+                    $("#detail-queue-number").text(res.user_queue);
+                    $("#detail-total-queue").text(res.total_waiting);
+                    
+                    // Update juga di tabel
+                    table.ajax.reload(null, false);
+                }
+            }
+        });
+    }
+}, 30000); // 30 detik
 
 $(".selesai_kegiatan").change(function () {
     let selesai = $(this).val();
@@ -57,6 +75,7 @@ $("#show_data").on("click", ".btn-edit", function () {
             if (res.status) {
                 $("form#form-edit").attr("action", action);
                 $("#edit_catatan").val(res.data.catatan);
+                $("#detail-antrian").html(": " + res.data.queue_number);
                 $("#edit_nama_kegiatan").val(res.data.nama_kegiatan);
 
                 let $oldKetua = $("<option selected='selected'></option>")
@@ -287,7 +306,7 @@ $("#form-tambah").submit(function (e) {
                         $("#modalTambah").modal("hide");
                         Swal.fire({
                             title: "Berhasil!",
-                            text: res.message,
+                            text: res.message + ' Nomor Antrian: ' + res.queue_number,
                             icon: "success",
                         });
                         table.ajax.reload();
@@ -380,3 +399,20 @@ $("#form-edit").submit(function (e) {
         }
     });
 });
+
+function updateQueueNumbers() {
+    $.ajax({
+        url: '/sik/update-queue',
+        type: 'GET',
+        success: function(res) {
+            if (res.status) {
+                table.ajax.reload(null, false);
+                if ($('#modalDetail').is(':visible')) {
+                    // Update juga di modal detail jika terbuka
+                    $("#detail-queue-number").text(res.user_queue);
+                    $("#detail-total-queue").text(res.total_waiting);
+                }
+            }
+        }
+    });
+}

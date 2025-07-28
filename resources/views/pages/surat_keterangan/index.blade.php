@@ -107,6 +107,7 @@
                                             <th>Keperluan Surat</th>
                                             <th>Tanggal Submit</th>
                                             <th>Status</th>
+                                            <th>Antrian</th>
                                             <th>Catatan</th>
                                             <th>Tanggal Proses</th>
                                             <th>Aksi</th>
@@ -121,6 +122,7 @@
                                             <th>Keperluan Surat</th>
                                             <th>No Surat</th>
                                             <th>Status</th>
+                                            <th>Antrian</th>
                                             <th>Catatan</th>
                                             <th>Aksi</th>
                                         @endcanany

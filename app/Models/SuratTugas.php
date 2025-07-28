@@ -41,4 +41,18 @@ class SuratTugas extends Model
     {
         return $this->belongsTo(User::class, 'user_id', 'id');
     }
+    
+    public function scopeWaitingQueue($query)
+    {
+        return $query->where('queue_status', 'waiting')
+                    ->whereDate('created_at', today())
+                    ->orderBy('queue_number', 'asc');
+    }
+
+    public function scopeProcessedQueue($query)
+    {
+        return $query->where('queue_status', 'processed')
+                    ->whereDate('created_at', today())
+                    ->orderBy('queue_number', 'asc');
+    }
 }

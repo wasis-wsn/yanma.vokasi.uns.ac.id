@@ -13,23 +13,38 @@ return new class extends Migration
     {
         Schema::create('surat_keterangan', function (Blueprint $table) {
             $table->id();
-            // $table->unsignedBigInteger('user_id')->nullable();
-            // $table->unsignedBigInteger('status_id')->default(1);
-            $table->foreignId('user_id')->references('id')->on('users')->onDelete('cascade');
-            $table->foreignId('status_id')->nullable()->references('id')->on('status_kemahasiswaans')->onDelete('set null');
-            $table->foreignId('tahun_akademik_id')->nullable()->references('id')->on('tahun_akademiks')->onDelete('set null');
-            $table->foreignId('semester_id')->nullable()->references('id')->on('semesters')->onDelete('set null');
-            // $table->string('tahun_akademik')->nullable();
+
+            $table->foreignId('user_id')
+                ->constrained('users')
+                ->onDelete('cascade');
+
+            $table->foreignId('status_id')
+                ->nullable()
+                ->constrained('status_kemahasiswaans')
+                ->onDelete('set null');
+
+            $table->foreignId('tahun_akademik_id')
+                ->nullable()
+                ->constrained('tahun_akademiks')
+                ->onDelete('set null');
+
+            $table->foreignId('semester_id')
+                ->nullable()
+                ->constrained('semesters')
+                ->onDelete('set null');
+
+            // kolom dari migration kedua sudah dimasukkan di sini
+            $table->integer('queue_number')->nullable()->after('status_id');
+            $table->enum('queue_status', ['waiting', 'processed'])->default('waiting')->after('queue_number');
+
             $table->string('keperluan')->nullable();
             $table->string('file')->nullable();
             $table->string('surat_hasil')->nullable();
             $table->string('catatan')->nullable();
             $table->string('no_surat')->nullable();
             $table->dateTime('tanggal_proses')->nullable();
-            $table->timestamps();
 
-            // $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
-            // $table->foreign('status_id')->references('id')->on('status_kemahasiswaans')->onDelete('set null');
+            $table->timestamps();
         });
     }
 

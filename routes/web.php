@@ -398,6 +398,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/export/data', [SuketController::class, 'export'])->name('export')->middleware('role:staff,dekanat,subkoor,adminprodi');
         Route::post('/{id}', [SuketController::class, 'proses'])->name('proses')->middleware('role:staff');
         Route::get('/generate/suratHasil/{id}', [SuketController::class, 'generateSurat'])->name('generate')->middleware('role:staff');
+        Route::get('/queue-status', [SuketController::class, 'queueStatus'])->name('queueStatus');
+        Route::get('/update-queue', [SuketController::class, 'updateQueue'])->name('updateQueue');
     });
 
     Route::name('skmk.')->prefix('skmk')->group(function () {
@@ -413,6 +415,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/export/data', [SKMKController::class, 'export'])->name('export')->middleware('role:staff,dekanat,subkoor,adminprodi');
         Route::post('/{id}', [SKMKController::class, 'proses'])->name('proses')->middleware('role:staff');
         Route::get('/generate/suratHasil/{id}', [SKMKController::class, 'generateSurat'])->name('generate')->middleware('role:staff');
+        Route::get('/queue-status', [SuketController::class, 'queueStatus'])->name('queueStatus');
+        Route::get('/update-queue', [SuketController::class, 'updateQueue'])->name('updateQueue');
     });
 
     Route::name('st.')->prefix('st')->group(function () {
@@ -428,6 +432,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/export/data', [SuratTugasController::class, 'export'])->name('export')->middleware('role:staff,dekanat,subkoor');
         Route::post('/{id}', [SuratTugasController::class, 'proses'])->name('proses')->middleware('role:staff');
         Route::get('/generate/suratHasil/{id}', [SuratTugasController::class, 'generateSurat'])->name('generate')->middleware('role:staff');
+        Route::get('/queue-status', [SuketController::class, 'queueStatus'])->name('queueStatus');
+        Route::get('/update-queue', [SuketController::class, 'updateQueue'])->name('updateQueue');
     });
 
     Route::name('sik.')->prefix('sik')->group(function () {
@@ -443,6 +449,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/export/data', [SIKController::class, 'export'])->name('export')->middleware('role:staff,dekanat,subkoor,adminprodi');
         Route::post('/{id}', [SIKController::class, 'proses'])->name('proses')->middleware('role:staff');
         Route::get('/generate/suratHasil/{id}', [SIKController::class, 'generateSurat'])->name('generate')->middleware('role:staff');
+        Route::get('/queue-status', [SuketController::class, 'queueStatus'])->name('queueStatus');
+        Route::get('/update-queue', [SuketController::class, 'updateQueue'])->name('updateQueue');
     });
 
     Route::name('lpj.')->prefix('lpj')->group(function () {
@@ -454,6 +462,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/listAdminProdi', [LPJController::class, 'listAdminProdi'])->name('listAdminProdi')->middleware('role:adminprodi');
         Route::post('/upload/{id}', [LPJController::class, 'upload'])->name('upload')->middleware('role:ormawa,mahasiswa');
         Route::post('/proses/{id}', [LPJController::class, 'proses'])->name('proses')->middleware('role:staff');
+        Route::get('/queue-status', [SuketController::class, 'queueStatus'])->name('queueStatus');
+        Route::get('/update-queue', [SuketController::class, 'updateQueue'])->name('updateQueue');
     });
 
     /* * * * * * * * * * * * *

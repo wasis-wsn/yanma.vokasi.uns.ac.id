@@ -12,6 +12,10 @@ const initializeDataTable = (status, year) => {
             { data: "user.nim" },
             { data: "no_surat" },
             { data: "status_id" },
+            { 
+                data: "queue_number",
+                className: "queue-info"
+            },
             { data: "catatan" },
             { data: "action" },
         ],
@@ -60,9 +64,23 @@ $(".status-menu").click(function () {
     table = initializeDataTable(status_table, year);
 });
 
-setInterval(function () {
-    table.ajax.reload(null, false); // user paging is not reset on reload
-}, 300000);
+setInterval(function() {
+    if ($('#modalDetail').is(':visible')) {
+        $.ajax({
+            url: window.Laravel.queueStatus,
+            type: "GET",
+            success: function(res) {
+                if (res.status) {
+                    $("#detail-queue-number").text(res.user_queue);
+                    $("#detail-total-queue").text(res.total_waiting);
+                    
+                    // Update juga di tabel
+                    table.ajax.reload(null, false);
+                }
+            }
+        });
+    }
+}, 30000); // 30 detik
 
 $("#show_data").on("click", ".btn-detail", function () {
     let id = $(this).data("id");
@@ -103,6 +121,7 @@ $("#show_data").on("click", ".btn-detail", function () {
                     "class",
                     `btn ${res.data.status.color} btn-small`
                 );
+                $("#detail-antrian").html(": " + res.data.queue_number);
                 $("#modalDetail").modal("show");
             } else {
                 Swal.fire({

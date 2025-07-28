@@ -121,6 +121,7 @@
                                             <th>Waktu</th>
                                             <th>Jenis</th>
                                             <th>Status</th>
+                                            <th>Antrian</th>
                                             <th>Catatan</th>
                                             <th>Aksi</th>
                                         @endcan
@@ -135,6 +136,7 @@
                                             <th>Waktu</th>
                                             <th>Jenis</th>
                                             <th>Status</th>
+                                            <th>Antrian</th>
                                             <th>Catatan</th>
                                             <th>Aksi</th>
                                         @endcanany

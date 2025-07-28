@@ -8,6 +8,10 @@ var table = $("#suket-datatable").DataTable({
         { data: "keperluan" },
         { data: "created_at" },
         { data: "status_id" },
+        { 
+            data: "queue_number",
+            className: "queue-info"
+        },
         { data: "catatan" },
         { data: "tanggal_proses" },
         { data: "action" },
@@ -21,9 +25,23 @@ var table = $("#suket-datatable").DataTable({
     ],
 });
 
-setInterval(function () {
-    table.ajax.reload(null, false); // user paging is not reset on reload
-}, 30000);
+setInterval(function() {
+    if ($('#modalDetail').is(':visible')) {
+        $.ajax({
+            url: window.Laravel.queueStatus,
+            type: "GET",
+            success: function(res) {
+                if (res.status) {
+                    $("#detail-queue-number").text(res.user_queue);
+                    $("#detail-total-queue").text(res.total_waiting);
+                    
+                    // Update juga di tabel
+                    table.ajax.reload(null, false);
+                }
+            }
+        });
+    }
+}, 30000); // 30 detik
 
 $("#show_data").on("click", ".btn-edit", function () {
     let id = $(this).data("id");
@@ -248,7 +266,7 @@ $("#form-tambah").submit(function (e) {
                         $("#modalTambah").modal("hide");
                         Swal.fire({
                             title: "Berhasil!",
-                            text: res.message,
+                            text: res.message + ' Nomor Antrian: ' + res.queue_number,
                             icon: "success",
                         });
                         table.ajax.reload();
@@ -344,3 +362,19 @@ $("#form-edit").submit(function (e) {
         }
     });
 });
+function updateQueueNumbers() {
+    $.ajax({
+        url: '/suket/update-queue',
+        type: 'GET',
+        success: function(res) {
+            if (res.status) {
+                table.ajax.reload(null, false);
+                if ($('#modalDetail').is(':visible')) {
+                    // Update juga di modal detail jika terbuka
+                    $("#detail-queue-number").text(res.user_queue);
+                    $("#detail-total-queue").text(res.total_waiting);
+                }
+            }
+        }
+    });
+}
