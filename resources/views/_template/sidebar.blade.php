@@ -90,7 +90,6 @@
                 @foreach (getLayanan() as $kategori)
                     <li class="nav-item nav-judul">
                         @if($kategori->name != 'Alumni' || auth()->user()->roles->gate_name != 'adminprodi')
-                        @if($kategori->name != 'Kemahasiswaan' || auth()->user()->roles->gate_name != 'fo')
                         <a class="nav-link" data-bs-toggle="collapse" href="#{{$kategori->name}}-menu" role="button" aria-expanded="false" aria-controls="horizontal-menu">
                             {!! $kategori->icon !!}
                             <span class="item-name">{{$kategori->name}}</span>
@@ -100,7 +99,6 @@
                                 </svg>
                             </i>
                         </a>
-                        @endif
                         @endif
                         <ul class="sub-nav collapse" id="{{$kategori->name}}-menu" data-bs-parent="#sidebar-menu">
                         @foreach ($kategori->layanan as $layanan)
