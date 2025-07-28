@@ -38,7 +38,7 @@
                                 {!! $layanan->keterangan !!}
                             </p>
                             {{-- <p class="text-dark">
-                                Surat Keterangan / Pengantar adalah surat yang menerangkan bahwa Anda berstatus aktif sebagai mahasiswa dan digunakan untuk keperluan <b class="text-danger">bersifat Umum</b>,  diantaranya adalah untuk keperluan: 
+                                Surat Keterangan / Pengantar adalah surat yang menerangkan bahwa Anda berstatus aktif sebagai mahasiswa dan digunakan untuk keperluan <b class="text-danger">bersifat Umum</b>,  diantaranya adalah untuk keperluan:
                                 <ul>
                                     <li class="text-dark">pengantar ke kantor kepolisian untuk mengurus kehilangan</li>
                                     <li class="text-dark">syarat pembukaan rekening bank</li>
@@ -97,7 +97,7 @@
                             </div>
                         @endcannot
                         @include('pages.surat_keterangan.modal_detail')
-                        
+
                         <div class="table-responsive">
                             <table id="suket-datatable" class="table table-striped" width="100%">
                                 <thead>
@@ -112,7 +112,7 @@
                                             <th>Tanggal Proses</th>
                                             <th>Aksi</th>
                                         @endcan
-                                        @canany(['staff','dekanat','subkoor','adminprodi'])
+                                        @canany(['staff','dekanat','subkoor','adminprodi','fo'])
                                             <th hidden>created_at</th>
                                             <th>No</th>
                                             <th>Nama</th>
@@ -179,7 +179,7 @@
         <script src="{{ asset('custom/js/surat_keterangan/staff.js') }}?q{{Str::random(5)}}"></script>
     @endcan
 
-    @canany(['dekanat','subkoor'])
+    @canany(['dekanat','subkoor','fo'])
         <script>
             var year = $("#tahunDropdown").html();
             var status_table = $("#statusDropdown").data('status');

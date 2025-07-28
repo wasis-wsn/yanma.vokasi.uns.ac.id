@@ -40,7 +40,7 @@
                             {{-- <p class="text-dark">
                                 Surat Keterangan Masih Kuliah adalah surat yang dipergunakan sebagai lampiran <b class="text-danger">pengusulan Tunjangan Anak (PNS, TNI/Polri)</b> dengan ketentuan belum menikah, benar-benar menjadi tanggungan orangtua/wali dan tidak terikat beasiswa ikatan dinas.
                                 <br>
-                                Apabila dikemudian hari Anda mengisikan data yang tidak benar yang mengakibatkan kerugian Negara Republik Indonesia maka Anda bersedia untuk menanggung kerugian tersebut. 
+                                Apabila dikemudian hari Anda mengisikan data yang tidak benar yang mengakibatkan kerugian Negara Republik Indonesia maka Anda bersedia untuk menanggung kerugian tersebut.
                             </p> --}}
                             @if (count($templates) > 0)
                             <p class="text-dark">
@@ -61,7 +61,7 @@
                             @include('pages.skmk.modal_tambah')
                             @include('pages.skmk.modal_edit')
                         @endcan
-                        @canany(['staff','dekanat','subkoor','adminprodi'])
+                        @canany(['staff','dekanat','subkoor','adminprodi','fo'])
                             <div class="d-flex justify-content-start pb-4">
                                 <button type="button" class="btn btn-success mx-2" id="btn-export">Export Data</button>
                             </div>
@@ -88,7 +88,7 @@
                             </div>
                         @endcanany
                         @include('pages.skmk.modal_detail')
-                        
+
                         <div class="table-responsive">
                             <table id="suket-datatable" class="table table-striped" width="100%">
                                 <thead>
@@ -102,7 +102,7 @@
                                             <th>Catatan</th>
                                             <th>Aksi</th>
                                         @endcan
-                                        @canany(['staff','dekanat','subkoor','adminprodi'])
+                                        @canany(['staff','dekanat','subkoor','adminprodi','fo'])
                                             <th hidden>created_at</th>
                                             <th>No</th>
                                             <th>Tanggal Submit</th>
@@ -168,7 +168,7 @@
         <script src="{{ asset('custom/js/skmk/staff.js') }}?q{{Str::random(5)}}"></script>
     @endcan
 
-    @canany(['dekanat','subkoor'])
+    @canany(['dekanat','subkoor','fo'])
         <script>
             var year = $("#tahunDropdown").html();
             var status_table = $("#statusDropdown").data('status');

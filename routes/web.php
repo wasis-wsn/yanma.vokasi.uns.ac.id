@@ -387,16 +387,16 @@ Route::middleware('auth')->group(function () {
     *                        *
     * * * * * * * * * * * * */
     Route::name('suket.')->prefix('suket')->group(function () {
-        Route::get('/', [SuketController::class, 'index'])->name('index')->middleware('role:mahasiswa,staff,dekanat,subkoor,adminprodi');
+        Route::get('/', [SuketController::class, 'index'])->name('index')->middleware('role:mahasiswa,staff,dekanat,subkoor,adminprodi,fo');
         Route::get('/listMahasiswa', [SuketController::class, 'listMahasiswa'])->name('listMahasiswa')->middleware('role:mahasiswa');
         Route::get('/listStaff', [SuketController::class, 'listStaff'])->name('listStaff')->middleware('role:staff');
-        Route::get('/listDekanat', [SuketController::class, 'listDekanat'])->name('listDekanat')->middleware('role:dekanat,subkoor');
+        Route::get('/listDekanat', [SuketController::class, 'listDekanat'])->name('listDekanat')->middleware('role:dekanat,subkoor,fo');
         Route::get('/listAdminProdi', [SuketController::class, 'listAdminProdi'])->name('listAdminProdi')->middleware('role:adminprodi');
         Route::post('/', [SuketController::class, 'store'])->name('store')->middleware('role:mahasiswa');
-        Route::post('/show/{id}', [SuketController::class, 'show'])->name('show')->middleware('role:mahasiswa,staff,dekanat,subkoor,adminprodi');
+        Route::post('/show/{id}', [SuketController::class, 'show'])->name('show')->middleware('role:mahasiswa,staff,dekanat,subkoor,adminprodi,fo');
         Route::post('/revisi/{id}', [SuketController::class, 'revisi'])->name('revisi')->middleware('role:mahasiswa');
         Route::delete('/{id}', [SuketController::class, 'destroy'])->name('destroy')->middleware('role:mahasiswa');
-        Route::post('/export/data', [SuketController::class, 'export'])->name('export')->middleware('role:staff,dekanat,subkoor,adminprodi');
+        Route::post('/export/data', [SuketController::class, 'export'])->name('export')->middleware('role:staff,dekanat,subkoor,adminprodi,fo');
         Route::post('/{id}', [SuketController::class, 'proses'])->name('proses')->middleware('role:staff');
         Route::get('/generate/suratHasil/{id}', [SuketController::class, 'generateSurat'])->name('generate')->middleware('role:staff');
         Route::get('/queue-status', [SuketController::class, 'queueStatus'])->name('queueStatus');
@@ -404,16 +404,16 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::name('skmk.')->prefix('skmk')->group(function () {
-        Route::get('/', [SKMKController::class, 'index'])->name('index')->middleware('role:mahasiswa,staff,dekanat,subkoor,adminprodi');
+        Route::get('/', [SKMKController::class, 'index'])->name('index')->middleware('role:mahasiswa,staff,dekanat,subkoor,adminprodi,fo');
         Route::get('/listMahasiswa', [SKMKController::class, 'listMahasiswa'])->name('listMahasiswa')->middleware('role:mahasiswa');
         Route::get('/listStaff', [SKMKController::class, 'listStaff'])->name('listStaff')->middleware('role:staff');
-        Route::get('/listDekanat', [SKMKController::class, 'listDekanat'])->name('listDekanat')->middleware('role:dekanat,subkoor');
+        Route::get('/listDekanat', [SKMKController::class, 'listDekanat'])->name('listDekanat')->middleware('role:dekanat,subkoor,fo');
         Route::get('/listAdminProdi', [SKMKController::class, 'listAdminProdi'])->name('listAdminProdi')->middleware('role:adminprodi');
         Route::post('/', [SKMKController::class, 'store'])->name('store')->middleware('role:mahasiswa');
-        Route::post('/show/{id}', [SKMKController::class, 'show'])->name('show')->middleware('role:mahasiswa,staff,dekanat,subkoor,adminprodi');
+        Route::post('/show/{id}', [SKMKController::class, 'show'])->name('show')->middleware('role:mahasiswa,staff,dekanat,subkoor,adminprodi,fo');
         Route::post('/revisi/{id}', [SKMKController::class, 'revisi'])->name('revisi')->middleware('role:mahasiswa');
         Route::delete('/{id}', [SKMKController::class, 'destroy'])->name('destroy')->middleware('role:mahasiswa');
-        Route::post('/export/data', [SKMKController::class, 'export'])->name('export')->middleware('role:staff,dekanat,subkoor,adminprodi');
+        Route::post('/export/data', [SKMKController::class, 'export'])->name('export')->middleware('role:staff,dekanat,subkoor,adminprodi,fo');
         Route::post('/{id}', [SKMKController::class, 'proses'])->name('proses')->middleware('role:staff');
         Route::get('/generate/suratHasil/{id}', [SKMKController::class, 'generateSurat'])->name('generate')->middleware('role:staff');
         Route::get('/queue-status', [SuketController::class, 'queueStatus'])->name('queueStatus');
