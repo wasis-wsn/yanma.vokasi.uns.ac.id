@@ -13,7 +13,7 @@ const initializeDataTable = (status, year) => {
             { data: "user.nim" },
             { data: "no_surat" },
             { data: "status_id" },
-            { 
+            {
                 data: "queue_number",
                 className: "queue-info",
             },
@@ -80,7 +80,7 @@ setInterval(function() {
                 if (res.status) {
                     // Update tabel
                     table.ajax.reload(null, false);
-                    
+
                     // Update modal detail jika terbuka
                     if ($('#modalDetail').is(':visible')) {
                         $("#detail-queue-number").text(res.user_queue);
@@ -264,12 +264,6 @@ $("#form-proses").submit(function (e) {
                     updateQueueNumbers();
                 }
                 table.ajax.reload();
-                window.open(
-                    window.Laravel.baseUrl +
-                        "/storage/skmk/hasil/" +
-                        res.file,
-                    "_blank"
-                );
             } else {
                 Swal.fire({
                     title: "Gagal!",

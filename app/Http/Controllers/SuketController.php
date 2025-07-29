@@ -67,7 +67,7 @@ class SuketController extends Controller
                 return Carbon::parse($row->created_at)->translatedFormat('d F Y');
             })
             ->editColumn('keperluan', function ($row) {
-                return wordwrap($row->keperluan, 20, '<br>'); 
+                return wordwrap($row->keperluan, 20, '<br>');
             })
             ->editColumn('tanggal_proses', function ($row) {
                 $tanggal_proses = $row->tanggal_proses;
@@ -87,10 +87,10 @@ class SuketController extends Controller
                                 ->where('queue_status', 'waiting')
                                 ->orderBy('queue_number', 'asc')
                                 ->first();
-                
+
                 $position = $row->queue_number;
                 $current = $currentQueue ? $currentQueue->queue_number : 0;
-                
+
                 return "Antrian $position (Sekarang: $current)";
             })
             ->editColumn('catatan', function ($row) {
@@ -130,9 +130,12 @@ class SuketController extends Controller
                             </a>';
                 }
                 if ($row->status_id == '9') {
-                    $aksi = '<a href="' . asset('storage/surat_keterangan/hasil/' . $row->surat_hasil) . '" class="btn btn-info btn-sm btn-block" target="_blank">
-                            <i class="fa fa-file"></i> Lihat File
-                        </a>';
+                    $aksi = '<button type="button" class="btn btn-warning btn-sm btn-proses btn-block" data-id="' . encodeId($row->id) . '" data-status="' . $row->status_id . '">
+                                <i class="fa fa-file-pen"></i> Edit
+                            </button>
+                            <a href="' . asset('storage/surat_keterangan/hasil/' . $row->surat_hasil) . '" class="btn btn-info btn-sm btn-block" target="_blank">
+                                <i class="fa fa-file"></i> Lihat File
+                            </a>';
                 }
                 return $aksi;
             })
@@ -140,7 +143,7 @@ class SuketController extends Controller
                 return Carbon::parse($row->created_at)->translatedFormat('d F Y') . '<br>' . Carbon::parse($row->created_at)->translatedFormat('H:i:s');
             })
             ->editColumn('keperluan', function ($row) {
-                return wordwrap($row->keperluan, 20, '<br>'); 
+                return wordwrap($row->keperluan, 20, '<br>');
             })
             ->editColumn('tanggal_proses', function ($row) {
                 $tanggal_proses = $row->tanggal_proses;
@@ -160,10 +163,10 @@ class SuketController extends Controller
                                 ->where('queue_status', 'waiting')
                                 ->orderBy('queue_number', 'asc')
                                 ->first();
-                
+
                 $position = $row->queue_number;
                 $current = $currentQueue ? $currentQueue->queue_number : 0;
-                
+
                 return "Antrian $position (Sekarang: $current)";
             })
             ->editColumn('catatan', function ($row) {
@@ -198,7 +201,7 @@ class SuketController extends Controller
                 return Carbon::parse($row->created_at)->translatedFormat('d F Y') . '<br>' . Carbon::parse($row->created_at)->translatedFormat('H:i:s');
             })
             ->editColumn('keperluan', function ($row) {
-                return Str::of($row->keperluan)->limit(20); 
+                return Str::of($row->keperluan)->limit(20);
             })
             ->editColumn('tanggal_proses', function ($row) {
                 $tanggal_proses = $row->tanggal_proses;
@@ -218,10 +221,10 @@ class SuketController extends Controller
                                 ->where('queue_status', 'waiting')
                                 ->orderBy('queue_number', 'asc')
                                 ->first();
-                
+
                 $position = $row->queue_number;
                 $current = $currentQueue ? $currentQueue->queue_number : 0;
-                
+
                 return "Antrian $position (Sekarang: $current)";
             })
             ->editColumn('catatan', function ($row) {
@@ -255,7 +258,7 @@ class SuketController extends Controller
                 return Carbon::parse($row->created_at)->translatedFormat('d F Y') . '<br>' . Carbon::parse($row->created_at)->translatedFormat('H:i:s');
             })
             ->editColumn('keperluan', function ($row) {
-                return Str::of($row->keperluan)->limit(20); 
+                return Str::of($row->keperluan)->limit(20);
             })
             ->editColumn('tanggal_proses', function ($row) {
                 $tanggal_proses = $row->tanggal_proses;
@@ -275,10 +278,10 @@ class SuketController extends Controller
                                 ->where('queue_status', 'waiting')
                                 ->orderBy('queue_number', 'asc')
                                 ->first();
-                
+
                 $position = $row->queue_number;
                 $current = $currentQueue ? $currentQueue->queue_number : 0;
-                
+
                 return "Antrian $position (Sekarang: $current)";
             })
             ->editColumn('catatan', function ($row) {
@@ -437,7 +440,7 @@ class SuketController extends Controller
         ], [
             'required' => ':attribute harus diisi!'
         ]);
-        
+
         $return = [
             'status' => true,
             'message' => '',
@@ -448,7 +451,8 @@ class SuketController extends Controller
         try {
             $id = decodeId($id);
             $ajuan = SuratKeterangan::where('id', $id)->with('user.prodis', 'status')->first();
-    
+            $previousStatus = $ajuan->status_id;
+
             $data_update = [
                 'no_surat' => $ajuan->no_surat,
                 'status_id' => $request->status_id,
@@ -456,7 +460,21 @@ class SuketController extends Controller
                 'surat_hasil' => $ajuan->surat_hasil,
                 'tanggal_proses' => new \DateTime(),
             ];
-    
+
+            // Check if editing from status 9 to another status (regenerate queue)
+            if ($previousStatus == '9' && $request->status_id != '9') {
+                // Generate new queue number for today
+                $newQueueNumber = $this->generateQueueNumber();
+                $data_update['queue_number'] = $newQueueNumber;
+                $data_update['queue_status'] = 'waiting';
+
+                // Delete previous result file if exists
+                if ($ajuan->surat_hasil) {
+                    Storage::disk('public')->delete('surat_keterangan/upload/' . $ajuan->surat_hasil);
+                    $data_update['surat_hasil'] = null;
+                }
+            }
+
             // ajuan diproses
             if (in_array($request->status_id, ['5', '6'])) {
                 $data_update['no_surat'] = $request->no_surat;
@@ -472,13 +490,20 @@ class SuketController extends Controller
                 // Upload surat hasil jika ajuan telah selesai
                 $fileName = $ajuan->user->nim . '-' . $ajuan->user->name . '-Suket' . time() . '.pdf';
                 $request->file->storeAs('surat_keterangan/hasil/', $fileName, 'public');
-                
+
                 $data_update['surat_hasil'] = $fileName;
                 $data_update['queue_status'] = 'processed';
                 $return['message'] = 'Ajuan telah selesai!';
             }
-            
+
             $ajuan->update($data_update);
+
+            // Update queue numbers if there was a queue regeneration
+            if ($previousStatus == '9' && $request->status_id != '9') {
+                $this->updateQueueNumbers();
+                $return['message'] .= ' Antrian telah diperbarui.';
+            }
+
             // Hitung antrian yang tersisa
             $waitingCount = SuratKeterangan::where('queue_status', 'waiting')
             ->whereDate('created_at', today())
@@ -527,7 +552,7 @@ class SuketController extends Controller
         $lastQueue = SuratKeterangan::whereDate('created_at', today())
                         ->orderBy('queue_number', 'desc')
                         ->first();
-        
+
         return $lastQueue ? $lastQueue->queue_number + 1 : 1;
     }
 
@@ -539,24 +564,24 @@ class SuketController extends Controller
                             ->where('queue_status', 'waiting')
                             ->orderBy('queue_number', 'asc')
                             ->get();
-            
+
             $newQueueNumber = 1;
-            
+
             // Update nomor antrian untuk semua yang waiting
             foreach ($waitingQueues as $queue) {
                 $queue->update(['queue_number' => $newQueueNumber++]);
             }
-            
+
             $totalWaiting = SuratKeterangan::whereDate('created_at', today())
                             ->where('queue_status', 'waiting')
                             ->count();
-            
+
             return response()->json([
                 'status' => true,
                 'total_waiting' => $totalWaiting,
                 'current_queue' => $waitingQueues->first()->queue_number ?? null
             ]);
-            
+
         } catch (\Throwable $th) {
             return response()->json([
                 'status' => false,
@@ -571,17 +596,17 @@ class SuketController extends Controller
                     ->whereDate('created_at', today())
                     ->where('queue_status', 'waiting')
                     ->first();
-    
+
     // Get the current queue number (lowest waiting)
     $currentQueue = SuratKeterangan::whereDate('created_at', today())
                     ->where('queue_status', 'waiting')
                     ->orderBy('queue_number', 'asc')
                     ->first();
-    
+
     $totalWaiting = SuratKeterangan::whereDate('created_at', today())
                     ->where('queue_status', 'waiting')
                     ->count();
-    
+
     return response()->json([
         'status' => true,
         'user_queue' => $userQueue ? $userQueue->queue_number : null,
@@ -595,7 +620,7 @@ class SuketController extends Controller
         $totalWaiting = SuratKeterangan::whereDate('created_at', today())
                         ->where('queue_status', 'waiting')
                         ->count();
-        
+
         return "Antrian $queueNumber dari $totalWaiting";
     }
 }

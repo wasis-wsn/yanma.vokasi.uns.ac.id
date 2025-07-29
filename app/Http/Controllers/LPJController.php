@@ -127,6 +127,11 @@ class LPJController extends Controller
                             <i class="fa fa-check"></i> Validasi LPJ
                         </button>';
                 }
+                if (in_array($row->status_id, ['3', '4'])) { // status sudah upload, revisi
+                    $aksi = '<button type="button" class="btn btn-warning btn-sm btn-validasi btn-block" data-id="' . encodeId($row->id) . '" data-status="' . $row->status_id . '">
+                                <i class="fa fa-file-pen"></i> Edit
+                            </button>';
+                }
                 return $aksi;
             })
             ->addColumn('no_surat', function ($row) {
