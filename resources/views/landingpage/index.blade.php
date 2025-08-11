@@ -42,8 +42,9 @@
                                 onmouseout="this.style.boxShadow='0 4px 8px rgba(0,0,0,0.1)'; this.style.transform='scale(1)'"
                                 @if($b->PDF) onclick="window.open('{{ asset('storage/'.$b->PDF) }}', '_blank')" @endif>
                                 <div class="image-wrapper" style="height: 200px; overflow: hidden;">
-                                    <img src="{{ asset('storage/'.$b->gambar) }}" class="card-img-top" alt="{{ $b->judul }}"
-                                        style="width: 100%; height: 100%; object-fit: cover;">
+                                    <img src="{{ $b->gambar ? asset('storage/'.$b->gambar) : asset('/back/assets/images/Default_News.png') }}"
+                                         class="card-img-top" alt="{{ $b->judul }}"
+                                         style="width: 100%; object-fit: cover;">
                                 </div>
                                 <div class="card-body d-flex flex-column">
                                     <h5 class="card-title">{{ $b->judul }}</h5>
