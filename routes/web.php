@@ -168,6 +168,7 @@ Route::middleware('auth')->group(function () {
         Route::name('berita.')->prefix('berita')->group(function () {
             Route::get('/', [BeritaController::class, 'index'])->name('index');
             Route::get('/list', [BeritaController::class, 'list'])->name('list');
+            Route::get('/{id}', [BeritaController::class, 'detail'])->name('detail');
             Route::get('/create', [BeritaController::class, 'create'])->name('create');
             Route::post('/', [BeritaController::class, 'store'])->name('store');
             Route::get('/{id}/edit', [BeritaController::class, 'edit'])->name('edit');

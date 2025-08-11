@@ -10,13 +10,19 @@ class BeritaController extends Controller
 {
     public function landingPage()
     {
-        $berita = Berita::all();
+        $berita = Berita::latest('tanggal')->get();
         return view('landingpage.berita.index', compact('berita'));
     }
 
     public function index()
     {
         return view('pages.berita.index');
+    }
+
+    public function detail($id)
+    {
+        $berita = Berita::findOrFail($id);
+        return view('landingpage.berita.detail', compact('berita'));
     }
 
     public function list(Request $request)
@@ -74,7 +80,7 @@ class BeritaController extends Controller
     {
         $request->validate([
             'judul' => 'required|string|max:255',
-            'gambar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'gambar' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
             'PDF' => 'nullable|mimes:pdf|max:10240', // Allow PDF files up to 10MB
             'deskripsi' => 'required|string',
             'tanggal' => 'required|date',
@@ -86,16 +92,14 @@ class BeritaController extends Controller
         ]);
 
         try {
+            $gambarPath = $request->file('gambar')->store('berita', 'public');
+
             $data = [
                 'judul' => $request->judul,
+                'gambar' => $gambarPath,
                 'deskripsi' => $request->deskripsi,
                 'tanggal' => $request->tanggal,
             ];
-
-            // Store image file if uploaded
-            if ($request->hasFile('gambar')) {
-                $data['gambar'] = $request->file('gambar')->store('berita', 'public');
-            }
 
             // Store PDF file if uploaded
             if ($request->hasFile('PDF')) {

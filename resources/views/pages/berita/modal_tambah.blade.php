@@ -14,7 +14,6 @@
                     <div class="form-group">
                         <label for="gambar" class="form-label">Gambar Berita</label>
                         <input class="form-control" type="file" id="gambar" name="gambar">
-                        <small class="text-muted">Opsional - Ukuran maksimal 2MB</small>
                     </div>
                     <div class="form-group">
                         <label for="deskripsi" class="form-label">Deskripsi <span class="text-danger">*</span></label>

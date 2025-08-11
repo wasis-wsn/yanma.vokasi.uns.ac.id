@@ -37,18 +37,19 @@
                         @foreach($berita as $b)
                         <div class="col-md-4 mb-4">
                             <div class="card h-100" data-aos="fade-up" data-aos-duration="500"
-                                style="box-shadow: 0 4px 8px rgba(0,0,0,0.1); transition: all 0.3s ease-in-out; transform: scale(1); {{ $b->PDF ? 'cursor: pointer;' : '' }}"
+                                style="box-shadow: 0 4px 8px rgba(0,0,0,0.1); transition: all 0.3s ease-in-out; transform: scale(1); cursor: pointer;"
                                 onmouseover="this.style.boxShadow='0 8px 16px rgba(0,0,0,0.2)'; this.style.transform='scale(1.03)'"
                                 onmouseout="this.style.boxShadow='0 4px 8px rgba(0,0,0,0.1)'; this.style.transform='scale(1)'"
-                                @if($b->PDF) onclick="window.open('{{ asset('storage/'.$b->PDF) }}', '_blank')" @endif>
+                                onclick="window.location.href='{{ route('berita.detail', $b->id) }}'">
                                 <div class="image-wrapper" style="height: 200px; overflow: hidden;">
                                     <img src="{{ $b->gambar ? asset('storage/'.$b->gambar) : asset('/back/assets/images/Default_News.png') }}"
                                          class="card-img-top" alt="{{ $b->judul }}"
                                          style="width: 100%; object-fit: cover;">
                                 </div>
                                 <div class="card-body d-flex flex-column">
-                                    <h5 class="card-title">{{ $b->judul }}</h5>
-                                    <p class="card-text flex-grow-1">{{ Str::limit($b->deskripsi, 100) }}</p>
+                                    <h5 class="card-title"><strong>{{ $b->judul }}</strong></h5>
+                                    <p class="card-text flex-grow-1">{{ implode(' ', array_slice(explode(' ', $b->deskripsi), 0, 15))}}{{ strlen($b->deskripsi) > strlen(implode(' ', array_slice(explode(' ', $b->deskripsi), 0, 15))) ? '...' : '' }}</p>
+
                                     <p class="card-text">
                                         <small class="text-muted">
                                             {{ \Carbon\Carbon::parse($b->tanggal)->format('d M Y') }}
@@ -57,7 +58,7 @@
                                     @if($b->PDF)
                                     <p class="card-text mt-2">
                                         <small class="text-primary">
-                                            <i class="fa fa-file-pdf"></i> Klik untuk membuka PDF
+                                            <i class="fa fa-file-pdf"></i> Dokumen tersedia
                                         </small>
                                     </p>
                                     @endif
