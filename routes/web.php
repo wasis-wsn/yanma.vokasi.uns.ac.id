@@ -45,7 +45,7 @@ use App\Http\Controllers\GoogleAuthController;
 */
 
 Route::get('/', function () {
-    $berita = \App\Models\Berita::latest()->paginate(6);
+    $berita = \App\Models\Berita::latest()->paginate(3);
     return view('landingpage.index', compact('berita'));
 })->name('home');
 

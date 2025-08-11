@@ -64,7 +64,7 @@
         <div class="container-fluid d-flex align-items-center justify-content-between">
 
             <a class="navbar-brand">
-                <img src="{{asset('sekolahvokasi.png')}}" width="" height="39">
+                <img src="{{asset('sekolahvokasi.png')}}" width="" height="80">
             </a>
             <nav id="navbar" class="navbar">
                 <ul>
@@ -98,7 +98,7 @@
         <div class="footer-content">
             <div class="container">
                 <div class="row">
-        
+
                     <div class="col-lg-3 col-md-6">
                         <div class="footer-info">
                             <h3>Sekolah Vokasi UNS</h3>
@@ -110,7 +110,7 @@
                             </p>
                         </div>
                     </div>
-        
+
                     <div class="col-lg-2 col-md-6 footer-links">
                         <h4>Website UNS</h4>
                         <ul>
@@ -121,7 +121,7 @@
                             <li><i class="bi bi-chevron-right"></i> <a href="https://profil.uns.ac.id/">Profil</a></li>
                         </ul>
                     </div>
-        
+
                     <div class="col-lg-3 col-md-6 footer-links">
                         <h4>Website Sekolah Vokasi UNS</h4>
                         <ul>
