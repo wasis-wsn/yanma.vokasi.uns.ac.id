@@ -48,8 +48,7 @@ Route::get('/', function () {
     $berita = \App\Models\Berita::latest()->paginate(3);
     return view('landingpage.index', compact('berita'));
 })->name('home');
-
-rRoute::get('/berita/{id}', [BeritaController::class, 'detail'])->name('berita.detail');
+Route::get('/berita/{id}', [BeritaController::class, 'detail'])->name('berita.detail');
 /* * * * * * * * * * * * * * * * *
 *                                *
 *   Login Email & Password       *
