@@ -1,7 +1,465 @@
 @extends('landingpage.template')
 
 @push('css')
+<!-- Add FontAwesome CDN -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
 <style>
+    /* Hero Section Styles */
+    #hero-animated {
+        background: linear-gradient(135deg, #3b82f6 0%, #b6cff6 100%);
+        min-height: 100vh;
+        position: relative;
+        overflow: hidden;
+        margin-top: 0;
+        padding-top: 0;
+    }
+
+    #hero-animated::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><polygon fill="%23ffffff08" points="0,1000 1000,0 1000,1000"/></svg>');
+        pointer-events: none;
+    }
+
+    /* Floating particles animation */
+    .particles {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        z-index: 1;
+    }
+
+    .particle {
+        position: absolute;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        animation: float 6s ease-in-out infinite;
+    }
+
+    .particle:nth-child(1) {
+        width: 80px;
+        height: 80px;
+        left: 10%;
+        animation-delay: 0s;
+        animation-duration: 8s;
+    }
+
+    .particle:nth-child(2) {
+        width: 120px;
+        height: 120px;
+        left: 80%;
+        animation-delay: 2s;
+        animation-duration: 10s;
+    }
+
+    .particle:nth-child(3) {
+        width: 60px;
+        height: 60px;
+        left: 60%;
+        animation-delay: 4s;
+        animation-duration: 7s;
+    }
+
+    .particle:nth-child(4) {
+        width: 100px;
+        height: 100px;
+        left: 30%;
+        animation-delay: 1s;
+        animation-duration: 9s;
+    }
+
+    .particle:nth-child(5) {
+        width: 40px;
+        height: 40px;
+        left: 90%;
+        animation-delay: 3s;
+        animation-duration: 6s;
+    }
+
+    @keyframes float {
+        0%, 100% {
+            transform: translateY(100vh) rotate(0deg);
+            opacity: 0;
+        }
+        10% {
+            opacity: 1;
+        }
+        90% {
+            opacity: 1;
+        }
+        50% {
+            transform: translateY(-100px) rotate(180deg);
+            opacity: 0.8;
+        }
+    }
+
+    /* Animated geometric shapes */
+    .hero-shapes {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1;
+    }
+
+    .shape {
+        position: absolute;
+        opacity: 0.1;
+    }
+
+    .shape-1 {
+        top: 15%;
+        left: 15%;
+        width: 150px;
+        height: 150px;
+        background: white;
+        border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+        animation: morph 8s ease-in-out infinite;
+    }
+    .shape-3 {
+        top: 40%;
+        right: 20%;
+        width: 80px;
+        height: 80px;
+        background: white;
+        border-radius: 50%;
+        animation: pulse 4s ease-in-out infinite;
+    }
+
+    @keyframes morph {
+        0%, 100% {
+            border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+            transform: rotate(0deg);
+        }
+        50% {
+            border-radius: 70% 30% 30% 70% / 70% 70% 30% 30%;
+            transform: rotate(180deg);
+        }
+    }
+
+    @keyframes rotate {
+        0% {
+            transform: rotate(0deg);
+        }
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+
+    @keyframes pulse {
+        0%, 100% {
+            transform: scale(1);
+            opacity: 0.1;
+        }
+        50% {
+            transform: scale(1.2);
+            opacity: 0.3;
+        }
+    }
+
+    #hero-animated .container {
+        position: relative;
+        z-index: 2;
+        padding-top: 0;
+    }
+
+    #hero-animated h2 {
+        font-size: 3.5rem;
+        font-weight: 800;
+        color: white;
+        margin-bottom: 1rem;
+        text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        letter-spacing: -0.02em;
+    }
+
+    #hero-animated p {
+        font-size: 1.4rem;
+        color: rgba(255,255,255,0.9);
+        font-weight: 400;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        margin-bottom: 2rem;
+    }
+
+    /* Hero CTA Buttons */
+    .hero-cta {
+        display: flex;
+        gap: 20px;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-top: 2rem;
+    }
+
+    .btn-hero-primary {
+        background: rgba(255, 255, 255, 0.2);
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        color: white;
+        padding: 15px 30px;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 1.1rem;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(10px);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .btn-hero-primary:hover {
+        background: rgba(255, 255, 255, 0.3);
+        border-color: rgba(255, 255, 255, 0.5);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    }
+
+    .btn-hero-secondary {
+        background: rgba(255, 255, 255, 0.1);
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        color: white;
+        padding: 15px 30px;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 1.1rem;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(10px);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .btn-hero-secondary:hover {
+        background: rgba(255, 255, 255, 0.2);
+        border-color: rgba(255, 255, 255, 0.4);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Stats section in hero */
+    .hero-stats {
+        margin-top: 3rem;
+        display: flex;
+        justify-content: center;
+        gap: 60px;
+        flex-wrap: wrap;
+    }
+
+    .stat-item {
+        text-align: center;
+        color: white;
+    }
+
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: 800;
+        display: block;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    }
+
+    .stat-label {
+        font-size: 1rem;
+        opacity: 0.9;
+        margin-top: 5px;
+        text-shadow: 0 1px 5px rgba(0,0,0,0.2);
+    }
+
+    /* Berita Section Redesign */
+    .berita-section {
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        padding: 80px 0;
+        position: relative;
+    }
+
+    .berita-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .berita-header {
+        text-align: center;
+        margin-bottom: 60px;
+    }
+
+    .berita-header h2 {
+        font-size: 2.8rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 15px;
+        position: relative;
+        display: inline-block;
+    }
+
+    .berita-header h2::after {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 80px;
+        height: 4px;
+        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        border-radius: 2px;
+    }
+
+    .berita-card {
+        background: white;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+        transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+        cursor: pointer;
+        height: 100%;
+        position: relative;
+        border: 1px solid #e2e8f0;
+    }
+
+    .berita-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        transform: scaleX(0);
+        transition: transform 0.3s ease;
+    }
+
+    .berita-card:hover::before {
+        transform: scaleX(1);
+    }
+
+    .berita-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+    }
+
+    .berita-image-wrapper {
+        height: 220px;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .berita-image-wrapper img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.4s ease;
+    }
+
+    .berita-card:hover .berita-image-wrapper img {
+        transform: scale(1.1);
+    }
+
+    .berita-card-body {
+        padding: 25px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .berita-title {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 15px;
+        line-height: 1.4;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .berita-description {
+        color: #64748b;
+        font-size: 0.95rem;
+        line-height: 1.6;
+        margin-bottom: 20px;
+        flex-grow: 1;
+    }
+
+    .berita-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: auto;
+        padding-top: 15px;
+        border-top: 1px solid #e2e8f0;
+    }
+
+    .berita-date {
+        color: #94a3b8;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+
+    .berita-pdf-indicator {
+        color: #006de1c6;
+        font-size: 0.85rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .pagination-wrapper {
+        margin-top: 60px;
+        display: flex;
+        justify-content: right;
+    }
+
+/* Hide pagination showing results text */
+.pagination-wrapper p {
+    display: none !important;
+}
+
+/* Alternative: Hide specific pagination info text */
+.pagination-wrapper .d-flex.justify-content-between p {
+    display: none !important;
+}
+
+/* Or more specific targeting for Bootstrap pagination info */
+.pagination-wrapper .pagination-info,
+.pagination-wrapper .showing-results {
+    display: none !important;
+}
+@media (max-width: 360px) {
+    .pagination-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 5px;
+    }
+
+    .pagination {
+        min-width: max-content;
+        padding: 2px 0;
+    }
+
+    .page-link {
+        padding: 4px 5px;
+        min-width: 28px;
+        min-height: 28px;
+        font-size: 0.65rem;
+    }
+}
+
+
+    /* Layanan Section - EXISTING STYLES PRESERVED */
     .service-item{
         border: none;
         border-radius: 15px;
@@ -101,6 +559,25 @@
     .icon-wrapper i {
         font-size: 1.8rem;
         color: white;
+        display: block;
+        font-weight: 900; /* Ensure solid icons display */
+        font-family: "Font Awesome 6 Free", "Font Awesome 6 Pro", sans-serif; /* Explicit font family */
+    }
+
+    /* Force icon display with higher specificity */
+    .service-card .icon-wrapper i {
+        font-size: 1.8rem !important;
+        color: white !important;
+        display: block !important;
+        line-height: 1 !important;
+        text-align: center !important;
+        vertical-align: middle !important;
+    }
+
+    /* Ensure FontAwesome icons load properly */
+    .fas, .fa-solid {
+        font-family: "Font Awesome 6 Free";
+        font-weight: 900;
     }
 
     .section-header {
@@ -136,14 +613,131 @@
         margin-top: 40px;
     }
 
+    /* Enhanced scroll animations */
+    .fade-in-up {
+        opacity: 0;
+        transform: translateY(30px);
+        transition: all 0.6s ease-out;
+    }
+
+    .fade-in-up.visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .fade-in-left {
+        opacity: 0;
+        transform: translateX(-30px);
+        transition: all 0.6s ease-out;
+    }
+
+    .fade-in-left.visible {
+        opacity: 1;
+        transform: translateX(0);
+    }
+
+    .fade-in-right {
+        opacity: 0;
+        transform: translateX(30px);
+        transition: all 0.6s ease-out;
+    }
+
+    .fade-in-right.visible {
+        opacity: 1;
+        transform: translateX(0);
+    }
+
+    .scale-in {
+        opacity: 0;
+        transform: scale(0.8);
+        transition: all 0.6s ease-out;
+    }
+
+    .scale-in.visible {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    /* Staggered animation delays */
+    .stagger-1 { transition-delay: 0.1s; }
+    .stagger-2 { transition-delay: 0.2s; }
+    .stagger-3 { transition-delay: 0.3s; }
+    .stagger-4 { transition-delay: 0.4s; }
+    .stagger-5 { transition-delay: 0.5s; }
+    .stagger-6 { transition-delay: 0.6s; }
+
+    /* Enhanced navbar integration */
+    body {
+        padding-top: 0;
+        overflow-x: hidden;
+    }
+
+    /* Responsive Design */
     @media (max-width: 768px) {
+        #hero-animated h2 {
+            font-size: 2.5rem;
+        }
+
+        #hero-animated p {
+            font-size: 1.1rem;
+        }
+
+        .hero-cta {
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .hero-stats {
+            gap: 30px;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+        }
+
+        .particle {
+            display: none;
+        }
+
+        .berita-header h2 {
+            font-size: 2.2rem;
+        }
+
+        .berita-section {
+            padding: 60px 0;
+        }
+
         .service-grid {
             grid-template-columns: 1fr;
             gap: 20px;
         }
-        
+
         .section-header h2 {
             font-size: 2rem;
+        }
+    }
+
+    @media (max-width: 576px) {
+        #hero-animated h2 {
+            font-size: 2rem;
+        }
+
+        .btn-hero-primary,
+        .btn-hero-secondary {
+            padding: 12px 25px;
+            font-size: 1rem;
+        }
+
+        .hero-stats {
+            gap: 20px;
+        }
+
+        .berita-header h2 {
+            font-size: 1.8rem;
+        }
+
+        .berita-card-body {
+            padding: 20px;
         }
     }
 </style>
@@ -151,94 +745,131 @@
 
 @section('content')
     <section id="hero-animated" class="hero-animated d-flex align-items-center">
+        <!-- Floating Particles -->
+        <div class="particles">
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+        </div>
+
+        <!-- Animated Shapes -->
+        <div class="hero-shapes">
+            <div class="shape shape-1"></div>
+            <div class="shape shape-3"></div>
+        </div>
+
         <div class="container d-flex flex-column justify-content-center align-items-center text-center position-relative"
-            data-aos="zoom-out">
-            <h2>{{ env('APP_NAME') }}</h2>
-            <p>Universitas Sebelas Maret</p>
+            data-aos="zoom-out" data-aos-duration="1000">
+            <h2 data-aos="fade-up" data-aos-delay="200">{{ env('APP_NAME') }}</h2>
+            <p data-aos="fade-up" data-aos-delay="400">Portal Layanan Digital Sekolah Vokasi<br>Universitas Sebelas Maret</p>
+
+            <!-- CTA Buttons -->
+            <div class="hero-cta" data-aos="fade-up" data-aos-delay="600">
+                <a href="#Akademik-services" class="btn-hero-primary scrollto">
+                    <i class="fas fa-rocket"></i>
+                    Mulai Layanan
+                </a>
+            </div>
+
         </div>
     </section>
 
     <main id="main">
-        <!-- Card Berita -->
-        <div class="layanan">
-        <!-- File: landingpage/berita/index.blade.php -->
-            <section id="berita" class="featured-services">
-                <div class="container">
-                    <div class="section-header">
-                        <h2>INFORMASI PENTING</h2>
-                    </div>
-                    <div class="row">
-                        @foreach($berita as $b)
-                        <div class="col-md-4 mb-4">
-                            <div class="card h-100" data-aos="fade-up" data-aos-duration="500"
-                                style="box-shadow: 0 4px 8px rgba(0,0,0,0.1); transition: all 0.3s ease-in-out; transform: scale(1); cursor: pointer;"
-                                onmouseover="this.style.boxShadow='0 8px 16px rgba(0,0,0,0.2)'; this.style.transform='scale(1.03)'"
-                                onmouseout="this.style.boxShadow='0 4px 8px rgba(0,0,0,0.1)'; this.style.transform='scale(1)'"
-                                onclick="window.location.href='{{ route('berita.detail', $b->id) }}'">
-                                <div class="image-wrapper" style="height: 200px; overflow: hidden;">
-                                    <img src="{{ $b->gambar ? asset('storage/'.$b->gambar) : asset('/back/assets/images/Default_News.png') }}"
-                                         class="card-img-top" alt="{{ $b->judul }}"
-                                         style="width: 100%; object-fit: cover;">
-                                </div>
-                                <div class="card-body d-flex flex-column">
-                                    <h5 class="card-title"><strong>{{ $b->judul }}</strong></h5>
-                                    <p class="card-text flex-grow-1">{{ implode(' ', array_slice(explode(' ', $b->deskripsi), 0, 15))}}{{ strlen($b->deskripsi) > strlen(implode(' ', array_slice(explode(' ', $b->deskripsi), 0, 15))) ? '...' : '' }}</p>
-
-                                    <p class="card-text">
-                                        <small class="text-muted">
-                                            {{ \Carbon\Carbon::parse($b->tanggal)->format('d M Y') }}
-                                        </small>
-                                    </p>
+        <!-- Berita Section Redesigned -->
+        <section class="berita-section">
+            <div class="container">
+                <div class="berita-header fade-in-up">
+                    <h2>INFORMASI PENTING</h2>
+                </div>
+                <div class="row g-4">
+                    @foreach($berita as $index => $b)
+                    <div class="col-lg-4 col-md-6">
+                        <div class="berita-card fade-in-up stagger-{{ ($index % 3) + 1 }}"
+                             data-aos="fade-up"
+                             data-aos-duration="600"
+                             data-aos-delay="{{ $index * 100 }}"
+                             onclick="window.location.href='{{ route('berita.detail', $b->id) }}'">
+                            <div class="berita-image-wrapper">
+                                <img src="{{ $b->gambar ? asset('storage/'.$b->gambar) : asset('/back/assets/images/Default_News.png') }}"
+                                     alt="{{ $b->judul }}">
+                            </div>
+                            <div class="berita-card-body">
+                                <h5 class="berita-title">{{ $b->judul }}</h5>
+                                <p class="berita-description">
+                                    {{ implode(' ', array_slice(explode(' ', $b->deskripsi), 0, 15))}}{{ strlen($b->deskripsi) > strlen(implode(' ', array_slice(explode(' ', $b->deskripsi), 0, 15))) ? '...' : '' }}
+                                </p>
+                                <div class="berita-meta">
+                                    <span class="berita-date">
+                                        {{ \Carbon\Carbon::parse($b->tanggal)->format('d M Y') }}
+                                    </span>
                                     @if($b->PDF)
-                                    <p class="card-text mt-2">
-                                        <small class="text-primary">
-                                            <i class="fa fa-file-pdf"></i> Dokumen tersedia
-                                        </small>
-                                    </p>
+                                    <span class="berita-pdf-indicator">
+                                        <i class="fa fa-file-pdf"></i> PDF
+                                    </span>
                                     @endif
                                 </div>
                             </div>
-                        </div><!-- End Card Berita -->
-                        @endforeach
+                        </div>
                     </div>
-
-                    <!-- Tambahkan Pagination -->
-                    <div class="d-flex justify-content-end mt-4">
-                        {{ $berita->links('pagination::bootstrap-5') }}
-                    </div>
+                    @endforeach
                 </div>
-            </section>
-        </div><!-- End Container -->
 
+                <div class="pagination-wrapper fade-in-up">
+                    {{ $berita->links('pagination::bootstrap-5') }}
+                </div>
+            </div>
+        </section>
+
+        <!-- Layanan Section - UNCHANGED -->
         <div class="layanan">
-            @foreach (getLayanan() as $kategori)
+            @foreach (getLayanan() as $kategoriIndex => $kategori)
                 <section id="{{$kategori->name}}-services" class="featured-services">
                     <div class="container">
-                        <div class="section-header">
+                        <div class="section-header fade-in-up">
                             <h2>Layanan {{$kategori->name}}</h2>
                         </div>
                         <div class="service-grid">
-                            @foreach ($kategori->layanan as $layanan)
+                            @foreach ($kategori->layanan as $layananIndex => $layanan)
                             @php
                                 $user = auth()->user();
                                 $isStaff = $user && $user->roles && $user->roles->gate_name == 'staff';
-                                
-                                // Icon mapping untuk setiap layanan
+
+                                // Updated icon mapping dengan fallback
                                 $icons = [
-                                    'Verifikasi Wisuda' => 'fas fa-graduation-cap',
-                                    'Surat Keterangan' => 'fas fa-file-alt',
-                                    'Transkrip Nilai' => 'fas fa-scroll',
-                                    'Legalisir' => 'fas fa-stamp',
-                                    'default' => 'fas fa-cogs'
+                                    'Perpanjangan Studi' => 'fa-solid fa-hourglass-half',
+                                    'Penundaan Pembayaran UKT' => 'fa-solid fa-clock',
+                                    'Selang/Cuti' => 'fa-solid fa-plane-departure',
+                                    'Undur Diri' => 'fa-solid fa-door-open',
+                                    'Pembayaran UKT di Luar Jadwal' => 'fa-solid fa-money-bill-wave',
+                                    'Keringanan UKT' => 'fa-solid fa-hand-holding-dollar',
+                                    'Layanan Surat Keterangan Lulus' => 'fa-solid fa-certificate',
+                                    'Verifikasi Wisuda' => 'fa-solid fa-graduation-cap',
+                                    'Transkrip Nilai' => 'fa-solid fa-scroll',
+                                    'SKPI' => 'fa-solid fa-id-card',
+                                    'Surat Keterangan/Pengantar' => 'fa-solid fa-file-alt',
+                                    'Surat Keterangan Masih Kuliah' => 'fa-solid fa-user-graduate',
+                                    'Surat Tugas Delegasi' => 'fa-solid fa-people-carry-box',
+                                    'Surat Izin Kegiatan' => 'fa-solid fa-calendar-check',
+                                    'Laporan Pertanggungjawaban' => 'fa-solid fa-clipboard-list',
+                                    'Legalisir' => 'fa-solid fa-stamp',
+                                    'default' => 'fa-solid fa-cogs'
                                 ];
+
                                 $icon = $icons[$layanan->name] ?? $icons['default'];
+                                // Debug: pastikan icon class tidak kosong
+                                if (empty($icon)) {
+                                    $icon = 'fa-solid fa-cogs';
+                                }
                             @endphp
-                            <div data-aos="fade-up" data-aos-delay="100">
+                            <div data-aos="fade-up"
+                                 data-aos-delay="{{ $layananIndex * 100 }}"
+                                 data-aos-duration="600"
+                                 class="scale-in stagger-{{ ($layananIndex % 4) + 1 }}">
                                 <div class="service-item position-relative service-card">
                                     <div class="icon-wrapper">
-                                        <i class="{{ $icon }}"></i>
+                                        <i class="{{ $icon }}" style="font-size: 1.8rem; color: white; display: block;"></i>
                                     </div>
-                                    
+
                                     <h4 class="mb-2">
                                         @if($layanan->name == 'Verifikasi Wisuda')
                                             <a href="/verifikasiWisuda/informasi" class="stretched-link">{{$layanan->name}}</a>
@@ -255,5 +886,68 @@
                 </section>
             @endforeach
         </div>
-    </main><!-- End #main -->
+    </main>
 @endsection
+
+@push('js')
+<script>
+// Enhanced scroll animations with colorful navbar integration
+document.addEventListener('DOMContentLoaded', function() {
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver(function(entries) {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+            }
+        });
+    }, observerOptions);
+
+    // Observe all elements with animation classes
+    document.querySelectorAll('.fade-in-up, .fade-in-left, .fade-in-right, .scale-in').forEach(el => {
+        observer.observe(el);
+    });
+
+    // Enhanced parallax effect for hero section
+    let ticking = false;
+
+    function updateParallax() {
+        const scrolled = window.pageYOffset;
+        const parallax = document.querySelector('#hero-animated');
+        const header = document.getElementById('header');
+
+        if (parallax) {
+            const speed = scrolled * 0.3;
+            parallax.style.transform = `translateY(${speed}px)`;
+        }
+
+        ticking = false;
+    }
+
+    window.addEventListener('scroll', function() {
+        if (!ticking) {
+            requestAnimationFrame(updateParallax);
+            ticking = true;
+        }
+
+        const header = document.getElementById('header');
+        const heroSection = document.querySelector('#hero-animated');
+
+        // Add subtle parallax to hero when navbar becomes colorful
+        if (header.classList.contains('scrolled') && heroSection) {
+            const scrolled = window.pageYOffset;
+            const speed = scrolled * 0.2;
+            heroSection.style.transform = `translateY(${speed}px)`;
+        }
+    });
+
+    // Add staggered animations for service cards
+    const serviceCards = document.querySelectorAll('.service-card');
+    serviceCards.forEach((card, index) => {
+        card.style.animationDelay = `${index * 0.1}s`;
+    });
+});
+</script>
