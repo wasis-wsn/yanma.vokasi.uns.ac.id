@@ -42,16 +42,19 @@ class BeritaController extends Controller
                     return $aksi;
                 })
                 ->editColumn('gambar', function ($row) {
-                    return '<img src="'.asset('storage/'.$row->gambar).'" class="img-thumbnail" width="100">';
+                    if ($row->gambar) {
+                        return '<img src="'.asset('storage/'.$row->gambar).'" class="img-thumbnail" width="100">';
+                    }
+                    return '<span class="badge badge-secondary">Tidak ada gambar</span>';
                 })
                 ->editColumn('PDF', function ($row) {
                     if ($row->PDF) {
-                        return '<a href="'.asset('storage/'.$row->PDF).'" target="_blank" class="btn btn-sm btn-info"><i class="fa fa-file-PDF"></i> Lihat PDF</a>';
+                        return '<a href="'.asset('storage/'.$row->PDF).'" target="_blank" class="btn btn-sm btn-info"><i class="fa fa-file-pdf"></i> Lihat PDF</a>';
                     }
                     return '<span class="badge badge-danger">Tidak ada PDF</span>';
                 })
                 ->editColumn('deskripsi', function ($row) {
-                    return substr($row->deskripsi, 0, 100) . '...';
+                    return strlen($row->deskripsi) > 100 ? substr($row->deskripsi, 0, 100) . '...' : $row->deskripsi;
                 })
                 ->editColumn('tanggal', function ($row) {
                     return date('d-m-Y', strtotime($row->tanggal));
@@ -80,7 +83,7 @@ class BeritaController extends Controller
     {
         $request->validate([
             'judul' => 'required|string|max:255',
-            'gambar' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
+            'gambar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'PDF' => 'nullable|mimes:pdf|max:10240', // Allow PDF files up to 10MB
             'deskripsi' => 'required|string',
             'tanggal' => 'required|date',
@@ -92,14 +95,16 @@ class BeritaController extends Controller
         ]);
 
         try {
-            $gambarPath = $request->file('gambar')->store('berita', 'public');
-
             $data = [
                 'judul' => $request->judul,
-                'gambar' => $gambarPath,
                 'deskripsi' => $request->deskripsi,
                 'tanggal' => $request->tanggal,
             ];
+
+            // Handle gambar hanya jika ada file yang diupload
+            if ($request->hasFile('gambar')) {
+                $data['gambar'] = $request->file('gambar')->store('berita', 'public');
+            }
 
             // Store PDF file if uploaded
             if ($request->hasFile('PDF')) {
