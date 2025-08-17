@@ -49,6 +49,9 @@ class SKLController extends Controller
 
         return DataTables::of($list)
             ->addIndexColumn()
+            ->editColumn('id', function ($row) {
+                return encodeId($row->id);
+            })
             ->addColumn('action', function ($row) {
                 $aksi = '<button type="button" class="btn btn-info btn-sm btn-detail" data-id="' . encodeId($row->id) . '">
                             <i class="fa fa-eye"></i> Review
@@ -358,5 +361,90 @@ class SKLController extends Controller
             return response()->json(['status' => false, 'message' => 'terjadi kesalahan'], 500);
         }
         return response()->json(['status' => true, 'message' => 'Status Berhasil Diperbarui!'], 200);
+    }
+
+    public function bulkProcess(Request $request)
+    {
+        try {
+            $request->validate([
+                'status_id' => 'required',
+                'selected_ids' => 'required',
+                'catatan' => 'nullable',
+            ]);
+
+            $ids = explode(',', $request->selected_ids);
+
+            // Decode each encrypted ID
+            $decodedIds = array_map(function($id) {
+                return decodeId($id);
+            }, $ids);
+
+            // Filter only valid IDs (numeric and > 0)
+            $validIds = array_filter($decodedIds, function($id) {
+                return is_numeric($id) && $id > 0;
+            });
+
+            if (empty($validIds)) {
+                throw new \Exception('Tidak ada ID valid untuk diproses');
+            }
+
+            // Verify records exist
+            $records = SKL::whereIn('id', $validIds)->get();
+            if ($records->isEmpty()) {
+                throw new \Exception('Data tidak ditemukan');
+            }
+
+            $updateData = [
+                'status_id' => $request->status_id,
+                'catatan' => $request->catatan ?: null,
+                'tanggal_proses' => now(),
+            ];
+
+            // For specific status IDs, set appropriate fields
+            if (in_array($request->status_id, ['3', '4', '6']) && $request->has('no_surat')) {
+                $updateData['no_surat'] = $request->no_surat;
+            }
+
+            if ($request->status_id == '7') {
+                $updateData['tanggal_ambil'] = now();
+            }
+
+            // Create VerifikasiWisuda if status becomes 6 or 7
+            if (in_array($request->status_id, ['6', '7'])) {
+                foreach ($validIds as $userId) {
+                    $skl = SKL::findOrFail($userId);
+                    $existingVerifikasi = VerifikasiWisuda::where('user_id', $skl->user_id)->first();
+                    if (!$existingVerifikasi) {
+                        VerifikasiWisuda::create([
+                            'user_id' => $skl->user_id,
+                            'status_id' => '1',
+                        ]);
+                    }
+                }
+            }
+
+            $result = SKL::whereIn('id', $validIds)->update($updateData);
+
+            \Log::info('Update result:', [
+                'processed_count' => $result,
+                'ids' => $validIds
+            ]);
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Data berhasil diproses'
+            ], 200);
+
+        } catch (\Exception $e) {
+            \Log::error('Bulk process error:', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 }

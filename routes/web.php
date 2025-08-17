@@ -48,7 +48,6 @@ Route::get('/', function () {
     $berita = \App\Models\Berita::latest()->paginate(3);
     return view('landingpage.index', compact('berita'));
 })->name('home');
-Route::get('/berita/{id}', [BeritaController::class, 'detail'])->name('berita.detail');
 /* * * * * * * * * * * * * * * * *
 *                                *
 *   Login Email & Password       *
@@ -221,7 +220,10 @@ Route::middleware('auth')->group(function () {
             Route::get('/list', [PeriodeWisudaController::class, 'list'])->name('list');
             Route::post('/{id}', [PeriodeWisudaController::class, 'update'])->name('update');
         });
+
     });
+                Route::get('berita/{id}', [BeritaController::class, 'detail'])->name('berita.detail');
+
 
     /* * * * * * * * * * * * *
     *                        *
@@ -339,6 +341,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/show/{id}', [SKLController::class, 'show'])->name('show')->middleware('role:mahasiswa,staff,dekanat,subkoor,fo,adminprodi');
         Route::post('/revisi/{id}', [SKLController::class, 'revisi'])->name('revisi')->middleware('role:mahasiswa');
         Route::post('/proses/{id}', [SKLController::class, 'proses'])->name('proses')->middleware('role:staff,fo');
+        Route::post('/bulk-process', [SKLController::class, 'bulkProcess'])->name('bulkProcess')->middleware('role:staff');
     });
 
     Route::name('verifikasiWisuda.')->prefix('verifikasiWisuda')->group(function () {

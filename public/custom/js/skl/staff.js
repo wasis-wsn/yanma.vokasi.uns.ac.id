@@ -6,6 +6,14 @@ const initializeDataTableSKL = (status, year, prodi) => {
         ajax: `${window.Laravel.skl.listData}?status=${status}&year=${year}&prodi=${prodi}`,
         columns: [
             { data: "created_at", visible: false },
+            {
+                data: null,
+                orderable: false,
+                render: function(data, type, row) {
+                    // Use the ID that was already encoded by the server
+                    return '<input type="checkbox" class="form-check-input row-checkbox" value="' + row.id + '">';
+                }
+            },
             { data: "DT_RowIndex" },
             { data: "user.name" },
             { data: "user.nim" },
@@ -22,20 +30,20 @@ const initializeDataTableSKL = (status, year, prodi) => {
             {
                 className: "text-center",
                 width: "3%",
-                targets: [1],
+                targets: [1, 2],
             },
             {
                 width: "5%",
-                targets: [4],
+                targets: [5],
             },
             {
                 className: "btn-group-vertical",
-                targets: [9],
+                targets: [10],
             },
             {
                 width: '5%',
                 className: "text-wrap",
-                targets: [2],
+                targets: [3],
             },
         ],
         lengthMenu: [
@@ -72,6 +80,118 @@ $(".prodi-menu").click(function () {
     table = initializeDataTableSKL(status_table, year, prodi_table);
 });
 
+// Add these new functions for bulk processing
+// Handle bulk action button state
+$('#skl-datatable').on('change', '.row-checkbox', function() {
+    updateBulkActionButton();
+    // Update header checkbox state
+    const totalCheckboxes = $('.row-checkbox').length;
+    const checkedCheckboxes = $('.row-checkbox:checked').length;
+    $('#select-all').prop('checked', totalCheckboxes === checkedCheckboxes && totalCheckboxes > 0);
+});
+
+// Select/deselect all checkboxes
+$('#select-all').on('change', function() {
+    $('.row-checkbox').prop('checked', $(this).prop('checked'));
+    updateBulkActionButton();
+});
+
+// Update bulk action button state
+function updateBulkActionButton() {
+    const checkedBoxes = $('.row-checkbox:checked').length;
+    $('#btn-bulk-action').prop('disabled', checkedBoxes === 0);
+}
+
+// Handle bulk action button click
+$('#btn-bulk-action').click(function() {
+    const selectedIds = [];
+    $('.row-checkbox:checked').each(function() {
+        selectedIds.push($(this).val()); // Value already contains encoded ID
+    });
+
+    if (selectedIds.length > 0) {
+        // Set the selected IDs to hidden input
+        $('#form-bulk-process input[name="selected_ids"]').val(selectedIds.join(','));
+        $('#modalBulkProcess').modal('show');
+    } else {
+        Swal.fire({
+            title: 'Peringatan',
+            text: 'Pilih minimal satu data untuk diproses',
+            icon: 'warning'
+        });
+    }
+});
+
+// Handle bulk process form submission
+$('#form-bulk-process').submit(function(e) {
+    e.preventDefault();
+
+    const formData = new FormData();
+    formData.append('status_id', $('#form-bulk-process select[name="status_id"]').val());
+    formData.append('catatan', $('#form-bulk-process textarea[name="catatan"]').val());
+    formData.append('no_surat', $('#form-bulk-process input[name="no_surat"]').val());
+    formData.append('selected_ids', $('#form-bulk-process input[name="selected_ids"]').val());
+    formData.append('_token', $('meta[name="csrf-token"]').attr('content'));
+
+    $.ajax({
+        url: window.Laravel.skl.bulkProcess,
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        beforeSend: function() {
+            Swal.fire({
+                title: 'Mohon Tunggu',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+        },
+        success: function(response) {
+            if (response.status) {
+                $('#modalBulkProcess').modal('hide');
+                $('#select-all').prop('checked', false);
+                $('.row-checkbox').prop('checked', false);
+                updateBulkActionButton();
+
+                Swal.fire({
+                    title: 'Berhasil!',
+                    text: response.message,
+                    icon: 'success',
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+                table.ajax.reload();
+            } else {
+                Swal.fire({
+                    title: 'Gagal!',
+                    text: response.message,
+                    icon: 'error'
+                });
+            }
+        },
+        error: function(xhr) {
+            Swal.fire({
+                title: 'Gagal!',
+                text: xhr.responseJSON?.message || 'Terjadi kesalahan saat memproses data',
+                icon: 'error'
+            });
+        }
+    });
+});
+
+// Status change handler in bulk process modal
+$('#bulk_status_id').change(function() {
+    const canChangeNoSurat = ['3','4','5','6'];
+    if (canChangeNoSurat.includes($(this).val())) {
+        $('#bulk-form-no-surat').removeAttr('hidden');
+    } else {
+        $('#bulk-form-no-surat').attr('hidden', true);
+    }
+});
+
+// Refresh data every 30 seconds
 setInterval(function () {
     table.ajax.reload(null, false); // user paging is not reset on reload
 }, 30000);

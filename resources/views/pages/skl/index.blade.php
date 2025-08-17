@@ -190,8 +190,14 @@
                         </div>
                         <div class="card-body">
                             @canany(['staff','dekanat','subkoor','adminprodi'])
-                                <div class="d-flex justify-content-end pb-4 px-4">
+                                <div class="d-flex justify-content-start pb-4 px-4">
                                     <button type="button" class="btn btn-success mx-2" id="btn-export">Export Data</button>
+                                    <!-- Add bulk action button -->
+                                    @canany(['staff', 'fo'])
+                                    <button type="button" class="btn btn-secondary mx-2" id="btn-bulk-action" disabled>
+                                        <i class="fa fa-tasks"></i> Multi Proses
+                                    </button>
+                                    @endcanany
                                 </div>
                             @endcanany
                             <div class="d-flex justify-content-end pb-4">
@@ -227,6 +233,7 @@
                                     <thead>
                                         <tr>
                                             <th hidden>created_at</th>
+                                            <th><input type="checkbox" id="select-all" class="form-check-input"></th>
                                             <td>No</td>
                                             <td>Nama</td>
                                             <td>NIM</td>
@@ -257,6 +264,45 @@
     @endcan
     @can('staff')
         @include('modals.proses')
+
+        <!-- Add bulk process modal here -->
+        <div class="modal fade" id="modalBulkProcess" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Proses Data Terpilih</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form id="form-bulk-process">
+                        @csrf
+                        <div class="modal-body">
+                            <div class="form-group mb-3">
+                                <label>Status</label>
+                                <select name="status_id" id="bulk_status_id" class="form-select" required>
+                                    <option value="">Pilih Status</option>
+                                    @foreach ($status as $st)
+                                        <option value="{{ $st->id }}">{{ $st->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="form-group mb-3" id="bulk-form-no-surat" hidden>
+                                <label>Nomor Surat</label>
+                                <input type="text" name="no_surat" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label>Catatan</label>
+                                <textarea name="catatan" rows="3" class="form-control"></textarea>
+                            </div>
+                            <input type="hidden" name="selected_ids">
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                            <button type="submit" class="btn btn-primary">Proses</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     @endcan
     @cannot('mahasiswa')
         @include('modals.export')
@@ -294,6 +340,7 @@
                 'listData' => route('skl.listStaff'),
                 'getData' => route('skl.show', ':id'),
                 'routeProses' => route('skl.proses', ':id'),
+                'bulkProcess' => route('skl.bulkProcess'),
             ]) !!};
         </script>
         <script src="{{ asset('custom/js/skl/staff.js') }}?q{{Str::random(5)}}"></script>
