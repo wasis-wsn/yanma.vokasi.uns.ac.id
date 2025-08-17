@@ -1,6 +1,11 @@
 @if (Auth::user()->prodi == '2' && !Request::is('user*'))
 <div class="sticky-top">
 @endif
+<!-- Add FontAwesome CSS if it's not already in the main template -->
+@push('css')
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+@endpush
+
 <nav class="nav navbar sticky-top navbar-expand-lg navbar-light iq-navbar">
     <div class="container-fluid navbar-inner">
         <a href="{{route('home')}}" class="navbar-brand">
@@ -46,7 +51,8 @@
                 @can('staff')
                 <li class="nav-item dropdown">
                     <a href="#" class="nav-link" id="mail-drop" data-bs-toggle="dropdown"  aria-haspopup="true" aria-expanded="false">
-                        <i class="fa fa-gear"></i>
+                        <!-- Fix the gear icon by ensuring it's properly defined -->
+                        <i class="fas fa-gear" style="font-size: 20px;"></i>
                     </a>
                     <div class="sub-drop dropdown-menu dropdown-menu-end p-0" aria-labelledby="mail-drop">
                         <div class="card shadow-none m-0">
@@ -148,7 +154,7 @@
             <path d="M11.995 16.5H12.005" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
         </svg>
         <div>
-            Silakan mengubah Program Studi Anda pada menu 
+            Silakan mengubah Program Studi Anda pada menu
             <a href="{{route('user.edit', encodeId(Auth::user()->id))}}">Profil</a>
         </div>
     </div>
