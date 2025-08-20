@@ -145,12 +145,12 @@
                     </div>
                 </div>
                 <div class="social-links order-first order-lg-last mb-3 mb-lg-0">
-                    <a href="https://twitter.com/vokasi_uns" class="twitter"><i class="bi bi-twitter"></i></a>
-                    <a href="https://www.facebook.com/vokasi.uns" class="facebook"><i class="bi bi-facebook"></i></a>
-                    <a href="https://www.instagram.com/vokasiuns" class="instagram"><i
+                    <a href="https://www.instagram.com/vokasi_uns" class="instagram"><i
                             class="bi bi-instagram"></i></a>
-                    <a href="https://www.youtube.com/channel/UCz7StIjWe4osVgpG_ErbvWQ" class="youtube"><i
+                    <a href="http://www.youtube.com/@sekolahvokasiuns6828" class="youtube"><i
                             class="bi bi-youtube"></i></a>
+                    <a href="https://www.tiktok.com/@vokasi_uns" class="tiktok"><i
+                            class="bi bi-tiktok"></i></a>
                 </div>
             </div>
         </div>
