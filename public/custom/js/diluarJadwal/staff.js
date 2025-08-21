@@ -233,6 +233,8 @@ $(document).ready(function() {
         // Handle surat hasil visibility
         if (isSelesai) {
             $('#form-surat-hasil').removeAttr('hidden');
+            // Add hint text that the file is optional
+            $('#form-surat-hasil .form-text').text('File upload is optional');
         } else {
             $('#form-surat-hasil').attr('hidden', true);
         }

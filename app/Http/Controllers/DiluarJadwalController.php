@@ -309,7 +309,7 @@ class DiluarJadwalController extends Controller
         }
 
         $rules = [
-            'surat_permohonan' => ['required', 'file', 'mimes:pdf', 'max:10240'],
+            'surat_permohonan' => ['nullable', 'file', 'mimes:pdf', 'max:10240'], // Changed to nullable
             'semester_id' => ['required'],
             'semester_romawi' => ['required'],
             'tahun_akademik_id' => ['required'],
@@ -340,18 +340,13 @@ class DiluarJadwalController extends Controller
 
         try {
             $user = $request->mahasiswa ? User::findOrFail($request->mahasiswa) : Auth::user();
-            $surat_permohonan = $user->nim . '_' . Str::of($user->name)->trim() . '_' . 'SuratPermohonan' . '_' . time() . '.pdf';
-            // $bukti_bayar_ukt = $user->nim . '_' . Str::of($user->name)->trim() . '_' . 'Kuitansi_LuarJadwal' . '_' . time() . '.pdf';
-            // $izin_cuti = $user->nim . '_' . Str::of($user->name)->trim() . '_' . 'IzinCuti' . '_' . time() . '.pdf';
-
-            $request->file('surat_permohonan')->storeAs('diluar_jadwal/upload/surat_permohonan/', $surat_permohonan, 'public');
-            // $request->file('bukti_bayar_ukt')->storeAs('diluar_jadwal/upload/bukti_bayar_ukt/', $bukti_bayar_ukt, 'public');
-
-            // if ($request->hasFile('izin_cuti')) {
-            //     $request->file('izin_cuti')->storeAs('diluar_jadwal/upload/izin_cuti/', $izin_cuti, 'public');
-            // } else {
-            //     $izin_cuti = null;
-            // }
+            $surat_permohonan = null; // Default to null
+            
+            // Only process file if one was uploaded
+            if ($request->hasFile('surat_permohonan')) {
+                $surat_permohonan = $user->nim . '_' . Str::of($user->name)->trim() . '_' . 'SuratPermohonan' . '_' . time() . '.pdf';
+                $request->file('surat_permohonan')->storeAs('diluar_jadwal/upload/surat_permohonan/', $surat_permohonan, 'public');
+            }
 
             DiluarJadwal::create([
                 'user_id' => $user->id,
@@ -362,8 +357,6 @@ class DiluarJadwalController extends Controller
                 'alasan' => $request->alasan,
                 'tanggal_bayar' => $request->tanggal_bayar,
                 'surat_permohonan' => $surat_permohonan,
-                // 'bukti_bayar_ukt' => $bukti_bayar_ukt,
-                // 'izin_cuti' => $izin_cuti,
             ]);
         } catch (\Throwable $th) {
             return response()->json(['status' => false, 'message' => 'Terjadi Kesalahan'], 500);
@@ -383,7 +376,7 @@ class DiluarJadwalController extends Controller
     public function revisi(Request $request, string $id)
     {
         $request->validate([
-            'surat_permohonan' => ['file', 'mimes:pdf', 'max:10240'],
+            'surat_permohonan' => ['nullable', 'file', 'mimes:pdf', 'max:10240'], // Changed to nullable
             'semester_romawi' => ['required'],
             'alasan' => ['required'],
             'tanggal_bayar' => ['required'],
@@ -489,14 +482,13 @@ class DiluarJadwalController extends Controller
             'catatan' => Rule::requiredIf(function () use ($request) {
                 return in_array($request->status_id, ['2', '5']);
             }),
-            'file' => Rule::requiredIf(function () use ($request) {
-                return $request->status_id == '6';
-            })
+            // Remove required rule for file
+            'file' => ['nullable', 'file', 'mimes:pdf', 'max:10240'] // Make file optional but validate if provided
         ];
 
         $request->validate($rules, [
             'required' => ':attribute harus diisi!',
-            'file.required' => 'Surat hasil harus diupload!'
+            'file.max' => 'Ukuran file tidak boleh melebihi 10MB' // Add size validation message
         ]);
 
         try {

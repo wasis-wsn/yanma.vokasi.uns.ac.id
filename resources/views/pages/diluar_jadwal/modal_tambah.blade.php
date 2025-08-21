@@ -9,11 +9,11 @@
                 method="POST" id="form-tambah" enctype="multipart/form-data">
                 <div class="modal-body text-dark">
                     <p>
-                        Scan dokumen berikut dan jadikan satu file .pdf: 
+                        Scan dokumen berikut dan jadikan satu file .pdf:
                         <ol>
                             <li>
-                                Surat Permohonan oleh mahasiswa yang ditujukan ke Dekan Sekolah Vokasi 
-                                (menerangkan alasan telat pembayaran dan tanggal akan dibayarkan) 
+                                Surat Permohonan oleh mahasiswa yang ditujukan ke Dekan Sekolah Vokasi
+                                (menerangkan alasan telat pembayaran dan tanggal akan dibayarkan)
                                 sudah bertanda tangan dan menggunakan materai ASLI
                             </li>
                             <li>
@@ -23,11 +23,11 @@
                                 Bukti Kuitansi Pembayaran (download dari SIAKAD)
                             </li>
                             <li>
-                                Bagi mahasiswa semester akhir yang mendapatkan keringanan UKT TA silakan mengganti 
+                                Bagi mahasiswa semester akhir yang mendapatkan keringanan UKT TA silakan mengganti
                                 Riwayat Pembayaran UKT dengan SK Penetapan Mahasiswa Penerima Pembebasan UKT
                             </li>
                             <li>
-                                Bukti Pembayaran UKT Terakhir. Mohon utamakan mengunggah scan bukti bayar asli dari bank, dan pastikan hasil scan JELAS. 
+                                Bukti Pembayaran UKT Terakhir. Mohon utamakan mengunggah scan bukti bayar asli dari bank, dan pastikan hasil scan JELAS.
                                 Apabila slip asli dari bank hilang, mahasiswa bisa mengunduh kuitansi dari Siakad.
                             </li>
                             <li>
@@ -36,7 +36,7 @@
                         </ol>
                     </p>
                     <div class="form-group">
-                        <label for="customFile1" class="form-label custom-file-input">Unggah File PDF disini <span class="text-danger">*</span></label>
+                        <label for="customFile1" class="form-label custom-file-input">Unggah File PDF disini</label>
                         <input class="form-control" type="file" id="customFile1" name="surat_permohonan" accept="application/pdf">
                         <span class="text-danger">Ukuran Maks File 10 MB</span>
                     </div>
@@ -96,7 +96,7 @@
                         <label class="form-label" for="tanggal_bayar">Tanggal Akan Membayar <span class="text-danger">*</span></label>
                         <input class="form-control" id="tanggal_bayar" type="date" name="tanggal_bayar">
                         <small>
-                            Mohon diperhatikan bahwa setelah ajuan disetujui universitas, akses membayar biasanya akan dibuka selama 1x24 jam. 
+                            Mohon diperhatikan bahwa setelah ajuan disetujui universitas, akses membayar biasanya akan dibuka selama 1x24 jam.
                             Harap isikan tanggal pada hari kerja yaitu Senin-Jumat selain tanggal merah.
                         </small>
                     </div>
@@ -104,7 +104,7 @@
                         <label for="bukti_bayar_ukt" class="form-label custom-file-input">Bukti Pembayaran UKT Terakhir <span class="text-danger">*</span></label>
                         <input class="form-control" type="file" id="bukti_bayar_ukt" name="bukti_bayar_ukt" accept="application/pdf">
                         <small>
-                            Mohon utamakan mengunggah scan bukti bayar asli dari bank, dan pastikan hasil scan JELAS. 
+                            Mohon utamakan mengunggah scan bukti bayar asli dari bank, dan pastikan hasil scan JELAS.
                             Apabila slip asli dari bank hilang, mahasiswa bisa mengunduh kuitansi dari Siakad.
                         </small>
                     </div>
