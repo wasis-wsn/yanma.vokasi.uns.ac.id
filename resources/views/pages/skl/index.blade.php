@@ -73,38 +73,52 @@
                             <p>
                                 {!! $layanan->keterangan !!}
                             </p>
-                            <h6 class="mb-2">Alur Ajuan Layanan Surat Keterangan Lulus</h6>
-                            <div class="iq-timeline0 m-0 d-flex align-items-center justify-content-between position-relative">
-                                <ul class="list-inline p-0 m-0">
-                                    <li>
-                                        <div class="timeline-dots timeline-dot1 border-success text-success"></div>
-                                        <h6 class="float-left mb-1">Mengajukan SKL di Siakad UNS</h6>
-                                        <div class="d-inline-block w-100">
-                                            <p>Silahkan mengajukan SKL melalui <a href="https://siakad.uns.ac.id/" target="_blank" rel="noopener noreferrer">Siakad</a></p>
-                                        </div>
-                                    </li>
-                                    <li>
-                                        <div class="timeline-dots timeline-dot1 border-danger text-danger"></div>
-                                        <h6 class="float-left mb-1">Mengajukan SKL di sistem ini</h6>
-                                        <div class="d-inline-block w-100">
-                                            <p>Silahkan tambah ajuan dengan cara klik "Ajukan Surat Keterangan Lulus" pada tombol dibawah dan upload file yang diperlukan</p>
-                                        </div>
-                                    </li>
-                                    <li>
-                                        <div class="timeline-dots timeline-dot1 border-primary text-primary"></div>
-                                        <h6 class="float-left mb-1">Cek Status Ajuan</h6>
-                                        <div class="d-inline-block w-100">
-                                            <p>Cek Status Ajuan Anda pada tabel dibawah</p>
-                                        </div>
-                                    </li>
-                                    <li>
-                                        <div class="timeline-dots timeline-dot1 border-warning text-warning"></div>
-                                        <h6 class="float-left mb-1">Status Ajuan Selesai</h6>
-                                        <div class="d-inline-block w-100">
-                                            <p>Silahkan mengambil SKL di Front Office Sekolah Vokasi pada hari Senin-Jum'at pukul 08.00 - 15.30 WIB</p>
-                                        </div>
-                                    </li>
-                                </ul>
+                            <div class="mb-3">
+                                <button type="button" class="btn btn-outline-primary" id="toggleAlur" data-bs-toggle="collapse" data-bs-target="#alurAjuan" aria-expanded="false" aria-controls="alurAjuan">
+                                    <i class="fas fa-eye" id="toggleIcon"></i> Lihat Alur Ajuan Layanan
+                                </button>
+                            </div>
+                            <div class="collapse" id="alurAjuan">
+                                <h6 class="mb-2">Alur Ajuan Layanan Surat Keterangan Lulus</h6>
+                                <div class="iq-timeline0 m-0 d-flex align-items-center justify-content-between position-relative">
+                                    <ul class="list-inline p-0 m-0">
+                                        <li>
+                                            <div class="timeline-dots timeline-dot1 border-info text-info"></div>
+                                            <h6 class="float-left my-2">Mengganti foto pada SIAKAD sesuai dengan referensi</h6>
+                                            <div class="d-inline-block w-100">
+                                                <p>Silahkan lihat referensi <a href="https://drive.google.com/drive/folders/1nYGEcmztMPrIXn9RopVWnbvJwx5U0WaK?usp=sharing" target="_blank" rel="noopener noreferrer">disini</a></p>
+                                            </div>
+                                        </li>
+                                        <li>
+                                            <div class="timeline-dots timeline-dot1 border-success text-success"></div>
+                                            <h6 class="float-left mb-1">Mengajukan SKL di SIAKAD UNS</h6>
+                                            <div class="d-inline-block w-100">
+                                                <p>Silahkan mengajukan SKL melalui <a href="https://siakad.uns.ac.id/" target="_blank" rel="noopener noreferrer">SIAKAD</a></p>
+                                            </div>
+                                        </li>
+                                        <li>
+                                            <div class="timeline-dots timeline-dot1 border-danger text-danger"></div>
+                                            <h6 class="float-left mb-1">Mengajukan SKL di sistem ini</h6>
+                                            <div class="d-inline-block w-100">
+                                                <p>Silahkan tambah ajuan dengan cara klik "Ajukan Surat Keterangan Lulus" pada tombol dibawah dan upload file yang diperlukan</p>
+                                            </div>
+                                        </li>
+                                        <li>
+                                            <div class="timeline-dots timeline-dot1 border-primary text-primary"></div>
+                                            <h6 class="float-left mb-1">Cek Status Ajuan</h6>
+                                            <div class="d-inline-block w-100">
+                                                <p>Cek Status Ajuan Anda pada tabel dibawah</p>
+                                            </div>
+                                        </li>
+                                        <li>
+                                            <div class="timeline-dots timeline-dot1 border-warning text-warning"></div>
+                                            <h6 class="float-left mb-1">Status Ajuan Selesai</h6>
+                                            <div class="d-inline-block w-100">
+                                                <p>Silahkan mengambil SKL di Front Office Sekolah Vokasi pada hari Senin-Jum'at pukul 08.00 - 15.30 WIB</p>
+                                            </div>
+                                        </li>
+                                    </ul>
+                                </div>
                             </div>
                             @if (count($templates) > 0)
                             <p class="text-dark">
@@ -313,6 +327,15 @@
 
 @push('js')
     <script>
+        // Toggle button text and icon
+        document.getElementById('alurAjuan').addEventListener('shown.bs.collapse', function () {
+            document.getElementById('toggleAlur').innerHTML = '<i class="fas fa-eye-slash" id="toggleIcon"></i> Sembunyikan Alur Ajuan';
+        });
+
+        document.getElementById('alurAjuan').addEventListener('hidden.bs.collapse', function () {
+            document.getElementById('toggleAlur').innerHTML = '<i class="fas fa-eye" id="toggleIcon"></i> Lihat Alur Ajuan Layanan';
+        });
+
         @if (session('error'))
             toastr.error("{{session('error')}}")
         @endif
