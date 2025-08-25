@@ -155,6 +155,10 @@
     }
 
     /* Search input styling */
+    .search-container {
+        position: relative;
+    }
+
     .input-group {
         margin-bottom: 30px;
         border-radius: 50px;
@@ -185,11 +189,36 @@
         position: absolute;
         top: 100%;
         left: 0;
-        width: 100%;
+        right: 0;
         z-index: 1000;
         border-radius: 15px;
         overflow: hidden;
         box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        background: white;
+        max-height: 300px;
+        overflow-y: auto;
+        margin-top: 5px;
+        display: none;
+    }
+
+    .search-dropdown .list-group-item {
+        border: none;
+        padding: 12px 20px;
+        color: #475569;
+        transition: all 0.3s ease;
+    }
+
+    .search-dropdown .list-group-item:hover {
+        background-color: #f8fafc;
+        color: #3b82f6;
+    }
+
+    .search-dropdown .list-group-item:first-child {
+        border-radius: 15px 15px 0 0;
+    }
+
+    .search-dropdown .list-group-item:last-child {
+        border-radius: 0 0 15px 15px;
     }
 
     /* Table styling */
@@ -250,12 +279,14 @@
 
     <main id="main">
         <div class="container pt-4" data-aos="fade-up">
-            <div class="input-group">
-                <div class="input-group-prepend">
-                    <span class="input-group-text bg-transparent border-end-0" style="height: 100%"><i class="bi bi-search"></i></span>
+            <div class="search-container">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text bg-transparent border-end-0" style="height: 100%"><i class="bi bi-search"></i></span>
+                    </div>
+                    <input type="text" class="form-control border-start-0" id="searchInput" placeholder="Cari ajuan legalisir berdasarkan Nama dan NIM">
                 </div>
-                <input type="text" class="form-control border-start-0" id="searchInput" placeholder="Cari ajuan legalisir berdasarkan Nama dan NIM">
-                <div class="dropdown search-dropdown list-group" id="searchDropdown">
+                <div class="search-dropdown list-group" id="searchDropdown">
                 </div>
             </div>
         </div>
@@ -305,6 +336,7 @@
     $(document).ready(function () {
         const searchInput = $('#searchInput');
         const searchDropdown = $('#searchDropdown');
+
         // Definisikan fungsi debounce
         function debounce(func, wait, immediate) {
             var timeout;
@@ -320,33 +352,46 @@
                 if (callNow) func.apply(context, args);
             };
         }
+
         // Terapkan debounce pada fungsi input
         const delayedSearch = debounce(function() {
             const keyword = searchInput.val().toLowerCase();
-            searchDropdown.empty();
+            searchDropdown.empty().hide();
+
             if (keyword.trim() !== '') {
                 let filteredData = $.ajax({
                     url: `{{ route('legalisir.search') }}?q=${keyword}`,
                     type: "GET"
                 });
+
                 filteredData.done(function(response) {
-                    response.forEach(data => {
-                        const listItem = $('<a>').attr('href', '{{ route("legalisir.detail") }}?id=' + data.id)
-                                            .addClass('list-group-item list-group-item-action text-center')
-                                            .html(data.nim + ' - ' + data.name + ' - ' + data.prodi.name);
-                        searchDropdown.append(listItem);
-                    });
+                    if (response.length > 0) {
+                        response.forEach(data => {
+                            const listItem = $('<a>').attr('href', '{{ route("legalisir.detail") }}?id=' + data.id)
+                                                .addClass('list-group-item list-group-item-action')
+                                                .html(data.nim + ' - ' + data.name + ' - ' + data.prodi.name);
+                            searchDropdown.append(listItem);
+                        });
+                        searchDropdown.show();
+                    }
                 });
-                searchDropdown.show();
-            } else {
-                searchDropdown.hide();
             }
         }, 500);
+
         // Terapkan debounce pada input event
         searchInput.on('input', delayedSearch);
+
+        // Hide dropdown when clicking outside
         $(document).click(function (event) {
-            if (!$(event.target).closest('.search-input').length) {
+            if (!$(event.target).closest('.search-container').length) {
                 searchDropdown.hide();
+            }
+        });
+
+        // Show dropdown when focusing on input if there's content
+        searchInput.on('focus', function() {
+            if (searchDropdown.children().length > 0) {
+                searchDropdown.show();
             }
         });
     });

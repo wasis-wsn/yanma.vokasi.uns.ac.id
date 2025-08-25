@@ -155,6 +155,10 @@
     }
 
     /* Search input styling */
+    .search-container {
+        position: relative;
+    }
+
     .input-group {
         margin-bottom: 30px;
         border-radius: 50px;
@@ -185,79 +189,90 @@
         position: absolute;
         top: 100%;
         left: 0;
-        width: 100%;
+        right: 0;
         z-index: 1000;
         border-radius: 15px;
         overflow: hidden;
         box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        background: white;
+        max-height: 300px;
+        overflow-y: auto;
+        margin-top: 5px;
+        display: none;
+    }
+
+    .search-dropdown .list-group-item {
+        border: none;
+        padding: 12px 20px;
+        color: #475569;
+        transition: all 0.3s ease;
+    }
+
+    .search-dropdown .list-group-item:hover {
+        background-color: #f8fafc;
+        color: #3b82f6;
+    }
+
+    .search-dropdown .list-group-item:first-child {
+        border-radius: 15px 15px 0 0;
+    }
+
+    .search-dropdown .list-group-item:last-child {
+        border-radius: 0 0 15px 15px;
     }
 
     /* Content card styling */
     .content-card {
         background: white;
         border-radius: 15px;
-        overflow: hidden;
+        padding: 40px;
         box-shadow: 0 10px 40px rgba(0,0,0,0.08);
-        padding: 30px;
         margin-bottom: 30px;
     }
 
     .content-card h3 {
         color: #1e293b;
         font-weight: 700;
-        margin-bottom: 25px;
-        position: relative;
-        padding-bottom: 15px;
-    }
-
-    .content-card h3:after {
-        content: '';
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        width: 50px;
-        height: 4px;
-        background: linear-gradient(90deg, var(--color-secondary) 0%, #3b82f6 100%);
-        border-radius: 2px;
+        margin-bottom: 30px;
     }
 
     .content-card h5 {
-        color: #334155;
+        color: #3b82f6;
         font-weight: 600;
-        margin-top: 25px;
-        margin-bottom: 15px;
+        margin-top: 30px;
+        margin-bottom: 20px;
     }
 
-    .content-card ol {
-        padding-left: 20px;
-    }
-
-    .content-card ol li {
-        margin-bottom: 10px;
+    .content-card ol, .content-card ul {
         color: #475569;
         line-height: 1.7;
     }
 
+    .content-card ol li {
+        margin-bottom: 15px;
+    }
+
+    .content-card ul li {
+        margin-bottom: 8px;
+    }
+
     .content-card a {
-        color: var(--color-secondary);
-        font-weight: 500;
+        color: #3b82f6;
         text-decoration: none;
+        font-weight: 500;
     }
 
     .content-card a:hover {
+        color: #1d4ed8;
         text-decoration: underline;
     }
 
-    /* Animation classes */
-    .fade-in-up {
-        opacity: 0;
-        transform: translateY(30px);
-        transition: all 0.6s ease-out;
-    }
-
-    .fade-in-up.visible {
-        opacity: 1;
-        transform: translateY(0);
+    .template-section {
+        background: rgba(59, 130, 246, 0.05);
+        border-left: 4px solid #3b82f6;
+        padding: 20px;
+        border-radius: 0 10px 10px 0;
+        margin: 20px 0;
     }
 </style>
 @endpush
@@ -289,19 +304,20 @@
 
     <main id="main">
         <div class="container pt-4" data-aos="fade-up">
-            <div class="input-group">
-                <div class="input-group-prepend">
-                    <span class="input-group-text bg-white border-end-0" style="height: 100%"><i class="bi bi-search"></i></span>
+            <div class="search-container">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text bg-transparent border-end-0" style="height: 100%"><i class="bi bi-search"></i></span>
+                    </div>
+                    <input type="text" class="form-control border-start-0" id="searchInput" placeholder="Cari ajuan legalisir berdasarkan Nama dan NIM">
                 </div>
-                <input type="text" class="form-control border-start-0" id="searchInput" placeholder="Cari ajuan legalisir berdasarkan Nama dan NIM">
-                <div class="dropdown search-dropdown list-group" id="searchDropdown">
+                <div class="search-dropdown list-group" id="searchDropdown">
                 </div>
             </div>
         </div>
-
         <section>
             <div class="container">
-                <div class="content-card fade-in-up" data-aos="fade-up" data-aos-delay="200">
+                <div class="content-card" data-aos="fade-up" data-aos-delay="200">
                     <h3>Legalisir</h3>
                     <h5>Alur Legalisir</h5>
                     <ol>
@@ -317,9 +333,11 @@
                         <li>Selesai</li>
                     </ol>
                     @if (count($templates) > 0)
-                    <p class="text-dark">
-                        Template File:
-                        <ul class="text-dark">
+                    <div class="template-section">
+                        <p class="text-dark mb-2">
+                            <strong>Template File:</strong>
+                        </p>
+                        <ul class="text-dark mb-0">
                             @foreach ($templates as $item)
                                 <li>
                                     {{$item->template}}
@@ -327,7 +345,7 @@
                                 </li>
                             @endforeach
                         </ul>
-                    </p>
+                    </div>
                     @endif
                     <h5>Ketentuan Legalisir</h5>
                     <ol>
@@ -397,7 +415,7 @@
         // Terapkan debounce pada fungsi input
         const delayedSearch = debounce(function() {
             const keyword = searchInput.val().toLowerCase();
-            searchDropdown.empty();
+            searchDropdown.empty().hide();
 
             if (keyword.trim() !== '') {
                 let filteredData = $.ajax({
@@ -406,50 +424,34 @@
                 });
 
                 filteredData.done(function(response) {
-                    response.forEach(data => {
-                        const listItem = $('<a>').attr('href', '{{ route("legalisir.detail") }}?id=' + data.id)
-                                            .addClass('list-group-item list-group-item-action text-center')
-                                            .html(data.nim + ' - ' + data.name + ' - ' + data.prodi.name);
-                        searchDropdown.append(listItem);
-                    });
+                    if (response.length > 0) {
+                        response.forEach(data => {
+                            const listItem = $('<a>').attr('href', '{{ route("legalisir.detail") }}?id=' + data.id)
+                                                .addClass('list-group-item list-group-item-action')
+                                                .html(data.nim + ' - ' + data.name + ' - ' + data.prodi.name);
+                            searchDropdown.append(listItem);
+                        });
+                        searchDropdown.show();
+                    }
                 });
-
-                searchDropdown.show();
-            } else {
-                searchDropdown.hide();
             }
         }, 500);
 
         // Terapkan debounce pada input event
         searchInput.on('input', delayedSearch);
 
+        // Hide dropdown when clicking outside
         $(document).click(function (event) {
-            if (!$(event.target).closest('.search-input').length) {
+            if (!$(event.target).closest('.search-container').length) {
                 searchDropdown.hide();
             }
         });
-    });
-</script>
 
-<script>
-    // Observer for animations
-    document.addEventListener('DOMContentLoaded', function() {
-        const observerOptions = {
-            threshold: 0.1,
-            rootMargin: '0px 0px -50px 0px'
-        };
-
-        const observer = new IntersectionObserver(function(entries) {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('visible');
-                }
-            });
-        }, observerOptions);
-
-        // Observe all elements with animation classes
-        document.querySelectorAll('.fade-in-up').forEach(el => {
-            observer.observe(el);
+        // Show dropdown when focusing on input if there's content
+        searchInput.on('focus', function() {
+            if (searchDropdown.children().length > 0) {
+                searchDropdown.show();
+            }
         });
     });
 </script>
