@@ -179,65 +179,75 @@
         background: linear-gradient(90deg, var(--color-secondary) 0%, #3b82f6 100%);
         border-radius: 2px;
     }
+    /* Custom spacing for contact section */
+#faq .row {
+    margin: 0 -5px; /* Reduce horizontal spacing */
+}
 
-    /* Contact Items Styling */
-    .service-item {
-        background: white;
-        border-radius: 15px;
-        padding: 25px;
-        text-align: center;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-        transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-        cursor: pointer;
-        height: 100%;
-        position: relative;
-        border: 1px solid #e2e8f0;
-        overflow: hidden;
+#faq .col-xl-3, #faq .col-md-6 {
+    padding: 0 5px 10px 5px; /* Minimal horizontal padding, small bottom margin */
+}
+
+/* Contact Items Styling - Updated for larger boxes and smaller gaps */
+.service-item {
+    background: white;
+    border-radius: 15px;
+    padding: 40px 30px; /* Increased padding from 25px to 40px 30px */
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+    cursor: pointer;
+    height: 100%;
+    position: relative;
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
+    min-height: 70px; /* Added minimum height for consistency */
+}
+
+.service-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--color-secondary) 0%, #3b82f6 100%);
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+}
+
+.service-item:hover::before {
+    transform: scaleX(1);
+}
+
+.service-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+}
+
+.service-item h4 {
+    margin-bottom: 0;
+    font-size: 1.3rem; /* Increased from 1.1rem to 1.3rem */
+    font-weight: 600; /* Added font weight for better visibility */
+}
+
+.service-item h4 a {
+    color: #1e293b;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.service-item:hover h4 a {
+    color: var(--color-secondary);
+}
+
+.service-item i {
+    font-size: 3rem; /* Increased from 2rem to 3rem */
+    color: var(--color-secondary);
+    margin-bottom: 20px; /* Increased from 15px to 20px */
+    display: block;
+} display: block;
     }
-
-    .service-item::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 4px;
-        background: linear-gradient(90deg, var(--color-secondary) 0%, #3b82f6 100%);
-        transform: scaleX(0);
-        transition: transform 0.3s ease;
-    }
-
-    .service-item:hover::before {
-        transform: scaleX(1);
-    }
-
-    .service-item:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 15px 30px rgba(0,0,0,0.15);
-    }
-
-    .service-item h4 {
-        margin-bottom: 0;
-        font-size: 1.1rem;
-    }
-
-    .service-item h4 a {
-        color: #1e293b;
-        text-decoration: none;
-        transition: color 0.3s ease;
-    }
-
-    .service-item:hover h4 a {
-        color: var(--color-secondary);
-    }
-
-    .service-item i {
-        font-size: 2rem;
-        color: var(--color-secondary);
-        margin-bottom: 15px;
-        display: block;
-    }
-
     /* Animations */
     .fade-in-up {
         opacity: 0;
@@ -283,9 +293,9 @@
                 <div class="section-header" data-aos="fade-up">
                     <h2>Hubungi Kami</h2>
                 </div>
-                <div class="row gy-4">
+                <div class="row g-0">
                     @foreach ($contact as $index => $c)
-                        <div class="col-xl-3 col-md-6 d-flex" data-aos="zoom-out" data-aos-delay="{{ $index * 100 }}">
+                        <div class="col-xl-3 col-md-6 d-flex p-1" data-aos="zoom-out" data-aos-delay="{{ $index * 100 }}">
                             <div class="service-item position-relative">
                                 <i class="fa fa-phone mb-3"></i>
                                 <h4>
