@@ -14,12 +14,9 @@ $(document).ready(function() {
             columns: [
                 { data: "created_at", visible: false },
                 {
-                    data: "id",
+                    data: "checkbox",
                     orderable: false,
-                    searchable: false,
-                    render: function(data) {
-                        return '<input type="checkbox" class="form-check-input row-checkbox" value="' + data + '">';
-                    }
+                    searchable: false
                 },
                 { data: "DT_RowIndex" },
                 { data: "tanggal_submit" },
@@ -42,7 +39,7 @@ $(document).ready(function() {
                 },
                 {
                     className: "btn-group-vertical",
-                    targets: [8],
+                    targets: [9],
                 },
                 {
                     className: "text-wrap",
@@ -433,7 +430,6 @@ $(document).ready(function() {
 
         if (selectedIds.length > 0) {
             $('#form-bulk-process input[name="selected_ids"]').val(selectedIds.join(','));
-            const bulkProcessModal = new bootstrap.Modal(document.getElementById('modalBulkProcess'));
             bulkProcessModal.show();
         } else {
             Swal.fire({
@@ -484,7 +480,7 @@ $(document).ready(function() {
             },
             success: function(response) {
                 if (response.status) {
-                    $('#modalBulkProcess').modal('hide');
+                    bulkProcessModal.hide();
                     $('#select-all').prop('checked', false);
                     $('.row-checkbox').prop('checked', false);
                     updateBulkActionButton();

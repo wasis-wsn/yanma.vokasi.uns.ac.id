@@ -106,8 +106,8 @@ class PenundaanController extends Controller
 
         return DataTables::of($list)
             ->addIndexColumn()
-            ->editColumn('id', function ($row) {
-                return encodeId($row->id);
+            ->addColumn('checkbox', function ($row) {
+                return '<input type="checkbox" class="form-check-input row-checkbox" value="' . encodeId($row->id) . '" name="ids">';
             })
             ->addColumn('action', function ($row) {
                 $aksi = '<button type="button" class="btn btn-info btn-sm btn-detail" data-id="' . encodeId($row->id) . '">
@@ -139,7 +139,7 @@ class PenundaanController extends Controller
             ->editColumn('catatan', function ($row) {
                 return wordwrap($row->catatan, 30, "<br>");
             })
-            ->rawColumns(['id', 'action', 'tanggal_submit', 'tahun_akademik', 'status_id', 'nama_prodi', 'catatan'])
+            ->rawColumns(['checkbox', 'action', 'tanggal_submit', 'tahun_akademik', 'status_id', 'nama_prodi', 'catatan'])
             ->toJson();
     }
 
