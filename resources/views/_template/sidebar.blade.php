@@ -2,10 +2,19 @@
     <div class="sidebar-header d-flex align-items-center justify-content-start">
         <a href="{{route('home')}}" class="navbar-brand" width="100%">
             <!--Logo start-->
-            <img src="{{ asset('logosv.png') }}" height="40">
-            <!--<h3 class="logo-title" style="font-size: 20px;">{{ env('APP_NICKNAME') }}</h3>-->
+            <img src="{{ asset('logosv.png') }}" class="main-logo" height="60">
+            <img src="{{ asset('logosv.png') }}" class="mini-logo" height="40" style="display: none;">
             <!--logo End-->
         </a>
+
+        <style>
+            .sidebar.sidebar-mini .main-logo {
+            display: none;
+            }
+            .sidebar.sidebar-mini .mini-logo {
+            display: block !important;
+            }
+        </style>
         <div class="sidebar-toggle" data-toggle="sidebar" data-active="true">
             <i class="icon">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
