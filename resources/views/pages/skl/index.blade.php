@@ -247,7 +247,9 @@
                                     <thead>
                                         <tr>
                                             <th hidden>created_at</th>
+                                            @canany(['staff', 'fo'])
                                             <th><input type="checkbox" id="select-all" class="form-check-input"></th>
+                                            @endcanany
                                             <td>No</td>
                                             <td>Nama</td>
                                             <td>NIM</td>

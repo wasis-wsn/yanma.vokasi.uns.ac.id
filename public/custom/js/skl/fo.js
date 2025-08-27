@@ -6,6 +6,14 @@ const initializeDataTableSKL = (status, year, prodi) => {
         ajax: `${window.Laravel.skl.listData}?status=${status}&year=${year}&prodi=${prodi}`,
         columns: [
             { data: "created_at", visible: false },
+            {
+                data: null,
+                orderable: false,
+                render: function(data, type, row) {
+                    // Use the ID that was already encoded by the server
+                    return '<input type="checkbox" class="form-check-input row-checkbox" value="' + row.id + '">';
+                }
+            },
             { data: "DT_RowIndex" },
             { data: "user.name" },
             { data: "user.nim" },
