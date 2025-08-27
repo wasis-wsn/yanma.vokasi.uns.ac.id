@@ -8,7 +8,7 @@ var table = $("#suket-datatable").DataTable({
         { data: "keperluan" },
         { data: "created_at" },
         { data: "status_id" },
-        { 
+        {
             data: "queue_number",
             className: "queue-info"
         },
@@ -34,7 +34,7 @@ setInterval(function() {
                 if (res.status) {
                     $("#detail-queue-number").text(res.user_queue);
                     $("#detail-total-queue").text(res.total_waiting);
-                    
+
                     // Update juga di tabel
                     table.ajax.reload(null, false);
                 }

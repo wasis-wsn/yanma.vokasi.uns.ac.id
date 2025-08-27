@@ -14,7 +14,7 @@ const initializeDataTable = (status, year) => {
             { data: "keperluan" },
             { data: "no_surat" },
             { data: "status_id" },
-            { 
+            {
                 data: "queue_number",
                 className: "queue-info",
             },
@@ -77,7 +77,7 @@ setInterval(function() {
                 if (res.status) {
                     // Update tabel
                     table.ajax.reload(null, false);
-                    
+
                     // Update modal detail jika terbuka
                     if ($('#modalDetail').is(':visible')) {
                         $("#detail-queue-number").text(res.user_queue);
@@ -255,7 +255,7 @@ $("#form-proses").submit(function (e) {
                     updateQueueNumbers();
                 }
                 table.ajax.reload();
-            } 
+            }
         },
         error: function (xhr, status, error) {
             var err = JSON.parse(xhr.responseText);
@@ -270,4 +270,19 @@ $("#form-proses").submit(function (e) {
         processData: false,
     });
 });
-
+function updateQueueNumbers() {
+    $.ajax({
+        url: '/suket/update-queue',
+        type: 'GET',
+        success: function(res) {
+            if (res.status) {
+                table.ajax.reload(null, false);
+                if ($('#modalDetail').is(':visible')) {
+                    // Update juga di modal detail jika terbuka
+                    $("#detail-queue-number").text(res.user_queue);
+                    $("#detail-total-queue").text(res.total_waiting);
+                }
+            }
+        }
+    });
+}

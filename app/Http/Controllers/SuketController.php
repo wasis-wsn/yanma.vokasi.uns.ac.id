@@ -64,7 +64,7 @@ class SuketController extends Controller
                 return $aksi;
             })
             ->editColumn('created_at', function ($row) {
-                return Carbon::parse($row->created_at)->translatedFormat('d F Y');
+                return Carbon::parse($row->created_at)->translatedFormat('d M Y, H:i');
             })
             ->editColumn('keperluan', function ($row) {
                 return wordwrap($row->keperluan, 20, '<br>');
@@ -72,7 +72,7 @@ class SuketController extends Controller
             ->editColumn('tanggal_proses', function ($row) {
                 $tanggal_proses = $row->tanggal_proses;
                 if ($tanggal_proses) {
-                    $tanggal_proses = Carbon::parse($row->tanggal_proses)->translatedFormat('d F Y') . '<br>' . Carbon::parse($row->tanggal_proses)->translatedFormat('H:i:s');
+                    $tanggal_proses = Carbon::parse($row->tanggal_proses)->translatedFormat('d M Y, H:i');
                 }
                 return $tanggal_proses;
             })
@@ -140,7 +140,7 @@ class SuketController extends Controller
                 return $aksi;
             })
             ->editColumn('tanggal_submit', function ($row) {
-                return Carbon::parse($row->created_at)->translatedFormat('d F Y') . '<br>' . Carbon::parse($row->created_at)->translatedFormat('H:i:s');
+                return Carbon::parse($row->created_at)->translatedFormat('d M Y, H:i');
             })
             ->editColumn('keperluan', function ($row) {
                 return wordwrap($row->keperluan, 20, '<br>');
@@ -148,12 +148,15 @@ class SuketController extends Controller
             ->editColumn('tanggal_proses', function ($row) {
                 $tanggal_proses = $row->tanggal_proses;
                 if ($tanggal_proses) {
-                    $tanggal_proses = Carbon::parse($row->tanggal_proses)->translatedFormat('d F Y') . '<br>' . Carbon::parse($row->tanggal_proses)->translatedFormat('H:i:s');
+                    $tanggal_proses = Carbon::parse($row->tanggal_proses)->translatedFormat('d M Y, H:i');
                 }
                 return $tanggal_proses;
             })
             ->editColumn('status_id', function ($row) {
                 return '<button type="button" class="btn ' . $row->status->color . ' btn-sm" disabled>' . $row->status->name . '</button>';
+            })
+            ->editColumn('no_surat', function ($row) {
+                return $row->no_surat;
             })
             ->editColumn('queue_number', function ($row) {
                 if ($row->queue_status === 'processed') {
@@ -197,16 +200,16 @@ class SuketController extends Controller
                         </button>';
                 return $aksi;
             })
-            ->editColumn('tanggal_submit', function ($row) {
-                return Carbon::parse($row->created_at)->translatedFormat('d F Y') . '<br>' . Carbon::parse($row->created_at)->translatedFormat('H:i:s');
+            ->addColumn('tanggal_submit', function ($row) {
+                return Carbon::parse($row->created_at)->translatedFormat('d M Y, H:i') . ' WIB';
             })
             ->editColumn('keperluan', function ($row) {
                 return Str::of($row->keperluan)->limit(20);
             })
-            ->editColumn('tanggal_proses', function ($row) {
+            ->addColumn('tanggal_proses', function ($row) {
                 $tanggal_proses = $row->tanggal_proses;
                 if ($tanggal_proses) {
-                    $tanggal_proses = Carbon::parse($row->tanggal_proses)->translatedFormat('d F Y') . '<br>' . Carbon::parse($row->tanggal_proses)->translatedFormat('H:i:s');
+                    $tanggal_proses = Carbon::parse($row->tanggal_proses)->translatedFormat('d M Y, H:i') . ' WIB';
                 }
                 return $tanggal_proses;
             })
@@ -255,7 +258,7 @@ class SuketController extends Controller
                 return $aksi;
             })
             ->editColumn('tanggal_submit', function ($row) {
-                return Carbon::parse($row->created_at)->translatedFormat('d F Y') . '<br>' . Carbon::parse($row->created_at)->translatedFormat('H:i:s');
+                return Carbon::parse($row->created_at)->translatedFormat('d M Y, H:i');
             })
             ->editColumn('keperluan', function ($row) {
                 return Str::of($row->keperluan)->limit(20);
@@ -263,7 +266,7 @@ class SuketController extends Controller
             ->editColumn('tanggal_proses', function ($row) {
                 $tanggal_proses = $row->tanggal_proses;
                 if ($tanggal_proses) {
-                    $tanggal_proses = Carbon::parse($row->tanggal_proses)->translatedFormat('d F Y') . '<br>' . Carbon::parse($row->tanggal_proses)->translatedFormat('H:i:s');
+                    $tanggal_proses = Carbon::parse($row->tanggal_proses)->translatedFormat('d M Y, H:i');
                 }
                 return $tanggal_proses;
             })

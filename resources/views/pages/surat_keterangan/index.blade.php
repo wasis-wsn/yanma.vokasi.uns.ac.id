@@ -68,7 +68,7 @@
                             @include('pages.surat_keterangan.modal_tambah')
                             @include('pages.surat_keterangan.modal_edit')
                         @endcan
-                        @canany(['staff','dekanat','subkoor'])
+                        @canany(['staff','dekanat','subkoor','fo'])
                             <div class="d-flex justify-content-start pb-4">
                                 <button type="button" class="btn btn-success mx-2" id="btn-export">Export Data</button>
                             </div>
@@ -196,6 +196,7 @@
         <script>
             var year = $("#tahunDropdown").html();
             var status_table = $("#statusDropdown").data('status');
+            var prodi_table = $("#prodiDropdown").data('prodi');
             window.Laravel = {!! json_encode([
                 'baseUrl' => url('/'),
                 'export' => route('suket.export'),

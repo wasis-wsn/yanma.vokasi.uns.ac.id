@@ -9,13 +9,14 @@ const initializeDataTable = (status, year) => {
             { data: "DT_RowIndex" },
             { data: "user.name" },
             { data: "user.nim" },
-            { data: "created_at" },
+            { data: "tanggal_submit" },
+            { data: "tanggal_proses" },
             { data: "keperluan" },
             { data: "no_surat" },
             { data: "status_id" },
-            { 
+            {
                 data: "queue_number",
-                className: "queue-info"
+                className: "queue-info",
             },
             { data: "catatan" },
             { data: "action" },
@@ -65,7 +66,6 @@ $(".status-menu").click(function () {
     table = initializeDataTable(status_table, year);
 });
 
-// Cek update antrian setiap 30 detik
 setInterval(function() {
     if ($('#modalDetail').is(':visible') || $('.dataTables_filter input').is(':focus')) {
         $.ajax({
@@ -75,7 +75,7 @@ setInterval(function() {
                 if (res.status) {
                     // Update tabel
                     table.ajax.reload(null, false);
-                    
+
                     // Update modal detail jika terbuka
                     if ($('#modalDetail').is(':visible')) {
                         $("#detail-queue-number").text(res.user_queue);
@@ -107,7 +107,6 @@ $("#show_data").on("click", ".btn-detail", function () {
                     ": " + res.data.tahun_akademik.tahun_akademik + ' - ' + res.data.semester.semester
                 );
                 $("#detail-keperluan").html(": " + res.data.keperluan);
-                $("#detail-antrian").html(": " + res.data.queue_number);
                 $("#detail-file").attr(
                     "href",
                     `${window.Laravel.baseUrl}/storage/surat_keterangan/upload/${res.data.file}`
@@ -139,19 +138,3 @@ $("#show_data").on("click", ".btn-detail", function () {
         },
     });
 });
-function updateQueueNumbers() {
-    $.ajax({
-        url: '/suket/update-queue',
-        type: 'GET',
-        success: function(res) {
-            if (res.status) {
-                table.ajax.reload(null, false);
-                if ($('#modalDetail').is(':visible')) {
-                    // Update juga di modal detail jika terbuka
-                    $("#detail-queue-number").text(res.user_queue);
-                    $("#detail-total-queue").text(res.total_waiting);
-                }
-            }
-        }
-    });
-}

@@ -1,33 +1,23 @@
-const initializeDataTable = (status_table, year, prodi_table) => {
+const initializeDataTable = (status, year, prodi) => {
     return $("#suket-datatable").DataTable({
         processing: true,
         serverSide: true,
         destroy: true,
-        ajax: {
-            url: window.Laravel.listData,
-            type: 'GET',
-            data: function(d) {
-                // Add custom parameters
-                return $.extend({}, d, {
-                    status: status_table,
-                    year: year,
-                    prodi: prodi_table
-                });
-            }
-        },
+        ajax: `${window.Laravel.listData}?status=${status}&year=${year}&prodi=${prodi}`,
         columns: [
             { data: "created_at", visible: false },
             { data: "DT_RowIndex" },
             { data: "user.name" },
             { data: "user.nim" },
-            { data: "nama_prodi" },
-            { data: "created_at" },
+            { data: "tanggal_submit" },
+            { data: "tanggal_proses" },
             { data: "keperluan" },
             { data: "no_surat" },
             { data: "status_id" },
-            { 
+            {
                 data: "queue_number",
                 className: "queue-info"
+
             },
             { data: "catatan" },
             { data: "action" },
@@ -66,51 +56,20 @@ $(".tahun-menu").click(function () {
     table = initializeDataTable(status_table, year, prodi_table);
 });
 
+$('#btn-export').click(function () {
+    $('#form-export').attr('action', window.Laravel.export);
+    $('#modalExport').modal('show');
+});
+
 $(".status-menu").click(function () {
     status_table = $(this).data("status");
     $("#statusDropdown").html($(this).html());
     table = initializeDataTable(status_table, year, prodi_table);
 });
 
-$(".prodi-menu").on("click", function (e) {
-    e.preventDefault();
-
-    var selectedProdi = $(this).data("status"); // Ambil data-status
-
-    if (!selectedProdi) {
-        selectedProdi = "all"; // Default ke 'all' jika undefined
-    }
-
-    $("#prodiDropdown").text($(this).text()); // Ubah teks tombol dropdown
-    $("#prodiDropdown").data("status", selectedProdi); // Perbarui data-status
-
-    // Pastikan DataTable diperbarui setelah perubahan filter
-    table.destroy();
-    table = initializeDataTable(status_table, year, selectedProdi);
-});
-
-setInterval(function() {
-    if ($('#modalDetail').is(':visible')) {
-        $.ajax({
-            url: window.Laravel.queueStatus,
-            type: "GET",
-            success: function(res) {
-                if (res.status) {
-                    $("#detail-queue-number").text(res.user_queue);
-                    $("#detail-total-queue").text(res.total_waiting);
-                    
-                    // Update juga di tabel
-                    table.ajax.reload(null, false);
-                }
-            }
-        });
-    }
-}, 30000); // 30 detik
-
-$('#btn-export').click(function () {
-    $('#form-export').attr('action', window.Laravel.export);
-    $('#modalExport').modal('show');
-});
+setInterval(function () {
+    table.ajax.reload(null, false); // user paging is not reset on reload
+}, 300000);
 
 $("#show_data").on("click", ".btn-detail", function () {
     let id = $(this).data("id");
@@ -128,7 +87,6 @@ $("#show_data").on("click", ".btn-detail", function () {
                 $("#detail-nama").html(": " + res.data.user.name);
                 $("#detail-nim").html(": " + res.data.user.nim);
                 $("#detail-prodi").html(": " + res.data.user.prodis.name);
-                $("#detail-antrian").html(": " + res.data.queue_number);
                 $("#detail-tahun_akademik").html(
                     ": " + res.data.tahun_akademik.tahun_akademik + ' - ' + res.data.semester.semester
                 );
