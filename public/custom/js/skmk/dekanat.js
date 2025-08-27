@@ -7,12 +7,13 @@ const initializeDataTable = (status, year) => {
         columns: [
             { data: "created_at", visible: false },
             { data: "DT_RowIndex" },
-            { data: "created_at" },
+            { data: "tanggal_submit" },
+            { data: "tanggal_proses" },
             { data: "user.name" },
             { data: "user.nim" },
             { data: "no_surat" },
             { data: "status_id" },
-            { 
+            {
             data: "queue_number",
             className: "queue-info"
         },
@@ -69,13 +70,29 @@ setInterval(function() {
         $.ajax({
             url: window.Laravel.queueStatus,
             type: "GET",
+            headers: {
+                "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content"),
+                "Accept": "application/json"
+            },
             success: function(res) {
                 if (res.status) {
                     $("#detail-queue-number").text(res.user_queue);
                     $("#detail-total-queue").text(res.total_waiting);
-                    
+
                     // Update juga di tabel
                     table.ajax.reload(null, false);
+                }
+            },
+            error: function(xhr, status, error) {
+                if (xhr.status === 403) {
+                    console.log('Access denied to queue status');
+                    // Redirect to login or show message
+                    window.location.reload();
+                } else if (xhr.status === 401) {
+                    console.log('Unauthorized access');
+                    window.location.href = '/login';
+                } else {
+                    console.log('Error loading queue status:', error);
                 }
             }
         });
@@ -145,7 +162,11 @@ $("#show_data").on("click", ".btn-detail", function () {
 function updateQueueNumbers() {
     $.ajax({
         url: '/suket/update-queue',
-        type: 'GET',
+        type: 'POST',
+        headers: {
+            "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content"),
+            "Accept": "application/json"
+        },
         success: function(res) {
             if (res.status) {
                 table.ajax.reload(null, false);
@@ -154,6 +175,15 @@ function updateQueueNumbers() {
                     $("#detail-queue-number").text(res.user_queue);
                     $("#detail-total-queue").text(res.total_waiting);
                 }
+            }
+        },
+        error: function(xhr, status, error) {
+            if (xhr.status === 403) {
+                console.log('Access denied to update queue');
+            } else if (xhr.status === 401) {
+                window.location.href = '/login';
+            } else {
+                console.log('Error updating queue:', error);
             }
         }
     });

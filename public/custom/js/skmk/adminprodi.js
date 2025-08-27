@@ -7,12 +7,13 @@ const initializeDataTable = (status, year) => {
         columns: [
             { data: "created_at", visible: false },
             { data: "DT_RowIndex" },
-            { data: "created_at" },
+            { data: "tanggal_submit" },
+            { data: "tanggal_proses" },
             { data: "user.name" },
             { data: "user.nim" },
             { data: "no_surat" },
             { data: "status_id" },
-            { 
+            {
                 data: "queue_number",
                 className: "queue-info"
             },
@@ -73,7 +74,7 @@ setInterval(function() {
                 if (res.status) {
                     $("#detail-queue-number").text(res.user_queue);
                     $("#detail-total-queue").text(res.total_waiting);
-                    
+
                     // Update juga di tabel
                     table.ajax.reload(null, false);
                 }

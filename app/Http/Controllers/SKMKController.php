@@ -192,12 +192,12 @@ class SKMKController extends Controller
                 return $aksi;
             })
             ->editColumn('tanggal_submit', function ($row) {
-                return Carbon::parse($row->created_at)->translatedFormat('d F Y') . '<br>' . Carbon::parse($row->created_at)->translatedFormat('H:i:s');
+                return Carbon::parse($row->created_at)->translatedFormat('d F Y') . '<br/>' . Carbon::parse($row->created_at)->translatedFormat('H:i:s') . ' WIB';
             })
             ->editColumn('tanggal_proses', function ($row) {
                 $tanggal_proses = $row->tanggal_proses;
                 if ($tanggal_proses) {
-                    $tanggal_proses = Carbon::parse($row->tanggal_proses)->translatedFormat('d F Y') . '<br>' . Carbon::parse($row->tanggal_proses)->translatedFormat('H:i:s');
+                    $tanggal_proses = Carbon::parse($row->tanggal_proses)->translatedFormat('d F Y') . '<br/>' . Carbon::parse($row->tanggal_proses)->translatedFormat('H:i:s') . ' WIB';
                 }
                 return $tanggal_proses;
             })
@@ -613,29 +613,44 @@ class SKMKController extends Controller
     }
 
     public function queueStatus()
-{
-    $userQueue = SKMK::where('user_id', Auth::id())
-                    ->whereDate('created_at', today())
-                    ->where('queue_status', 'waiting')
-                    ->first();
+    {
+        try {
+            // Check if user is authenticated
+            if (!Auth::check()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Unauthorized'
+                ], 401);
+            }
 
-    // Get the current queue number (lowest waiting)
-    $currentQueue = SKMK::whereDate('created_at', today())
-                    ->where('queue_status', 'waiting')
-                    ->orderBy('queue_number', 'asc')
-                    ->first();
+            $userQueue = SKMK::where('user_id', Auth::id())
+                            ->whereDate('created_at', today())
+                            ->where('queue_status', 'waiting')
+                            ->first();
 
-    $totalWaiting = SKMK::whereDate('created_at', today())
-                    ->where('queue_status', 'waiting')
-                    ->count();
+            // Get the current queue number (lowest waiting)
+            $currentQueue = SKMK::whereDate('created_at', today())
+                            ->where('queue_status', 'waiting')
+                            ->orderBy('queue_number', 'asc')
+                            ->first();
 
-    return response()->json([
-        'status' => true,
-        'user_queue' => $userQueue ? $userQueue->queue_number : null,
-        'total_waiting' => $totalWaiting,
-        'current_queue' => $currentQueue ? $currentQueue->queue_number : null
-    ]);
-}
+            $totalWaiting = SKMK::whereDate('created_at', today())
+                            ->where('queue_status', 'waiting')
+                            ->count();
+
+            return response()->json([
+                'status' => true,
+                'user_queue' => $userQueue ? $userQueue->queue_number : null,
+                'total_waiting' => $totalWaiting,
+                'current_queue' => $currentQueue ? $currentQueue->queue_number : null
+            ]);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Server error'
+            ], 500);
+        }
+    }
 
     private function getQueueInfo($queueNumber)
     {
