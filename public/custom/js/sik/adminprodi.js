@@ -6,7 +6,7 @@ const initializeDataTable = (status, year) => {
         ajax: `${window.Laravel.listData}?status=${status}&year=${year}`,
         columns: [
             { data: "DT_RowIndex" },
-            { data: "created_at" },
+            { data: "tanggal_submit" },
             { data: "tanggal_proses" },
             { data: "ormawa.name" },
             { data: "nama_kegiatan" },
@@ -14,7 +14,7 @@ const initializeDataTable = (status, year) => {
             { data: "mulai_kegiatan" },
             { data: "is_dana" },
             { data: "status_id" },
-            { 
+            {
                 data: "queue_number",
                 className: "queue-info"
             },
@@ -50,7 +50,7 @@ $(".tahun-menu").click(function () {
     table = initializeDataTable(status_table, year);
 });
 
-$('#btn-export').click(function () 
+$('#btn-export').click(function ()
 {
     $('#form-export').attr('action', window.Laravel.export);
     $('#modalExport').modal('show');
@@ -71,7 +71,7 @@ setInterval(function() {
                 if (res.status) {
                     $("#detail-queue-number").text(res.user_queue);
                     $("#detail-total-queue").text(res.total_waiting);
-                    
+
                     // Update juga di tabel
                     table.ajax.reload(null, false);
                 }
