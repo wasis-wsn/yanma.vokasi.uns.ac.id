@@ -10,7 +10,9 @@ class BeritaController extends Controller
 {
     public function landingPage()
     {
-        $berita = Berita::latest('tanggal')->get();
+        // Ambil berita terbaru terlebih dahulu (descending by tanggal) dan gunakan pagination
+        $berita = Berita::orderByDesc('tanggal')->get();
+
         return view('landingpage.berita.index', compact('berita'));
     }
 
