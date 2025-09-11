@@ -111,7 +111,7 @@
                         @endif
                         <ul class="sub-nav collapse" id="{{$kategori->name}}-menu" data-bs-parent="#sidebar-menu">
                         @foreach ($kategori->layanan as $layanan)
-                            @if($layanan->name != 'Verifikasi Wisuda' || in_array(auth()->user()->roles->gate_name, ['staff', 'mahasiswa']))
+                            @if($layanan->name != 'Verifikasi Wisuda' || in_array(auth()->user()->roles->gate_name, ['staff', 'mahasiswa', 'fo', 'adminprodi']))
                                 @canany($layanan->gate)
                                     <li class="nav-item">
                                         <a class="nav-link {{ (Request::url() == $layanan->url_mhs || Request::url() == $layanan->url_staff) ? 'active' : ''}}"

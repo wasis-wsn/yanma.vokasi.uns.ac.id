@@ -127,7 +127,7 @@
                                 </tr>
                                 <tr>
                                     <td width="30%">Tanggal Terbit Ijazah</td>
-                                    <td>: 
+                                    <td>:
                                         @if($verifikasi->tanggal_terbit)
                                             {{ \Carbon\Carbon::parse($verifikasi->tanggal_terbit)->translatedFormat('d F Y') }}
                                         @else
@@ -215,7 +215,7 @@
                             </div>
                             @endif
 
-                            
+
                         </div>
                         {{-- File Upload section for students WITH certificate serial number --}}
                         @if(!empty($verifikasi->no_seri_ijazah) && in_array($verifikasi->status_id, ['1']) && empty($verifikasi->tanggal_proses))
@@ -224,12 +224,12 @@
                             <div class="mt-3">
                                 <h6>Upload Dokumen Kehadiran Wisuda</h6>
                                 <p class="text-muted">Silakan Upload Dokumen Kehadiran Wisuda terlebih dahulu sebelum bisa melakukan konfirmasi kehadiran wisuda.</p>
-                                
+
                                 <form id="form-upload-validasi" enctype="multipart/form-data">
                                     @csrf
                                     <div class="mb-3">
                                         <label for="file_validasi" class="form-label">Dokumen Kehadiran Wisuda <span class="text-danger">*</span></label>
-                                        <input type="file" class="form-control" id="file_validasi" name="file" 
+                                        <input type="file" class="form-control" id="file_validasi" name="file"
                                                accept=".pdf" required>
                                         <div class="form-text">Format yang diizinkan: PDF (Max: 10MB)</div>
                                     </div>
@@ -289,12 +289,12 @@
                         <div class="mt-3">
                             <h6>Upload File Validasi</h6>
                             <p class="text-muted">Silakan upload file validasi terlebih dahulu sebelum melakukan konfirmasi kehadiran wisuda.</p>
-                            
+
                             <form id="form-upload-validasi" enctype="multipart/form-data">
                                 @csrf
                                 <div class="mb-3">
                                     <label for="file_validasi" class="form-label">File Validasi <span class="text-danger">*</span></label>
-                                    <input type="file" class="form-control" id="file_validasi" name="file" 
+                                    <input type="file" class="form-control" id="file_validasi" name="file"
                                            accept=".pdf" required>
                                     <div class="form-text">Format yang diizinkan: PDF (Max: 10MB)</div>
                                 </div>
@@ -388,7 +388,8 @@
                         @endcan
 
                         @cannot('mahasiswa')
-                        {{-- Existing Verifikasi Wisuda Table --}}
+                        {{-- Only show import and bulk action buttons for staff role --}}
+                        @can('staff')
                         <div class="d-flex justify-content-start pb-4">
                             <button type="button" class="btn btn-info mx-2" id="btn-import">Import Data</button>
                             <button type="button" class="btn btn-secondary mx-2" id="btn-bulk-action" disabled>
@@ -397,6 +398,7 @@
                         </div>
                         @include('modals.export')
                         @include('modals.import')
+                        @endcan
                         <div class="d-flex justify-content-end pb-4">
                             <div class="dropdown mx-2">
                                 <button class="btn btn-light btn-sm dropdown-toggle" type="button" id="statusDropdown"
@@ -425,7 +427,9 @@
                                 <thead>
                                     <tr>
                                         <th hidden>created_at</th>
+                                        @can('staff')
                                         <th><input type="checkbox" id="select-all" class="form-check-input"></th>
+                                        @endcan
                                         <th>No</th>
                                         <th>Nama</th>
                                         <th>NIM</th>
@@ -433,7 +437,9 @@
                                         <th>Tanggal Terbit</th>
                                         <th>Periode Wisuda</th>
                                         <th>Status</th>
+                                        @can('staff')
                                         <th>Aksi</th>
+                                        @endcan
                                         <th>Catatan</th>
                                     </tr>
                                 </thead>
@@ -450,7 +456,7 @@
 </div>
 
 {{-- Daftar Wisudawan Card --}}
-@can('staff')
+@canany(['staff', 'adminprodi', 'fo'])
 <div class="container-fluid content-inner mt-n5 py-0" style="margin-top: -2rem;">
     <div class="col-sm-12 mb-4">
         <div class="card">
@@ -461,6 +467,7 @@
             </div>
             <div class="card-body">
                 <div class="d-flex justify-content-between pb-4">
+                    @can('staff')
                     <div>
                         <button type="button" class="btn btn-success mx-2" id="btn-export-wisudawan">Export Data
                             Wisudawan</button>
@@ -468,6 +475,10 @@
                             <i class="fa fa-tasks"></i> Multi Proses
                         </button>
                     </div>
+                    @endcan
+                    @canany(['adminprodi', 'fo'])
+                    <div></div>
+                    @endcanany
                     <div class="dropdown mx-2">
                         <button class="btn btn-light btn-sm dropdown-toggle" type="button"
                             id="tahunWisudawanDropdown" data-bs-toggle="dropdown"
@@ -485,7 +496,9 @@
                         <thead>
                             <tr>
                                 <th hidden>created_at</th>
+                                @can('staff')
                                 <th><input type="checkbox" id="select-all-wisudawan" class="form-check-input"></th>
+                                @endcan
                                 <th>No</th>
                                 <th>Nama</th>
                                 <th>NIM</th>
@@ -493,7 +506,9 @@
                                 <th>Tanggal Terbit</th>
                                 <th>Periode Wisuda</th>
                                 <th>Status</th>
+                                @can('staff')
                                 <th>Aksi</th>
+                                @endcan
                                 <th>Catatan</th>
                             </tr>
                         </thead>
@@ -729,6 +744,20 @@
             'getData' => route('verifikasiWisuda.show', ':id'),
         ]) !!};
 </script>
-<script src="{{ asset('custom/js/verifikasiWisuda/staff.js') }}?q{{Str::random(5)}}"></script>
+<script src="{{ asset('custom/js/verifikasiWisuda/dekanat.js') }}?q{{Str::random(5)}}"></script>
+@endcanany
+
+@canany(['adminprodi','fo'])
+<script>
+    var year = $("#tahunDropdown").html();
+    var status_table = $("#statusDropdown").data('status');
+    window.Laravel = {!!json_encode([
+            'baseUrl' => url('/'),
+            'listAdminFo' => route('verifikasiWisuda.listAdminFo'),
+            'listWisudawan' => route('verifikasiWisuda.listWisudawan'),
+            'getData' => route('verifikasiWisuda.show', ':id'),
+        ]) !!};
+</script>
+<script src="{{ asset('custom/js/verifikasiWisuda/adminFo.js') }}?q{{Str::random(5)}}"></script>
 @endcanany
 @endpush

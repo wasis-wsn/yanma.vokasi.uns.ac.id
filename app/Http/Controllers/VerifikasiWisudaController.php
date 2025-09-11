@@ -125,7 +125,57 @@ class VerifikasiWisudaController extends Controller
         return DataTables::of($data)
             ->addIndexColumn()
             ->addColumn('action', function ($row) {
-                // No action buttons for dekanat - they can only view
+                // No action buttons for dekanat, subkoor, fo, and admin - they can only view
+                return '';
+            })
+            ->editColumn('tanggal_submit', function ($row) {
+                return Carbon::parse($row->created_at)->translatedFormat('d F Y') . '<br/>' . Carbon::parse($row->created_at)->translatedFormat('H:i:s') . ' WIB';
+            })
+            ->editColumn('tanggal_proses', function ($row) {
+                $tanggal_proses = $row->tanggal_proses;
+                if ($tanggal_proses) {
+                    $tanggal_proses = Carbon::parse($row->tanggal_proses)->translatedFormat('d F Y') . '<br/>' . Carbon::parse($row->tanggal_proses)->translatedFormat('H:i:s') . ' WIB';
+                }
+                return $tanggal_proses;
+            })
+            ->editColumn('tanggal_terbit', function ($row) {
+                return $row->tanggal_terbit ? Carbon::parse($row->tanggal_terbit)->translatedFormat('d F Y') : '';
+            })
+            ->editColumn('periode_wisuda', function ($row) {
+                $periode_wisuda = $row->periode_wisuda;
+                if ($periode_wisuda) {
+                    $periode_wisuda = Carbon::createFromFormat('Y-m', $row->periode_wisuda)->translatedFormat('F Y');
+
+                    // Get graduation date from PeriodeWisuda
+                    $periodeData = PeriodeWisuda::where('tahun', Carbon::createFromFormat('Y-m', $row->periode_wisuda)->year)
+                        ->where('bulan', Carbon::createFromFormat('Y-m', $row->periode_wisuda)->month)
+                        ->first();
+
+                    if ($periodeData && $periodeData->tanggal_wisuda) {
+                        $periode_wisuda .= '<br/><small class="text-muted">' . Carbon::parse($periodeData->tanggal_wisuda)->translatedFormat('d F Y') . '</small>';
+                    }
+                }
+                return $periode_wisuda;
+            })
+            ->editColumn('status_id', function ($row) {
+                return '<button type="button" class="btn ' . $row->status->color . ' btn-sm" disabled>' . $row->status->name . '</button>';
+            })
+            ->rawColumns(['action', 'tanggal_submit', 'status_id', 'tanggal_proses', 'periode_wisuda', 'tanggal_terbit'])
+            ->toJson();
+    }
+
+    public function listAdminFo(Request $request)
+    {
+        $data = VerifikasiWisuda::with('user.prodis', 'status')->whereYear('created_at', $request->year);
+        if ($request->status != 'all') $data = $data->where('status_id', $request->status);
+
+        // Show all data for admin and fo roles (including verified and confirmed students)
+        $data = $data->orderBy('created_at', 'desc')->get();
+
+        return DataTables::of($data)
+            ->addIndexColumn()
+            ->addColumn('action', function ($row) {
+                // No action buttons for admin and fo - they can only view
                 return '';
             })
             ->editColumn('tanggal_submit', function ($row) {

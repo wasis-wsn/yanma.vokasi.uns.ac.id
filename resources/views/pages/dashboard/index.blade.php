@@ -51,7 +51,7 @@
                                 <h3 class="card-title pricing-card-title text-center">{{$kategori->name}}</h3>
                                 <ul class="list-unstyled my-3">
                                     @foreach ($kategori->layanan as $layanan)
-                                        {{-- @if($layanan->name != 'Verifikasi Wisuda') --}}
+                                        @if($layanan->name != 'Verifikasi Wisuda' || in_array(auth()->user()->roles->gate_name, ['staff', 'mahasiswa', 'fo', 'adminprodi', 'dekanat', 'subkoor']))
                                             @canany($layanan->gate)
                                                 <li>
                                                     <a href="{{in_array(auth()->user()->roles->gate_name, ['mahasiswa','ormawa','adminprodi','fo']) ? $layanan->url_mhs : $layanan->url_staff}}">
@@ -59,7 +59,7 @@
                                                     </a>
                                                 </li>
                                             @endcanany
-                                        {{-- @endif --}}
+                                        @endif
                                     @endforeach
                                 </ul>
                             </div>
