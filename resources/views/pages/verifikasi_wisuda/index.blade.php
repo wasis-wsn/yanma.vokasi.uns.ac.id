@@ -111,6 +111,14 @@
                                 </div>
                             @endif
                         @endif
+
+                        {{-- Status 6 alert only - moved above details table --}}
+                        @if($verifikasi->status_id == '6')
+                        <div class="alert alert-success mt-3 mb-4">
+                            <i class="fa fa-check-circle"></i> Data anda telah divalidasi oleh admin, silahkan konfirmasi kehadiran wisuda.
+                        </div>
+                        @endif
+
                         {{-- Show waiting message for students without certificate serial number --}}
                         @if(empty($verifikasi->no_seri_ijazah) && $verifikasi->status_id == '1')
                         <div class="alert alert-info">
@@ -119,6 +127,7 @@
                                 verifikasi selesai.</p>
                         </div>
                         @endif
+
                         <div class="table-responsive">
                             <table class="table table-borderless">
                                 <tr>
@@ -179,56 +188,182 @@
                             </table>
                         </div>
 
-                        {{-- Confirmation section only for students WITH certificate serial number and eligible status --}}
+                        {{-- Handle different status conditions --}}
                         @if(!empty($verifikasi->no_seri_ijazah) && in_array($verifikasi->status_id, ['1']) && empty($verifikasi->tanggal_proses))
-                        <div class="mt-3">
-                            <div class="alert alert-info border-2 shadow-sm p-4 rounded-3">
-                                <div class="mb-3">
-                                    <h5 class="fw-bold mb-1"><i class="fa fa-info-circle"></i> Upload Dokumen Kehadiran Wisuda</h5>
-                                    <p class="mb-0 text-muted">Gabungkan semua persyaratan menjadi <strong>1 file PDF</strong> sebelum diunggah.</p>
-                                </div>
-                                <ul class="list-group list-group-flush mb-3">
-                                    <li class="list-group-item">1. Surat Keterangan Lulus (SKL)</li>
-                                    <li class="list-group-item">2. Ijazah Terakhir</li>
-                                    <li class="list-group-item">3. Pas Foto 3x4 dan 4x6</li>
-                                    <li class="list-group-item">4. TOEFL/TOEIC</li>
-                                    <li class="list-group-item">5. KHS Terakhir</li>
-                                    <li class="list-group-item">6. Bukti Pembayaran SPP Semester Terakhir (dapat diunduh dari SIAKAD)</li>
-                                    <li class="list-group-item">7. KTP</li>
-                                    <li class="list-group-item">8. Surat Bebas Kopma</li>
-                                    <li class="list-group-item">9. Surat Bebas Perpustakaan</li>
-                                    <li class="list-group-item">10. Surat Bebas Laboratorium <span class="text-muted">(Jika Ada)</span></li>
-                                    <li class="list-group-item">11. Surat Keterangan Perpanjangan Masa Studi <span class="text-muted">(Jika Ada)</span></li>
-                                    <li class="list-group-item">12. Surat Keterangan Selang/Cuti <span class="text-muted">(Jika Ada)</span></li>
-                                    <li class="list-group-item">13. E-Journal <span class="text-muted">(Jika Ada)</span></li>
-                                </ul>
-                                <div class="mb-3">
-                                    <span class="text-danger fw-bold">Pastikan semua berkas lengkap.</span>
-                                </div>
-                            </div>
-
-                            {{-- Show alert if status was reset to 1 by staff --}}
-                            @if($verifikasi->status_id == '1' && $verifikasi->file_validasi_uploaded === false && !empty($verifikasi->tanggal_proses))
-                            <div class="alert alert-warning">
-                                <i class="fa fa-exclamation-triangle"></i>
-                                <strong>Status Direset:</strong> Staff telah mengubah status Anda. Anda perlu mengupload ulang file validasi untuk melanjutkan proses konfirmasi.
-                            </div>
-                            @endif
-
-
-                        </div>
-                        {{-- File Upload section for students WITH certificate serial number --}}
-                        @if(!empty($verifikasi->no_seri_ijazah) && in_array($verifikasi->status_id, ['1']) && empty($verifikasi->tanggal_proses))
-                            {{-- Show upload form if no file uploaded yet --}}
-                            @if(empty($verifikasi->file))
+                            {{-- Status 1 with certificate serial number - show upload section --}}
                             <div class="mt-3">
-                                <h6>Upload Dokumen Kehadiran Wisuda</h6>
-                                <p class="text-muted">Silakan Upload Dokumen Kehadiran Wisuda terlebih dahulu sebelum bisa melakukan konfirmasi kehadiran wisuda.</p>
+                                <div class="alert alert-info border-2 shadow-sm p-4 rounded-3">
+                                    <div class="mb-3">
+                                        <h5 class="fw-bold mb-1"><i class="fa fa-info-circle"></i> Upload Dokumen Kehadiran Wisuda</h5>
+                                        <p class="mb-0 text-muted">Gabungkan semua persyaratan menjadi <strong>1 file PDF</strong> sebelum diunggah.</p>
+                                    </div>
+                                    <ul class="list-group list-group-flush mb-3">
+                                        <li class="list-group-item">1. Surat Keterangan Lulus (SKL)</li>
+                                        <li class="list-group-item">2. Ijazah Terakhir</li>
+                                        <li class="list-group-item">3. Pas Foto 3x4 dan 4x6</li>
+                                        <li class="list-group-item">4. TOEFL/TOEIC</li>
+                                        <li class="list-group-item">5. KHS Terakhir</li>
+                                        <li class="list-group-item">6. Bukti Pembayaran SPP Semester Terakhir (dapat diunduh dari SIAKAD)</li>
+                                        <li class="list-group-item">7. KTP</li>
+                                        <li class="list-group-item">8. Surat Bebas Kopma</li>
+                                        <li class="list-group-item">9. Surat Bebas Perpustakaan</li>
+                                        <li class="list-group-item">10. Surat Bebas Laboratorium <span class="text-muted">(Jika Ada)</span></li>
+                                        <li class="list-group-item">11. Surat Keterangan Perpanjangan Masa Studi <span class="text-muted">(Jika Ada)</span></li>
+                                        <li class="list-group-item">12. Surat Keterangan Selang/Cuti <span class="text-muted">(Jika Ada)</span></li>
+                                        <li class="list-group-item">13. E-Journal <span class="text-muted">(Jika Ada)</span></li>
+                                    </ul>
+                                    <div class="mb-3">
+                                        <span class="text-danger fw-bold">Pastikan semua berkas lengkap.</span>
+                                    </div>
+                                </div>
+
+                                {{-- Show alert if status was reset to 1 by staff --}}
+                                @if($verifikasi->status_id == '1' && $verifikasi->file_validasi_uploaded === false && !empty($verifikasi->tanggal_proses))
+                                <div class="alert alert-warning">
+                                    <i class="fa fa-exclamation-triangle"></i>
+                                    <strong>Status Direset:</strong> Staff telah mengubah status Anda. Anda perlu mengupload ulang file validasi untuk melanjutkan proses konfirmasi.
+                                </div>
+                                @endif
+
+                                {{-- File Upload section --}}
+                                @if(empty($verifikasi->file))
+                                <div class="mt-3">
+                                    <h6>Upload Dokumen Kehadiran Wisuda</h6>
+                                    <p class="text-muted">Silakan Upload Dokumen Kehadiran Wisuda terlebih dahulu sebelum bisa melakukan konfirmasi kehadiran wisuda.</p>
+
+                                    <form id="form-upload-validasi" enctype="multipart/form-data">
+                                        @csrf
+                                        <div class="mb-3">
+                                            <label for="file_validasi" class="form-label">Dokumen Kehadiran Wisuda <span class="text-danger">*</span></label>
+                                            <input type="file" class="form-control" id="file_validasi" name="file"
+                                                   accept=".pdf" required>
+                                            <div class="form-text">Format yang diizinkan: PDF (Max: 10MB)</div>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fa fa-upload"></i> Upload File
+                                        </button>
+                                    </form>
+                                </div>
+                                @else
+                                <div class="mt-3">
+                                    <div class="alert alert-success">
+                                        <i class="fa fa-check-circle"></i> File validasi telah berhasil diupload: {{ $verifikasi->file }}
+                                        <br>
+                                        <a href="{{ asset('storage/verifWisuda/upload/' . $verifikasi->file) }}" target="_blank" class="btn btn-sm btn-outline-primary mt-2">
+                                            <i class="fa fa-eye"></i> Lihat File
+                                        </a>
+                                    </div>
+                                </div>
+                                @endif
+                            </div>
+                        @elseif($verifikasi->status_id == '1' && !empty($verifikasi->tanggal_proses))
+                            <div class="alert alert-warning mt-3">
+                                <i class="fa fa-clock-o"></i> File konfirmasi telah diupload. Menunggu konfirmasi admin.
+                            </div>
+                        @elseif($verifikasi->status_id == '2')
+                            <div class="card-header d-flex justify-content-between">
+                                <div class="header-title">
+                                    <h4 class="card-title">Alur Penyelesaian Verifikasi Wisuda</h4>
+                                    <br>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="iq-timeline0 m-0 d-flex align-items-center justify-content-between position-relative">
+                                    <ul class="list-inline p-0 m-0">
+                                        <li >
+                                            <div class="timeline-dots timeline-dot1 border-primary text-primary mx-auto"></div>
+                                            <h6 class="mt-3 mb-1"> Data calon wisudawan telah diverifikasi</h6>
+                                        </li>
+                                        <li>
+                                            <div class="timeline-dots timeline-dot1 border-warning text-warning"></div>
+                                            <h6 class="float-left mb-1">Sinkronisasi Data di Website Wisuda</h6>
+                                            <div class="d-inline-block w-100">
+                                                <p>Calon wisudawan melakukan sinkronisasi data SIAKAD melalui <a href="https://wisuda.uns.ac.id" target="_blank">wisuda.uns.ac.id</a></p>
+                                            </div>
+                                        </li>
+                                        <li>
+                                            <div class="timeline-dots timeline-dot1 border-success text-success"></div>
+                                            <h6 class="float-left mb-1">Melihat PIN Akses Wisuda</h6>
+                                            <div class="d-inline-block w-100">
+                                                <p>Calon wisudawan melihat kode/PIN akses wisuda, tertera pada menu sinkron data siakad dari baris ke-6 dari bawah.</p>
+                                            </div>
+                                        </li>
+                                        <li>
+                                            <div class="timeline-dots timeline-dot1 border-info text-info"></div>
+                                            <h6 class="float-left mb-1">Login dan Cetak Draft Ijazah</h6>
+                                            <div class="d-inline-block w-100">
+                                                <p>Gunakan PIN tersebut untuk login ke sistem wisuda. Setelah masuk, calon wisudawan dapat mencetak draft ijazah untuk dicek kembali sebelum pencetakan final.</p>
+                                            </div>
+                                        </li>
+                                        <li>
+                                            <div class="timeline-dots timeline-dot1 border-success text-success"></div>
+                                            <h6 class="float-left mb-1">Penyerahan Berkas ke Akademik Pusat</h6>
+                                            <div class="d-inline-block w-100">
+                                                <p>Calon wisudawan harus menyerahkan dokumen persyaratan wisuda ke Akademik Pusat. Ketentuan dan daftar berkas dapat dilihat secara lengkap di <a href="https://wisuda.uns.ac.id" target="_blank">wisuda.uns.ac.id</a>.</p>
+                                            </div>
+                                        </li>
+                                    </ul>
+                                </div>
+
+                                @if (count($templates) > 0)
+                                <div class="mt-4">
+                                    <h6 class="mb-2">Template File:</h6>
+                                    <ul class="text-dark">
+                                        @foreach ($templates as $item)
+                                            <li class="mb-1">
+                                                <strong>{{$item->template}}</strong>
+                                                <a href="{{asset('storage/template/'.$item->file)}}" target="_blank" class="btn btn-sm btn-outline-primary ms-2">
+                                                    <i class="fa fa-download"></i> Download
+                                                </a>
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                                @endif
+                            </div>
+                        @elseif($verifikasi->status_id == '3')
+                            <div class="alert alert-danger mt-3">
+                                <i class="fa fa-times-circle"></i> Anda belum dapat mengikuti wisuda pada periode ini <strong>(kuota telah penuh)</strong>, Silahkan konfirmasi ulang pada periode selnjutnya.
+                            </div>
+                        @elseif($verifikasi->status_id == '4')
+                            <div class="alert alert-success mt-3">
+                                <i class="fa fa-check-circle"></i> Silahkan menunggu hasil Verifikasi oleh Akademik Sekolah Vokasi
+                            </div>
+                        @elseif($verifikasi->status_id == '5')
+                            <div class="alert alert-danger mt-3">
+                                <i class="fa fa-times-circle"></i> Anda tidak bersedia hadir pada wisuda periode ini, Silahkan konfirmasi ulang kehadiran pada periode selanjutnya.
+                            </div>
+                        @elseif($verifikasi->status_id == '6')
+                            {{-- Confirmation section for status 6 --}}
+                            @if(!empty($verifikasi->file))
+                            <div class="mt-3">
+                                <h6>Konfirmasi Kehadiran Wisuda</h6>
+                                <p class="text-muted">Apakah Anda bersedia mengikuti wisuda pada periode ini?</p>
+                                <div class="alert alert-info">
+                                    <i class="fa fa-info-circle"></i>
+                                    <strong>Perhatian:</strong> Pilihan ini akan menentukan status kehadiran wisuda Anda.
+                                </div>
+
+                                <div class="d-flex gap-3">
+                                    <button type="button" class="btn btn-success" id="btn-setuju"
+                                        data-id="{{ encodeId($verifikasi->id) }}">
+                                        <i class="fa fa-check"></i> Bersedia
+                                    </button>
+                                    <button type="button" class="btn btn-danger" id="btn-tidak-setuju"
+                                        data-id="{{ encodeId($verifikasi->id) }}">
+                                        <i class="fa fa-times"></i> Tidak Bersedia
+                                    </button>
+                                </div>
+                            </div>
+                            @else
+                            <div class="mt-3">
+                                <h6>Upload File Validasi</h6>
+                                <p class="text-muted">Silakan upload file validasi terlebih dahulu sebelum melakukan konfirmasi kehadiran wisuda.</p>
 
                                 <form id="form-upload-validasi" enctype="multipart/form-data">
                                     @csrf
                                     <div class="mb-3">
-                                        <label for="file_validasi" class="form-label">Dokumen Kehadiran Wisuda <span class="text-danger">*</span></label>
+                                        <label for="file_validasi" class="form-label">File Validasi <span class="text-danger">*</span></label>
                                         <input type="file" class="form-control" id="file_validasi" name="file"
                                                accept=".pdf" required>
                                         <div class="form-text">Format yang diizinkan: PDF (Max: 10MB)</div>
@@ -238,146 +373,13 @@
                                     </button>
                                 </form>
                             </div>
-                            @else
-                            {{-- Show file info and confirmation buttons if file already uploaded --}}
-                            <div class="mt-3">
-                                <div class="alert alert-success">
-                                    <i class="fa fa-check-circle"></i> File validasi telah berhasil diupload: {{ $verifikasi->file }}
-                                    <br>
-                                    <a href="{{ asset('storage/verifWisuda/upload/' . $verifikasi->file) }}" target="_blank" class="btn btn-sm btn-outline-primary mt-2">
-                                        <i class="fa fa-eye"></i> Lihat File
-                                    </a>
-                                </div>
-                            </div>
                             @endif
-                        @endif
-                        @elseif($verifikasi->status_id == '4')
-                        <div class="alert alert-success mt-3">
-                            <i class="fa fa-check-circle"></i> Silahkan menunggu hasil Verifikasi oleh Akademik Sekolah Vokasi
-                        </div>
-                        @elseif($verifikasi->status_id == '1' && !empty($verifikasi->tanggal_proses))
-                        <div class="alert alert-warning mt-3">
-                            <i class="fa fa-clock-o"></i> File konfirmasi telah diupload. Menunggu konfirmasi admin.
-                        </div>
-                        @elseif($verifikasi->status_id == '6')
-                        <div class="alert alert-success mt-3">
-                            <i class="fa fa-check-circle"></i> Data anda telah divalidasi oleh admin, silahkan konfirmasi kehadiran wisuda.
-                        </div>
-                        {{-- Only show confirmation buttons for status 6 if file is uploaded --}}
-                        @if(!empty($verifikasi->file))
-                        <div class="mt-3">
-                            <h6>Konfirmasi Kehadiran Wisuda</h6>
-                            <p class="text-muted">Apakah Anda bersedia mengikuti wisuda pada periode ini?</p>
-                            <div class="alert alert-info">
-                                <i class="fa fa-info-circle"></i>
-                                <strong>Perhatian:</strong> Pilihan ini akan menentukan status kehadiran wisuda Anda.
-                            </div>
-
-                            <div class="d-flex gap-3">
-                                <button type="button" class="btn btn-success" id="btn-setuju"
-                                    data-id="{{ encodeId($verifikasi->id) }}">
-                                    <i class="fa fa-check"></i> Bersedia
-                                </button>
-                                <button type="button" class="btn btn-danger" id="btn-tidak-setuju"
-                                    data-id="{{ encodeId($verifikasi->id) }}">
-                                    <i class="fa fa-times"></i> Tidak Bersedia
-                                </button>
-                            </div>
-                        </div>
-                        @else
-                        {{-- Show upload form for status 6 students without file --}}
-                        <div class="mt-3">
-                            <h6>Upload File Validasi</h6>
-                            <p class="text-muted">Silakan upload file validasi terlebih dahulu sebelum melakukan konfirmasi kehadiran wisuda.</p>
-
-                            <form id="form-upload-validasi" enctype="multipart/form-data">
-                                @csrf
-                                <div class="mb-3">
-                                    <label for="file_validasi" class="form-label">File Validasi <span class="text-danger">*</span></label>
-                                    <input type="file" class="form-control" id="file_validasi" name="file"
-                                           accept=".pdf" required>
-                                    <div class="form-text">Format yang diizinkan: PDF (Max: 10MB)</div>
-                                </div>
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="fa fa-upload"></i> Upload File
-                                </button>
-                            </form>
-                        </div>
-                        @endif
-                        @elseif($verifikasi->status_id == '3')
-                        <div class="alert alert-danger mt-3">
-                            <i class="fa fa-times-circle"></i> Anda belum dapat mengikuti wisuda pada periode ini <strong>(kuota telah penuh)</strong>, Silahkan konfirmasi ulang pada periode selnjutnya.
-                        </div>
-                        @elseif($verifikasi->status_id == '5')
-                        <div class="alert alert-danger mt-3">
-                            <i class="fa fa-times-circle"></i> Anda tidak bersedia hadir pada wisuda periode ini, Silahkan konfirmasi ulang kehadiran pada periode selanjutnya.
-                        </div>
                         @elseif($verifikasi->status_id == '7')
-                        <div class="alert alert-info mt-3">
-                            <i class="fa fa-check-circle"></i> Mohon untuk menunggu proses untuk validasi dokumen.
-                        </div>
-                        @elseif($verifikasi->status_id == '2')
-                        <div class="card-header d-flex justify-content-between">
-                            <div class="header-title">
-                                <h4 class="card-title">Alur Penyelesaian Verifikasi Wisuda</h4>
-                                <br>
+                            <div class="alert alert-info mt-3">
+                                <i class="fa fa-check-circle"></i> Mohon untuk menunggu proses untuk validasi dokumen.
                             </div>
-                        </div>
-                        <div class="card-body">
-                            <div class="iq-timeline0 m-0 d-flex align-items-center justify-content-between position-relative">
-                                <ul class="list-inline p-0 m-0">
-                                    <li >
-                                        <div class="timeline-dots timeline-dot1 border-primary text-primary mx-auto"></div>
-                                        <h6 class="mt-3 mb-1"> Data calon wisudawan telah diverifikasi</h6>
-                                    </li>
-                                    <li>
-                                        <div class="timeline-dots timeline-dot1 border-warning text-warning"></div>
-                                        <h6 class="float-left mb-1">Sinkronisasi Data di Website Wisuda</h6>
-                                        <div class="d-inline-block w-100">
-                                            <p>Calon wisudawan melakukan sinkronisasi data SIAKAD melalui <a href="https://wisuda.uns.ac.id" target="_blank">wisuda.uns.ac.id</a></p>
-                                        </div>
-                                    </li>
-                                    <li>
-                                        <div class="timeline-dots timeline-dot1 border-success text-success"></div>
-                                        <h6 class="float-left mb-1">Melihat PIN Akses Wisuda</h6>
-                                        <div class="d-inline-block w-100">
-                                            <p>Calon wisudawan melihat kode/PIN akses wisuda, tertera pada menu sinkron data siakad dari baris ke-6 dari bawah.</p>
-                                        </div>
-                                    </li>
-                                    <li>
-                                        <div class="timeline-dots timeline-dot1 border-info text-info"></div>
-                                        <h6 class="float-left mb-1">Login dan Cetak Draft Ijazah</h6>
-                                        <div class="d-inline-block w-100">
-                                            <p>Gunakan PIN tersebut untuk login ke sistem wisuda. Setelah masuk, calon wisudawan dapat mencetak draft ijazah untuk dicek kembali sebelum pencetakan final.</p>
-                                        </div>
-                                    </li>
-                                    <li>
-                                        <div class="timeline-dots timeline-dot1 border-success text-success"></div>
-                                        <h6 class="float-left mb-1">Penyerahan Berkas ke Akademik Pusat</h6>
-                                        <div class="d-inline-block w-100">
-                                            <p>Calon wisudawan harus menyerahkan dokumen persyaratan wisuda ke Akademik Pusat. Ketentuan dan daftar berkas dapat dilihat secara lengkap di <a href="https://wisuda.uns.ac.id" target="_blank">wisuda.uns.ac.id</a>.</p>
-                                        </div>
-                                    </li>
-                                </ul>
-                            </div>
-
-                            @if (count($templates) > 0)
-                            <div class="mt-4">
-                                <h6 class="mb-2">Template File:</h6>
-                                <ul class="text-dark">
-                                    @foreach ($templates as $item)
-                                        <li class="mb-1">
-                                            <strong>{{$item->template}}</strong>
-                                            <a href="{{asset('storage/template/'.$item->file)}}" target="_blank" class="btn btn-sm btn-outline-primary ms-2">
-                                                <i class="fa fa-download"></i> Download
-                                            </a>
-                                        </li>
-                                    @endforeach
-                                </ul>
-                            </div>
-                            @endif
-                        </div>
                         @endif
+
                         @else
                         <div class="alert alert-info">
                             <h5><i class="fa fa-info-circle"></i> Informasi</h5>
@@ -431,6 +433,8 @@
                                         <th><input type="checkbox" id="select-all" class="form-check-input"></th>
                                         @endcan
                                         <th>No</th>
+                                        <th>Tanggal Update</th>
+                                        <th>Tanggal Proses</th>
                                         <th>Nama</th>
                                         <th>NIM</th>
                                         <th>No Seri Ijazah</th>
@@ -500,6 +504,8 @@
                                 <th><input type="checkbox" id="select-all-wisudawan" class="form-check-input"></th>
                                 @endcan
                                 <th>No</th>
+                                <th>Tanggal Update</th>
+                                <th>Tanggal Proses</th>
                                 <th>Nama</th>
                                 <th>NIM</th>
                                 <th>No Seri Ijazah</th>
@@ -536,8 +542,11 @@
                         <label>Status</label>
                         <select name="status_id" class="form-select" required>
                             <option value="">Pilih Status</option>
+                            <option value="1">Belum Diproses</option>
                             <option value="2">Sudah Terverifikasi</option>
                             <option value="3">Tidak Terverifikasi</option>
+                            <option value="4">Bersedia</option>
+                            <option value="5">Tidak Bersedia</option>
                         </select>
                     </div>
                     <div class="form-group mb-3">
@@ -576,6 +585,8 @@
                             <option value="">Pilih Status</option>
                             <option value="2">Terverifikasi</option>
                             <option value="3">Tidak Terverifikasi</option>
+                            <option value="4">Bersedia</option>
+                            <option value="5">Tidak Bersedia</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -630,7 +641,7 @@
         </div>
     </div>
 </div>
-@endcan
+@endcanany
 
 {{-- Modal --}}
 @can('mahasiswa')
@@ -647,7 +658,7 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Edit Periode Wisuda</h5>
+                <h5 class="modal-title">Proses Periode Wisuda</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form id="form-edit-periode">
@@ -760,4 +771,33 @@
 </script>
 <script src="{{ asset('custom/js/verifikasiWisuda/adminFo.js') }}?q{{Str::random(5)}}"></script>
 @endcanany
+@endpush
+
+@push('css')
+<style>
+    /* Fix table row height consistency */
+    #wisuda-datatable tbody tr,
+    #wisudawan-datatable tbody tr {
+        height: 60px;
+    }
+
+    #wisuda-datatable tbody td,
+    #wisudawan-datatable tbody td {
+        vertical-align: middle !important;
+        padding: 8px !important;
+    }
+
+    /* Ensure buttons don't break the layout */
+    .btn-sm {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+        line-height: 1.5;
+        white-space: nowrap;
+    }
+
+    /* Fix action column alignment */
+    .text-center.align-middle {
+        vertical-align: middle !important;
+    }
+</style>
 @endpush

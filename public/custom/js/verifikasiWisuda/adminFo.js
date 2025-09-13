@@ -7,6 +7,8 @@ const initializeDataTable = (status, year) => {
         columns: [
             { data: "created_at", visible: false },
             { data: "DT_RowIndex" },
+            { data: "tanggal_update" },
+            { data: "tanggal_proses" },
             { data: "user.name" },
             { data: "user.nim" },
             { data: "no_seri_ijazah" },
@@ -16,16 +18,21 @@ const initializeDataTable = (status, year) => {
             { data: "catatan" },
         ],
         columnDefs: [
-            { className: "text-center", width: "3%", targets: [1] },
-            { className: "text-wrap", targets: [2] },
-            { className: "text-center", targets: [7] },
+            { className: "text-center", width: "3%", targets: [1] }, // DT_RowIndex
+            { className: "text-center", width: "8%", targets: [2, 3] }, // tanggal_update, tanggal_proses
+            { className: "text-wrap", width: "15%", targets: [4] }, // user.name
+            { className: "text-center", width: "8%", targets: [5] }, // user.nim
+            { className: "text-center", width: "10%", targets: [6, 7] }, // no_seri_ijazah, tanggal_terbit
+            { className: "text-center", width: "10%", targets: [8] }, // periode_wisuda
+            { className: "text-center align-middle", width: "8%", targets: [9] }, // status_id
+            { className: "text-wrap", width: "15%", targets: [10] }, // catatan
         ],
         order: [[0, "desc"]],
     });
 };
 
 const initializeWisudawanDataTable = (year) => {
-    return $("#wisudawan-datatable").DataTable({    
+    return $("#wisudawan-datatable").DataTable({
         processing: true,
         serverSide: true,
         destroy: true,
@@ -33,6 +40,8 @@ const initializeWisudawanDataTable = (year) => {
         columns: [
             { data: "created_at", visible: false },
             { data: "DT_RowIndex" },
+            { data: "tanggal_update" },
+            { data: "tanggal_proses" },
             { data: "user.name" },
             { data: "user.nim" },
             { data: "no_seri_ijazah" },
@@ -42,9 +51,14 @@ const initializeWisudawanDataTable = (year) => {
             { data: "catatan" },
         ],
         columnDefs: [
-            { className: "text-center", width: "3%", targets: [1] },
-            { className: "text-wrap", targets: [2] },
-            { className: "text-center", targets: [7] },
+            { className: "text-center", width: "3%", targets: [1] }, // DT_RowIndex
+            { className: "text-center", width: "8%", targets: [2, 3] }, // tanggal_update, tanggal_proses
+            { className: "text-wrap", width: "15%", targets: [4] }, // user.name
+            { className: "text-center", width: "8%", targets: [5] }, // user.nim
+            { className: "text-center", width: "10%", targets: [6, 7] }, // no_seri_ijazah, tanggal_terbit
+            { className: "text-center", width: "10%", targets: [8] }, // periode_wisuda
+            { className: "text-center align-middle", width: "8%", targets: [9] }, // status_id
+            { className: "text-wrap", width: "15%", targets: [10] }, // catatan
         ],
         order: [[0, "desc"]],
     });

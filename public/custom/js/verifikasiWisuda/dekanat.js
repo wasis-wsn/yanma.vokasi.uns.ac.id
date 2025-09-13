@@ -7,18 +7,26 @@ const initializeDataTable = (status, year) => {
         columns: [
             { data: "created_at", visible: false },
             { data: "DT_RowIndex" },
+            { data: "tanggal_update" },
+            { data: "tanggal_proses" },
             { data: "tanggal_submit" },
             { data: "user.name" },
             { data: "user.nim" },
             { data: "no_seri_ijazah" },
+            { data: "tanggal_terbit" },
             { data: "periode_wisuda" },
             { data: "action" },
             { data: "catatan" },
         ],
         columnDefs: [
-            { className: "text-center", width: "3%", targets: [1] },
-            { className: "text-wrap", targets: [3] },
-            { className: "btn-group-vertical", targets: [7] },
+            { className: "text-center", width: "3%", targets: [1] }, // DT_RowIndex
+            { className: "text-center", width: "8%", targets: [2, 3, 4] }, // tanggal_update, tanggal_proses, tanggal_submit
+            { className: "text-wrap", width: "15%", targets: [5] }, // user.name
+            { className: "text-center", width: "8%", targets: [6] }, // user.nim
+            { className: "text-center", width: "10%", targets: [7, 8] }, // no_seri_ijazah, tanggal_terbit
+            { className: "text-center", width: "10%", targets: [9] }, // periode_wisuda
+            { className: "text-center align-middle", width: "8%", targets: [10] }, // action
+            { className: "text-wrap", width: "15%", targets: [11] }, // catatan
         ],
         order: [[0, "desc"]],
     });

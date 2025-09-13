@@ -50,8 +50,14 @@
                                 </ul>
                             </p>
                             @endif
-                            @if (is_null(auth()->user()->transkripNilai))
-                                <p>Wisuda Anda belum diverifikasi!</p>
+                            @if (is_null(auth()->user()->verifikasiWisuda) || auth()->user()->verifikasiWisuda->status_id != 2)
+                                <div class="alert alert-warning">
+                                    <strong>Perhatian!</strong> Verifikasi wisuda Anda belum disetujui. Silakan verifikasi wisuda terlebih dahulu untuk dapat mengakses transkrip nilai.
+                                </div>
+                            @elseif (is_null(auth()->user()->transkripNilai))
+                                <div class="alert alert-info">
+                                    <strong>Info!</strong> Data transkrip nilai Anda sedang dalam proses verifikasi.
+                                </div>
                             @else
                                 <div class="table-responsive">
                                     <table class="table table-borderless">
@@ -69,7 +75,7 @@
                                         </tr>
                                         <tr>
                                             <td>Status</td>
-                                            <td>: 
+                                            <td>:
                                                 <button class="btn btn-sm {{ auth()->user()->transkripNilai->status->color }}" disabled="disabled">{{ auth()->user()->transkripNilai->status->name }}</button>
                                             </td>
                                         </tr>

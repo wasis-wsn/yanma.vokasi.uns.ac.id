@@ -26,6 +26,8 @@
                     }
                 },
                 { data: "DT_RowIndex" },
+                { data: "tanggal_update" },
+                { data: "tanggal_proses" },
                 { data: "user.name" },
                 { data: "user.nim" },
                 { data: "no_seri_ijazah" },
@@ -37,8 +39,14 @@
             ],
             columnDefs: [
                 { className: "text-center", width: "3%", targets: [1, 2] },
-                { className: "text-wrap", targets: [3] },
-                { className: "btn-group-vertical", targets: [9] },
+                { className: "text-center", width: "8%", targets: [3, 4] }, // tanggal_update, tanggal_proses
+                { className: "text-wrap", width: "15%", targets: [5] }, // user.name
+                { className: "text-center", width: "8%", targets: [6] }, // user.nim
+                { className: "text-center", width: "10%", targets: [7, 8] }, // no_seri_ijazah, tanggal_terbit
+                { className: "text-center", width: "10%", targets: [9] }, // periode_wisuda
+                { className: "text-center", width: "8%", targets: [10] }, // status_id
+                { className: "text-center align-middle", width: "8%", targets: [11] }, // action
+                { className: "text-wrap", width: "15%", targets: [12] }, // catatan
             ],
             order: [[0, "desc"]],
         });
@@ -62,6 +70,8 @@
                     }
                 },
                 { data: "DT_RowIndex" },
+                { data: "tanggal_update" },
+                { data: "tanggal_proses" },
                 { data: "user.name" },
                 { data: "user.nim" },
                 { data: "no_seri_ijazah" },
@@ -73,8 +83,14 @@
             ],
             columnDefs: [
                 { className: "text-center", width: "3%", targets: [1, 2] },
-                { className: "text-wrap", targets: [3] },
-                { className: "btn-group-vertical", targets: [9] },
+                { className: "text-center", width: "8%", targets: [3, 4] }, // tanggal_update, tanggal_proses
+                { className: "text-wrap", width: "15%", targets: [5] }, // user.name
+                { className: "text-center", width: "8%", targets: [6] }, // user.nim
+                { className: "text-center", width: "10%", targets: [7, 8] }, // no_seri_ijazah, tanggal_terbit
+                { className: "text-center", width: "10%", targets: [9] }, // periode_wisuda
+                { className: "text-center", width: "8%", targets: [10] }, // status_id
+                { className: "text-center align-middle", width: "8%", targets: [11] }, // action
+                { className: "text-wrap", width: "15%", targets: [12] }, // catatan
             ],
             order: [[0, "desc"]],
         });
@@ -648,7 +664,7 @@
         let id = $(this).data("id");
         let nim = $(this).data("nim");
         let type = $(this).data("type"); // Check if it's for wisudawan
-        let isEdit = $(this).hasClass('btn-primary'); // Check if it's edit button (primary) or process button (warning)
+        let isEdit = true; // Always treat as edit since we removed process buttons
 
         if (!id) return;
 
@@ -671,35 +687,15 @@
                 if (response.status && response.data) {
                     let data = response.data;
 
-                    // Check if trying to edit a student without certificate serial number
-                    if (isEdit && (!data.no_seri_ijazah || data.no_seri_ijazah.trim() === '')) {
-                        Swal.fire({
-                            title: "Peringatan!",
-                            text: `Mahasiswa dengan NIM ${nim} belum mendapatkan nomor seri ijazah. Silakan input nomor seri ijazah terlebih dahulu sebelum melakukan edit.`,
-                            icon: "warning",
-                            confirmButtonText: "Mengerti",
-                            confirmButtonColor: "#3085d6"
-                        });
-                        return; // Stop execution here
-                    }
-
                     // Set form action
                     let url = window.Laravel.routeProses.replace(":id", id);
                     $('#form-proses').attr('action', url);
 
-                    // Set modal title based on type and action
-                    if (isEdit) {
-                        if (type === 'wisudawan') {
-                            $('#titleModalProses').text(`Edit Status Wisudawan - ${nim}`);
-                        } else {
-                            $('#titleModalProses').text(`Edit Status Verifikasi - ${nim}`);
-                        }
+                    // Set modal title based on type
+                    if (type === 'wisudawan') {
+                        $('#titleModalProses').text(`Proses Status Wisudawan - ${nim}`);
                     } else {
-                        if (type === 'wisudawan') {
-                            $('#titleModalProses').text(`Proses Status Wisudawan - ${nim}`);
-                        } else {
-                            $('#titleModalProses').text(`Proses Verifikasi Wisuda - ${nim}`);
-                        }
+                        $('#titleModalProses').text(`Proses Status Verifikasi - ${nim}`);
                     }
 
                     // Reset form first
@@ -708,46 +704,32 @@
                     // Reset manual catatan checkbox
                     $('#manual_catatan').prop('checked', false);
 
-                    // For edit mode, make verification fields editable; for process mode, keep them read-only
-                    if (isEdit) {
-                        // Edit mode - fields are editable
-                        $('#no_seri_ijazah').prop('readonly', true).val(data.no_seri_ijazah || '');
-                        $('#periode_wisuda').prop('readonly', true).val(data.periode_wisuda || '');
-                        // Make fields required in edit mode
-                        $('#no_seri_ijazah').prop('required', false); // Optional
-                        $('#periode_wisuda').prop('required', false); // Optional                    } else {
-                        // Process mode - fields are read-only
-                        $('#no_seri_ijazah').prop('readonly', true).val(data.no_seri_ijazah || '');
-                        $('#periode_wisuda').prop('readonly', true).val(data.periode_wisuda || '');
-                        // Remove required attributes since fields are read-only
-                        $('#no_seri_ijazah').prop('required', false);
-                        $('#periode_wisuda').prop('required', false);                    }
+                    // All fields are read-only for display
+                    $('#no_seri_ijazah').prop('readonly', true).val(data.no_seri_ijazah || '');
+                    $('#periode_wisuda').prop('readonly', true).val(data.periode_wisuda || '');
+                    $('#no_seri_ijazah').prop('required', false);
+                    $('#periode_wisuda').prop('required', false);
 
                     // Show all fields
                     $('.form-v9').show();
 
-                    // Populate status dropdown based on context and mode
+                    // Populate status dropdown based on context
                     let statusOptions = '';
-                    if (isEdit) {
-                        // Edit mode - show all available statuses
+                    if (type === 'wisudawan') {
+                        statusOptions = `
+                        <option value="2">Sudah Terverifikasi</option>
+                        <option value="3">Tidak Terverifikasi</option>
+                        <option value="4">Bersedia</option>
+                        <option value="5">Tidak Bersedia</option>
+                        `;
+                    } else {
                         statusOptions = `
                         <option value="1">Belum Diproses</option>
                         <option value="2">Sudah Terverifikasi</option>
                         <option value="3">Tidak Terverifikasi</option>
+                        <option value="4">Bersedia</option>
+                        <option value="5">Tidak Bersedia</option>
                         `;
-                    } else {
-                        // Process mode - limited options based on context
-                        if (type === 'wisudawan') {
-                            statusOptions = `
-                            <option value="2">Sudah Terverifikasi</option>
-                            <option value="3">Tidak Terverifikasi</option>
-                            `;
-                        } else {
-                            statusOptions = `
-                            <option value="1">Belum Diproses</option>
-                            <option value="3">Tidak Terverifikasi</option>
-                            `;
-                        }
                     }
 
                     $('#status_id').html(statusOptions);

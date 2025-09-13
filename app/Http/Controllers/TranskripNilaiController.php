@@ -28,7 +28,11 @@ class TranskripNilaiController extends Controller
 
     public function listStaff(Request $request)
     {
-        $list = TranskripNilai::with('user.prodis', 'status')->whereRaw("SUBSTRING(periode_wisuda, 1, 4) = ?", [$request->year]);
+        $list = TranskripNilai::with('user.prodis', 'status')
+            ->whereHas('user.verifikasiWisuda', function($query) {
+                $query->where('status_id', 2);
+            })
+            ->whereRaw("SUBSTRING(periode_wisuda, 1, 4) = ?", [$request->year]);
         if ($request->status != 'all') $list = $list->where('status_id', $request->status);
         $list = $list->orderBy('created_at', 'desc')->get();
 
@@ -69,7 +73,11 @@ class TranskripNilaiController extends Controller
 
     public function listFo(Request $request)
     {
-        $list = TranskripNilai::with('user.prodis', 'status')->whereRaw("SUBSTRING(periode_wisuda, 1, 4) = ?", [$request->year]);
+        $list = TranskripNilai::with('user.prodis', 'status')
+            ->whereHas('user.verifikasiWisuda', function($query) {
+                $query->where('status_id', 2);
+            })
+            ->whereRaw("SUBSTRING(periode_wisuda, 1, 4) = ?", [$request->year]);
         if ($request->status != 'all') $list = $list->where('status_id', $request->status);
         $list = $list->orderBy('created_at', 'desc')->get();
 
@@ -107,7 +115,11 @@ class TranskripNilaiController extends Controller
 
     public function listDekanat(Request $request)
     {
-        $list = TranskripNilai::with('user.prodis', 'status')->whereRaw("SUBSTRING(periode_wisuda, 1, 4) = ?", [$request->year]);
+        $list = TranskripNilai::with('user.prodis', 'status')
+            ->whereHas('user.verifikasiWisuda', function($query) {
+                $query->where('status_id', 2);
+            })
+            ->whereRaw("SUBSTRING(periode_wisuda, 1, 4) = ?", [$request->year]);
         if ($request->status != 'all') $list = $list->where('status_id', $request->status);
         $list = $list->orderBy('created_at', 'desc')->get();
 

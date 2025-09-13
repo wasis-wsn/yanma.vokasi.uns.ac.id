@@ -61,32 +61,24 @@ class VerifikasiWisudaController extends Controller
         return DataTables::of($data)
             ->addIndexColumn()
             ->addColumn('action', function ($row) {
-                $aksi = '<button type="button" class="btn btn-primary btn-sm btn-proses me-1" data-nim="' . $row->user->nim . '" data-id="' . encodeId($row->id) . '">
-                        <i class="fa fa-edit"></i> Edit
-                    </button>';
-
-                if ($row->status_id == 1) {
-                    // Show proses button only if no_seri_ijazah is empty
-                    if (empty($row->no_seri_ijazah)) {
-                        $aksi .= '<button type="button" class="btn btn-warning btn-sm btn-proses" data-nim="' . $row->user->nim . '" data-id="' . encodeId($row->id) . '">
-                                <i class="fa fa-pen"></i> Proses
-                            </button>';
-                    }
-                }
+                $aksi = '<div class="d-flex justify-content-center align-items-center">';
+                $aksi .= '<button type="button" class="btn btn-primary btn-sm btn-proses" data-nim="' . $row->user->nim . '" data-id="' . encodeId($row->id) . '" style="white-space: nowrap;">';
+                $aksi .= '<i class="fa fa-edit"></i> Proses';
+                $aksi .= '</button>';
+                $aksi .= '</div>';
                 return $aksi;
             })
             ->editColumn('tanggal_submit', function ($row) {
                 return Carbon::parse($row->created_at)->translatedFormat('d F Y') . '<br/>' . Carbon::parse($row->created_at)->translatedFormat('H:i:s') . ' WIB';
             })
-            ->editColumn('tanggal_proses', function ($row) {
-                $tanggal_proses = $row->tanggal_proses;
-                if ($tanggal_proses) {
-                    $tanggal_proses = Carbon::parse($row->tanggal_proses)->translatedFormat('d F Y') . '<br/>' . Carbon::parse($row->tanggal_proses)->translatedFormat('H:i:s') . ' WIB';
-                }
-                return $tanggal_proses;
+            ->editColumn('tanggal_terbit', function ($row) {
+                return $row->tanggal_terbit ? Carbon::parse($row->tanggal_terbit)->translatedFormat('d F Y') : '';
+            })
+            ->editColumn('tanggal_update', function ($row) {
+                return $row->tanggal_update ? Carbon::parse($row->tanggal_update)->translatedFormat('d F Y') . '<br/>' . Carbon::parse($row->tanggal_update)->translatedFormat('H:i:s') . ' WIB' : '';
             })
             ->editColumn('tanggal_proses', function ($row) {
-                return $row->tanggal_proses ? Carbon::parse($row->tanggal_proses)->translatedFormat('d F Y') : '';
+                return $row->tanggal_proses ? Carbon::parse($row->tanggal_proses)->translatedFormat('d F Y') . '<br/>' . Carbon::parse($row->tanggal_proses)->translatedFormat('H:i:s') . ' WIB' : '';
             })
             ->editColumn('periode_wisuda', function ($row) {
                 $periode_wisuda = $row->periode_wisuda;
@@ -107,7 +99,7 @@ class VerifikasiWisudaController extends Controller
             ->editColumn('status_id', function ($row) {
                 return '<button type="button" class="btn ' . $row->status->color . ' btn-sm" disabled>' . $row->status->name . '</button>';
             })
-            ->rawColumns(['action', 'tanggal_submit', 'status_id', 'tanggal_proses', 'periode_wisuda', 'tanggal_proses'])
+            ->rawColumns(['action', 'tanggal_submit', 'status_id', 'tanggal_proses', 'periode_wisuda', 'tanggal_update', 'tanggal_terbit'])
             ->toJson();
     }
 
@@ -132,14 +124,13 @@ class VerifikasiWisudaController extends Controller
                 return Carbon::parse($row->created_at)->translatedFormat('d F Y') . '<br/>' . Carbon::parse($row->created_at)->translatedFormat('H:i:s') . ' WIB';
             })
             ->editColumn('tanggal_proses', function ($row) {
-                $tanggal_proses = $row->tanggal_proses;
-                if ($tanggal_proses) {
-                    $tanggal_proses = Carbon::parse($row->tanggal_proses)->translatedFormat('d F Y') . '<br/>' . Carbon::parse($row->tanggal_proses)->translatedFormat('H:i:s') . ' WIB';
-                }
-                return $tanggal_proses;
+                return $row->tanggal_proses ? Carbon::parse($row->tanggal_proses)->translatedFormat('d F Y') . '<br/>' . Carbon::parse($row->tanggal_proses)->translatedFormat('H:i:s') . ' WIB' : '';
             })
             ->editColumn('tanggal_terbit', function ($row) {
                 return $row->tanggal_terbit ? Carbon::parse($row->tanggal_terbit)->translatedFormat('d F Y') : '';
+            })
+            ->editColumn('tanggal_update', function ($row) {
+                return $row->tanggal_update ? Carbon::parse($row->tanggal_update)->translatedFormat('d F Y') . '<br/>' . Carbon::parse($row->tanggal_update)->translatedFormat('H:i:s') . ' WIB' : '';
             })
             ->editColumn('periode_wisuda', function ($row) {
                 $periode_wisuda = $row->periode_wisuda;
@@ -160,7 +151,7 @@ class VerifikasiWisudaController extends Controller
             ->editColumn('status_id', function ($row) {
                 return '<button type="button" class="btn ' . $row->status->color . ' btn-sm" disabled>' . $row->status->name . '</button>';
             })
-            ->rawColumns(['action', 'tanggal_submit', 'status_id', 'tanggal_proses', 'periode_wisuda', 'tanggal_terbit'])
+            ->rawColumns(['action', 'tanggal_submit', 'status_id', 'tanggal_proses', 'periode_wisuda', 'tanggal_terbit', 'tanggal_update'])
             ->toJson();
     }
 
@@ -182,14 +173,13 @@ class VerifikasiWisudaController extends Controller
                 return Carbon::parse($row->created_at)->translatedFormat('d F Y') . '<br/>' . Carbon::parse($row->created_at)->translatedFormat('H:i:s') . ' WIB';
             })
             ->editColumn('tanggal_proses', function ($row) {
-                $tanggal_proses = $row->tanggal_proses;
-                if ($tanggal_proses) {
-                    $tanggal_proses = Carbon::parse($row->tanggal_proses)->translatedFormat('d F Y') . '<br/>' . Carbon::parse($row->tanggal_proses)->translatedFormat('H:i:s') . ' WIB';
-                }
-                return $tanggal_proses;
+                return $row->tanggal_proses ? Carbon::parse($row->tanggal_proses)->translatedFormat('d F Y') . '<br/>' . Carbon::parse($row->tanggal_proses)->translatedFormat('H:i:s') . ' WIB' : '';
             })
             ->editColumn('tanggal_terbit', function ($row) {
                 return $row->tanggal_terbit ? Carbon::parse($row->tanggal_terbit)->translatedFormat('d F Y') : '';
+            })
+            ->editColumn('tanggal_update', function ($row) {
+                return $row->tanggal_update ? Carbon::parse($row->tanggal_update)->translatedFormat('d F Y') . '<br/>' . Carbon::parse($row->tanggal_update)->translatedFormat('H:i:s') . ' WIB' : '';
             })
             ->editColumn('periode_wisuda', function ($row) {
                 $periode_wisuda = $row->periode_wisuda;
@@ -210,7 +200,7 @@ class VerifikasiWisudaController extends Controller
             ->editColumn('status_id', function ($row) {
                 return '<button type="button" class="btn ' . $row->status->color . ' btn-sm" disabled>' . $row->status->name . '</button>';
             })
-            ->rawColumns(['action', 'tanggal_submit', 'status_id', 'tanggal_proses', 'periode_wisuda', 'tanggal_terbit'])
+            ->rawColumns(['action', 'tanggal_submit', 'status_id', 'tanggal_proses', 'periode_wisuda', 'tanggal_terbit', 'tanggal_update'])
             ->toJson();
     }
 
@@ -298,7 +288,6 @@ class VerifikasiWisudaController extends Controller
 
                 if ($existingVerifikasi->status_id == '1') {
                     $updateData['status_id'] = '7';
-                    $updateData['tanggal_proses'] = now();
                 }
 
                 $existingVerifikasi->update($updateData);
@@ -309,7 +298,6 @@ class VerifikasiWisudaController extends Controller
                     'user_id' => Auth::user()->id,
                     'status_id' => '7',
                     'file' => $fileName, // Keep filename for reference
-                    'tanggal_proses' => now(),
                     'periode_wisuda' => $periodeWisuda, // Set default periode wisuda
                 ];
 
@@ -568,13 +556,21 @@ class VerifikasiWisudaController extends Controller
             $updateData = [
                 'status_id' => $request->status_id,
                 'catatan' => $request->catatan,
-                'tanggal_proses' => new \DateTime(),
             ];
+
+            // Update tanggal_update when status changes to 2 (Sudah Terverifikasi) or 3 (Tidak Terverifikasi)
+            if (in_array($request->status_id, ['2', '3'])) {
+                $updateData['tanggal_update'] = now();
+            }
+
+            // Update tanggal_proses when status changes to 4 (Bersedia) or 5 (Tidak bersedia)
+            if (in_array($request->status_id, ['4', '5'])) {
+                $updateData['tanggal_proses'] = now();
+            }
 
             // If status is changed to 1 (Belum Diproses), clear file validation data
             // This forces student to re-upload validation file
             if ($request->status_id == '1') {
-                $updateData['tanggal_proses'] = null;
                 $updateData['file_validasi_uploaded'] = false;
                 // Note: We keep the existing 'file' field (original upload) but clear validation file data
             }
@@ -634,15 +630,11 @@ class VerifikasiWisudaController extends Controller
         return DataTables::of($data)
             ->addIndexColumn()
             ->addColumn('action', function($row) {
-                $aksi = '<button type="button" class="btn btn-primary btn-sm btn-proses me-1" data-nim="' . $row->user->nim . '" data-id="' . encodeId($row->id) . '" data-type="wisudawan">
-                        <i class="fa fa-edit"></i> Edit
-                    </button>';
-
-                if($row->status_id != 2) {
-                    $aksi .= '<button type="button" class="btn btn-warning btn-sm btn-proses" data-nim="' . $row->user->nim . '" data-id="' . encodeId($row->id) . '" data-type="wisudawan">
-                            <i class="fa fa-pen"></i> Proses
-                        </button>';
-                }
+                $aksi = '<div class="d-flex justify-content-center align-items-center">';
+                $aksi .= '<button type="button" class="btn btn-primary btn-sm btn-proses" data-nim="' . $row->user->nim . '" data-id="' . encodeId($row->id) . '" data-type="wisudawan" style="white-space: nowrap;">';
+                $aksi .= '<i class="fa fa-edit"></i> Proses';
+                $aksi .= '</button>';
+                $aksi .= '</div>';
                 return $aksi;
             })
             ->editColumn('status_id', function ($row) {
@@ -650,6 +642,12 @@ class VerifikasiWisudaController extends Controller
             })
             ->editColumn('tanggal_terbit', function ($row) {
                 return $row->tanggal_terbit ? Carbon::parse($row->tanggal_terbit)->translatedFormat('d F Y') : '';
+            })
+            ->editColumn('tanggal_update', function ($row) {
+                return $row->tanggal_update ? Carbon::parse($row->tanggal_update)->translatedFormat('d F Y') . '<br/>' . Carbon::parse($row->tanggal_update)->translatedFormat('H:i:s') . ' WIB' : '';
+            })
+            ->editColumn('tanggal_proses', function ($row) {
+                return $row->tanggal_proses ? Carbon::parse($row->tanggal_proses)->translatedFormat('d F Y') . '<br/>' . Carbon::parse($row->tanggal_proses)->translatedFormat('H:i:s') . ' WIB' : '';
             })
             ->editColumn('periode_wisuda', function ($row) {
                 $periode_wisuda = $row->periode_wisuda;
@@ -667,7 +665,7 @@ class VerifikasiWisudaController extends Controller
                 }
                 return $periode_wisuda;
             })
-            ->rawColumns(['action', 'status_id', 'periode_wisuda', 'tanggal_terbit'])
+            ->rawColumns(['action', 'status_id', 'periode_wisuda', 'tanggal_terbit', 'tanggal_update', 'tanggal_proses'])
             ->make(true);
 }
 
@@ -675,7 +673,10 @@ public function terima($id)
 {
     try {
         $verifikasi = VerifikasiWisuda::findOrFail(decodeId($id));
-        $verifikasi->update(['status_id' => 2]); // 2 = Diterima
+        $verifikasi->update([
+            'status_id' => 2, // 2 = Diterima
+            'tanggal_update' => now() // Update tanggal_update when verified
+        ]);
 
         return response()->json([
             'status' => true,
@@ -693,7 +694,10 @@ public function tolak($id)
 {
     try {
         $verifikasi = VerifikasiWisuda::findOrFail(decodeId($id));
-        $verifikasi->update(['status_id' => 3]); // 3 = Ditolak
+        $verifikasi->update([
+            'status_id' => 3, // 3 = Ditolak
+            'tanggal_update' => now() // Update tanggal_update when rejected
+        ]);
 
         return response()->json([
             'status' => true,
@@ -729,7 +733,7 @@ public function konfirmasi(Request $request, $id)
         }
 
         $updateData = [
-            'tanggal_proses' => now(),
+            'tanggal_proses' => now(), // Update tanggal_proses when confirming
             'catatan' => $request->catatan,
         ];
 
@@ -794,16 +798,24 @@ public function bulkProcess(Request $request)
         $updateData = [
             'status_id' => $request->status_id,
             'catatan' => $request->catatan,
-            'tanggal_proses' => now(),
         ];
 
         if ($request->periode_wisuda) {
             $updateData['periode_wisuda'] = $request->periode_wisuda;
         }
 
+        // Update tanggal_update when status changes to 2 (Sudah Terverifikasi) or 3 (Tidak Terverifikasi)
+        if (in_array($request->status_id, ['2', '3'])) {
+            $updateData['tanggal_update'] = now();
+        }
+
+        // Update tanggal_proses when status changes to 4 (Bersedia) or 5 (Tidak bersedia)
+        if (in_array($request->status_id, ['4', '5'])) {
+            $updateData['tanggal_proses'] = now();
+        }
+
         // If status is changed to 1 (Belum Diproses), clear file validation data
         if ($request->status_id == '1') {
-            $updateData['tanggal_proses'] = null;
             $updateData['file_validasi_uploaded'] = false;
         }
 
