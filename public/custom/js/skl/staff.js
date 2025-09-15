@@ -1,3 +1,7 @@
+// Add state management for selected checkboxes
+let selectedCheckboxes = new Set();
+let isUpdatingCheckboxes = false; // Flag to prevent recursive updates
+
 const initializeDataTableSKL = (status, year, prodi) => {
     return $("#skl-datatable").DataTable({
         processing: true,
@@ -10,8 +14,9 @@ const initializeDataTableSKL = (status, year, prodi) => {
                 data: null,
                 orderable: false,
                 render: function(data, type, row) {
-                    // Use the ID that was already encoded by the server
-                    return '<input type="checkbox" class="form-check-input row-checkbox" value="' + row.id + '">';
+                    // Check if this row was previously selected
+                    const isSelected = selectedCheckboxes.has(row.id);
+                    return '<input type="checkbox" class="form-check-input row-checkbox" value="' + row.id + '"' + (isSelected ? ' checked' : '') + '>';
                 }
             },
             { data: "DT_RowIndex" },
@@ -51,12 +56,24 @@ const initializeDataTableSKL = (status, year, prodi) => {
             [5, 10, 25, 50, 'All']
         ],
         order: [[0, "desc"]],
+        drawCallback: function() {
+            // Restore checkbox states and update button after draw
+            // Use setTimeout to avoid conflicts with DataTable's own events
+            setTimeout(() => {
+                if (!isUpdatingCheckboxes) {
+                    restoreCheckboxStates();
+                    updateBulkActionButton();
+                }
+            }, 50);
+        }
     });
 };
 
 let table = initializeDataTableSKL(status_table, year, prodi_table);
 
 $(".tahun-menu").click(function () {
+    // Clear selected checkboxes when changing filters
+    selectedCheckboxes.clear();
     year = $(this).data("year");
     $("#tahunDropdown").html(year);
     table = initializeDataTableSKL(status_table, year, prodi_table);
@@ -68,6 +85,8 @@ $('#btn-export').click(function () {
 });
 
 $(".status-menu").click(function () {
+    // Clear selected checkboxes when changing filters
+    selectedCheckboxes.clear();
     status_table = $(this).data("status");
     $("#statusDropdown").html($(this).html());
     table = initializeDataTableSKL(status_table, year, prodi_table);
@@ -75,43 +94,112 @@ $(".status-menu").click(function () {
 
 // Add prodi filter handler
 $(".prodi-menu").click(function () {
+    // Clear selected checkboxes when changing filters
+    selectedCheckboxes.clear();
     prodi_table = $(this).data("prodi");
     $("#prodiDropdown").html($(this).html());
     table = initializeDataTableSKL(status_table, year, prodi_table);
 });
 
-// Add these new functions for bulk processing
-// Handle bulk action button state
-$('#skl-datatable').on('change', '.row-checkbox', function() {
-    updateBulkActionButton();
-    // Update header checkbox state
-    const totalCheckboxes = $('.row-checkbox').length;
-    const checkedCheckboxes = $('.row-checkbox:checked').length;
-    $('#select-all').prop('checked', totalCheckboxes === checkedCheckboxes && totalCheckboxes > 0);
+// FIXED: Use event delegation and prevent multiple event bindings
+$(document).off('change', '#skl-datatable .row-checkbox').on('change', '#skl-datatable .row-checkbox', function(e) {
+    // Prevent event bubbling
+    e.stopPropagation();
+
+    if (isUpdatingCheckboxes) return; // Prevent recursive calls
+
+    const checkboxValue = $(this).val();
+
+    if ($(this).is(':checked')) {
+        selectedCheckboxes.add(checkboxValue);
+    } else {
+        selectedCheckboxes.delete(checkboxValue);
+    }
+
+    // Debounce the update functions to prevent excessive calls
+    clearTimeout(window.checkboxUpdateTimeout);
+    window.checkboxUpdateTimeout = setTimeout(() => {
+        updateBulkActionButton();
+        updateHeaderCheckbox();
+    }, 100);
 });
 
-// Select/deselect all checkboxes
-$('#select-all').on('change', function() {
-    $('.row-checkbox').prop('checked', $(this).prop('checked'));
+// FIXED: Select/deselect all checkboxes with proper event handling
+$(document).off('change', '#select-all').on('change', '#select-all', function(e) {
+    e.stopPropagation();
+
+    if (isUpdatingCheckboxes) return;
+
+    isUpdatingCheckboxes = true;
+    const isChecked = $(this).prop('checked');
+
+    $('.row-checkbox').each(function() {
+        const checkboxValue = $(this).val();
+        $(this).prop('checked', isChecked);
+
+        if (isChecked) {
+            selectedCheckboxes.add(checkboxValue);
+        } else {
+            selectedCheckboxes.delete(checkboxValue);
+        }
+    });
+
     updateBulkActionButton();
+
+    setTimeout(() => {
+        isUpdatingCheckboxes = false;
+    }, 100);
 });
 
 // Update bulk action button state
 function updateBulkActionButton() {
-    const checkedBoxes = $('.row-checkbox:checked').length;
-    $('#btn-bulk-action').prop('disabled', checkedBoxes === 0);
+    const bulkBtn = $('#btn-bulk-action');
+    if (bulkBtn.length) {
+        bulkBtn.prop('disabled', selectedCheckboxes.size === 0);
+    }
+}
+
+// FIXED: Update header checkbox state with safeguards
+function updateHeaderCheckbox() {
+    if (isUpdatingCheckboxes) return;
+
+    const totalCheckboxes = $('.row-checkbox').length;
+    const checkedCheckboxes = $('.row-checkbox:checked').length;
+    const headerCheckbox = $('#select-all');
+
+    if (headerCheckbox.length && totalCheckboxes > 0) {
+        isUpdatingCheckboxes = true;
+        headerCheckbox.prop('checked', totalCheckboxes === checkedCheckboxes);
+        setTimeout(() => {
+            isUpdatingCheckboxes = false;
+        }, 50);
+    }
+}
+
+// FIXED: Restore checkbox states after DataTable redraw
+function restoreCheckboxStates() {
+    isUpdatingCheckboxes = true;
+
+    $('.row-checkbox').each(function() {
+        const checkboxValue = $(this).val();
+        if (selectedCheckboxes.has(checkboxValue)) {
+            $(this).prop('checked', true);
+        }
+    });
+
+    setTimeout(() => {
+        updateHeaderCheckbox();
+        isUpdatingCheckboxes = false;
+    }, 50);
 }
 
 // Handle bulk action button click
-$('#btn-bulk-action').click(function() {
-    const selectedIds = [];
-    $('.row-checkbox:checked').each(function() {
-        selectedIds.push($(this).val()); // Value already contains encoded ID
-    });
+$('#btn-bulk-action').click(function(e) {
+    e.preventDefault();
 
-    if (selectedIds.length > 0) {
+    if (selectedCheckboxes.size > 0) {
         // Set the selected IDs to hidden input
-        $('#form-bulk-process input[name="selected_ids"]').val(selectedIds.join(','));
+        $('#form-bulk-process input[name="selected_ids"]').val(Array.from(selectedCheckboxes).join(','));
         $('#modalBulkProcess').modal('show');
     } else {
         Swal.fire({
@@ -130,7 +218,7 @@ $('#form-bulk-process').submit(function(e) {
     formData.append('status_id', $('#form-bulk-process select[name="status_id"]').val());
     formData.append('catatan', $('#form-bulk-process textarea[name="catatan"]').val());
     formData.append('no_surat', $('#form-bulk-process input[name="no_surat"]').val());
-    formData.append('selected_ids', $('#form-bulk-process input[name="selected_ids"]').val());
+    formData.append('selected_ids', Array.from(selectedCheckboxes).join(','));
     formData.append('_token', $('meta[name="csrf-token"]').attr('content'));
 
     $.ajax({
@@ -151,8 +239,10 @@ $('#form-bulk-process').submit(function(e) {
         success: function(response) {
             if (response.status) {
                 $('#modalBulkProcess').modal('hide');
+
+                // Clear selected checkboxes after successful bulk process
+                selectedCheckboxes.clear();
                 $('#select-all').prop('checked', false);
-                $('.row-checkbox').prop('checked', false);
                 updateBulkActionButton();
 
                 Swal.fire({
@@ -162,7 +252,7 @@ $('#form-bulk-process').submit(function(e) {
                     showConfirmButton: false,
                     timer: 1500
                 });
-                table.ajax.reload();
+                table.ajax.reload(null, false); // Don't reset paging
             } else {
                 Swal.fire({
                     title: 'Gagal!',
@@ -191,11 +281,37 @@ $('#bulk_status_id').change(function() {
     }
 });
 
-// Refresh data every 30 seconds
-setInterval(function () {
-    table.ajax.reload(null, false); // user paging is not reset on reload
-}, 30000);
+// FIXED: Refresh data with better timing and state preservation
+let refreshInterval;
+function startAutoRefresh() {
+    if (refreshInterval) clearInterval(refreshInterval);
 
+    refreshInterval = setInterval(function () {
+        // Only refresh if no checkboxes are being manipulated
+        if (!isUpdatingCheckboxes && selectedCheckboxes.size === 0) {
+            table.ajax.reload(null, false); // user paging is not reset on reload
+        }
+    }, 30000);
+}
+
+// Start auto refresh
+startAutoRefresh();
+
+// Stop auto refresh when user is actively selecting checkboxes
+$(document).on('mousedown', '.row-checkbox, #select-all', function() {
+    if (refreshInterval) {
+        clearInterval(refreshInterval);
+    }
+});
+
+// Resume auto refresh after user stops interacting with checkboxes
+$(document).on('mouseup', '.row-checkbox, #select-all', function() {
+    setTimeout(() => {
+        startAutoRefresh();
+    }, 5000); // Resume after 5 seconds
+});
+
+// Rest of the code remains the same...
 $("#show_data_skl").on("click", ".btn-detail", function () {
     let id = $(this).data("id");
 
@@ -342,7 +458,7 @@ $("#form-proses").submit(function (e) {
                     showConfirmButton: false,
                     timer: 1500,
                 });
-                table.ajax.reload();
+                table.ajax.reload(null, false); // Don't reset paging
             } else {
                 Swal.fire({
                     title: "Gagal!",
