@@ -434,7 +434,7 @@
                                         @endcan
                                         <th>No</th>
                                         <th>Tanggal Update</th>
-                                        <th>Tanggal Proses</th>
+                                        <th>Tanggal Konfirmasi</th>
                                         <th>Nama</th>
                                         <th>NIM</th>
                                         <th>No Seri Ijazah</th>
@@ -505,7 +505,7 @@
                                 @endcan
                                 <th>No</th>
                                 <th>Tanggal Update</th>
-                                <th>Tanggal Proses</th>
+                                <th>Tanggal Konfirmasi</th>
                                 <th>Nama</th>
                                 <th>NIM</th>
                                 <th>No Seri Ijazah</th>
