@@ -86,43 +86,43 @@ class PeriodeWisudaController extends Controller
             ]);
 
             $resetCount = 0;
+            $changedToStatus6 = 0;
 
             // Reset when there's a new date and reset_status is requested
             if ($newDate && $request->reset_status) {
-                \Log::info("Starting reset - targeting ALL students");
+                \Log::info("Starting reset - targeting ALL students to status 6 (except status 2)");
 
-                // Reset all students regardless of periode
-                $resetQuery = VerifikasiWisuda::whereNotIn('status_id', ['1']); // Only reset students who are not in "Belum Diproses" status
+                // Reset all students to status 6, except those with status 2
+                $resetQuery = VerifikasiWisuda::whereNotIn('status_id', ['2']); // Only exclude status 2 (tidak berubah)
 
-                // Get count before reset for logging
-                $beforeCount = $resetQuery->count();
-                \Log::info("Found {$beforeCount} students to reset");
+                $beforeResetCount = $resetQuery->count();
+                \Log::info("Found {$beforeResetCount} students to reset to status 6");
 
-                if ($beforeCount > 0) {
-                    // Show some examples of students that will be reset
-                    $examples = $resetQuery->with('user')->limit(5)->get();
-                    foreach ($examples as $example) {
-                        \Log::info("Will reset: {$example->user->name} (NIM: {$example->user->nim}), Current Status: {$example->status_id}, Periode: '{$example->periode_wisuda}'");
+                if ($beforeResetCount > 0) {
+                    $examplesReset = $resetQuery->with('user')->limit(5)->get();
+                    foreach ($examplesReset as $example) {
+                        \Log::info("Will reset to status 6: {$example->user->name} (NIM: {$example->user->nim}), Current Status: {$example->status_id}, Periode: '{$example->periode_wisuda}'");
                     }
 
-                    // Perform the reset for ALL students
-                    $resetCount = VerifikasiWisuda::whereNotIn('status_id', ['1'])
+                    // Reset all statuses except 2 to status 6
+                    $resetCount = VerifikasiWisuda::whereNotIn('status_id', ['1','2'])
                         ->update([
-                            'status_id' => '1', // Belum Diproses
-                            'catatan' => 'Status direset karena perubahan periode wisuda pada ' . now()->format('d F Y H:i:s'),
-                            'tanggal_proses' => null
+                            'status_id' => '6', // Default reset to status 6
+                            'catatan' => 'Status direset ke tidak lulus karena perubahan periode wisuda pada ' . now()->format('d F Y H:i:s'),
+                            'tanggal_proses' => now()
                         ]);
 
-                    \Log::info("Successfully reset {$resetCount} students (ALL students)");
-                } else {
-                    \Log::info("No students found to reset");
+                    \Log::info("Successfully reset {$resetCount} students to status 6");
                 }
+
+                \Log::info("Total students affected: {$resetCount}");
             }
 
             return response()->json([
                 'status' => true,
                 'message' => 'Periode wisuda berhasil diperbarui!',
-                'reset_count' => $resetCount
+                'reset_count' => $resetCount,
+                'total_affected' => $resetCount
             ]);
         } catch (\Throwable $th) {
             \Log::error('Error updating periode: ' . $th->getMessage());
