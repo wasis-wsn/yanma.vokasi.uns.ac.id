@@ -350,7 +350,7 @@
                     <h5>Ketentuan Legalisir</h5>
                     <ol>
                         <li>
-                            Foto kopi bisa <b>terbaca</b> dan <b>terlihat jelas</b>
+                            Foto kopi hitam putih bisa <b>terbaca</b> dan <b>terlihat jelas</b>
                             <ul>
                                 <li>Nama Yang bersangkutan</li>
                                 <li>Nomor Ijazah/Transkrip</li>
@@ -369,6 +369,9 @@
                             <ul>
                                 <li>
                                     Untuk Fotokopi Ijazah = Ukuran kertas <b>A4</b> sesuai dokumen asli
+                                </li>
+                                <li>
+                                    Untuk Fotokopi Ijazah Bilingual = Ukuran kertas <b>F4</b> sesuai dokumen asli
                                 </li>
                                 <li>
                                     Untuk Fotokopi Transkrip Akademik = Ukuran kertas <b>F4</b> sesuai dokumen asli
