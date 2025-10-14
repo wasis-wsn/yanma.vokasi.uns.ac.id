@@ -24,6 +24,17 @@
                         </div>
                         <div class="col-md-6">
                             <div class="form-group mb-3">
+                                <label class="form-label" for="pin">PIN Wisuda</label>
+                                <input type="text" class="form-control" id="pin" name="pin" readonly
+                                       placeholder="Belum tersedia">
+                                <small class="text-muted">Data ini tidak dapat diubah</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
                                 <label class="form-label" for="periode_wisuda">Periode Wisuda</label>
                                 <input type="month" class="form-control" id="periode_wisuda" name="periode_wisuda" readonly>
                                 <small class="text-muted">Data ini tidak dapat diubah</small>

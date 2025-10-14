@@ -48,6 +48,7 @@ class VerifWisudaExport implements FromCollection, WithHeadings, WithStyles, Wit
                 'NIM',
                 'Nama',
                 'No Seri Ijazah',
+                'PIN Wisuda',
                 'Periode Wisuda',
                 'Catatan'
             ]
@@ -82,6 +83,7 @@ class VerifWisudaExport implements FromCollection, WithHeadings, WithStyles, Wit
             $row->user->nim,
             $row->user->name,
             $row->no_seri_ijazah,
+            $row->pin,
             ($row->periode_wisuda) ? Carbon::createFromFormat('Y-m', $row->periode_wisuda)->translatedFormat('F Y') : '',
             $row->catatan,
         ];
@@ -89,31 +91,32 @@ class VerifWisudaExport implements FromCollection, WithHeadings, WithStyles, Wit
 
     public function styles(Worksheet $sheet)
     {
-        // Merge hanya sesuai jumlah kolom aktif (A–F)
-        $sheet->mergeCells('A1:F2');
+        // Merge hanya sesuai jumlah kolom aktif (A–G)
+        $sheet->mergeCells('A1:G2');
 
-        // Set lebar kolom A sampai F
+        // Set lebar kolom A sampai G
         $sheet->getColumnDimension('A')->setWidth(6);   // NO
         $sheet->getColumnDimension('B')->setWidth(20);  // NIM
         $sheet->getColumnDimension('C')->setWidth(30);  // Nama
         $sheet->getColumnDimension('D')->setWidth(20);  // No Seri Ijazah
-        $sheet->getColumnDimension('E')->setWidth(25);  // Periode Wisuda
-        $sheet->getColumnDimension('F')->setWidth(35);  // Catatan
+        $sheet->getColumnDimension('E')->setWidth(18);  // PIN Wisuda
+        $sheet->getColumnDimension('F')->setWidth(25);  // Periode Wisuda
+        $sheet->getColumnDimension('G')->setWidth(35);  // Catatan
 
         // Posisi teks
         $sheet->getStyle('A')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-        $sheet->getStyle('A1:F2')->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
+        $sheet->getStyle('A1:G2')->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
 
         // Header tabel baris ke-3
-        $sheet->getStyle('A3:F3')->getFont()->setBold(true);
-        $sheet->getStyle('A1:F3')->getFont()->setName('Times New Roman')->setSize(12);
-        $sheet->getStyle('A3:F3')->getFont()->getColor()->setARGB(Color::COLOR_WHITE);
-        $sheet->getStyle('A3:F3')->getFill()
+        $sheet->getStyle('A3:G3')->getFont()->setBold(true);
+        $sheet->getStyle('A1:G3')->getFont()->setName('Times New Roman')->setSize(12);
+        $sheet->getStyle('A3:G3')->getFont()->getColor()->setARGB(Color::COLOR_WHITE);
+        $sheet->getStyle('A3:G3')->getFill()
             ->setFillType(Fill::FILL_SOLID)
             ->getStartColor()->setRGB('6699CC');
 
-        // Border semua cell dari A3 sampai baris terakhir (A to F)
-        $sheet->getStyle('A3:F' . $this->awal)
+        // Border semua cell dari A3 sampai baris terakhir (A to G)
+        $sheet->getStyle('A3:G' . $this->awal)
             ->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
 
         // Hapus data setelah styling selesai (artinya export sudah selesai)

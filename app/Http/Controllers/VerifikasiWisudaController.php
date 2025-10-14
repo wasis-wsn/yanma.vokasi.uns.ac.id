@@ -14,12 +14,8 @@ use App\Models\VerifikasiWisuda;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Facades\Excel;
 use Yajra\DataTables\Facades\DataTables;
-use App\Services\FileStorageService;
 // use App\Services\GoogleDriveService;
 
 
@@ -52,9 +48,15 @@ class VerifikasiWisudaController extends Controller
         $data = VerifikasiWisuda::with('user.prodis', 'status')->whereYear('created_at', $request->year);
         if ($request->status != 'all') $data = $data->where('status_id', $request->status);
 
-        // Exclude verified (status 2) and confirmed (status 4) students from verification table
-        // They should appear in the wisudawan table instead
-        $data = $data->whereNotIn('status_id', [2, 4]);
+        // Exclude verified students and records that already have PIN & ijazah number
+        $data = $data->whereNotIn('status_id', ['2'])
+            ->where(function ($query) {
+                $query->whereNull('no_seri_ijazah')
+                    ->orWhere('no_seri_ijazah', '')
+                    ->orWhereNull('pin')
+                    ->orWhere('pin', '')
+                    ->orWhere('status_id', '3');
+            });
 
         $data = $data->orderBy('created_at', 'desc')->get();
 
@@ -96,6 +98,9 @@ class VerifikasiWisudaController extends Controller
                 }
                 return $periode_wisuda;
             })
+            ->editColumn('pin', function ($row) {
+                return $row->pin ?? '';
+            })
             ->editColumn('status_id', function ($row) {
                 return '<button type="button" class="btn ' . $row->status->color . ' btn-sm" disabled>' . $row->status->name . '</button>';
             })
@@ -108,9 +113,15 @@ class VerifikasiWisudaController extends Controller
         $data = VerifikasiWisuda::with('user.prodis', 'status')->whereYear('created_at', $request->year);
         if ($request->status != 'all') $data = $data->where('status_id', $request->status);
 
-        // Exclude verified (status 2) and confirmed (status 4) students from verification table
-        // They should appear in the wisudawan table instead
-        $data = $data->whereNotIn('status_id', [2, 4]);
+        // Exclude verified students and records that already have PIN & ijazah number
+        $data = $data->whereNotIn('status_id', ['2'])
+            ->where(function ($query) {
+                $query->whereNull('no_seri_ijazah')
+                    ->orWhere('no_seri_ijazah', '')
+                    ->orWhereNull('pin')
+                    ->orWhere('pin', '')
+                    ->orWhere('status_id', '3');
+            });
 
         $data = $data->orderBy('created_at', 'desc')->get();
 
@@ -147,6 +158,9 @@ class VerifikasiWisudaController extends Controller
                     }
                 }
                 return $periode_wisuda;
+            })
+            ->editColumn('pin', function ($row) {
+                return $row->pin ?? '';
             })
             ->editColumn('status_id', function ($row) {
                 return '<button type="button" class="btn ' . $row->status->color . ' btn-sm" disabled>' . $row->status->name . '</button>';
@@ -197,136 +211,14 @@ class VerifikasiWisudaController extends Controller
                 }
                 return $periode_wisuda;
             })
+            ->editColumn('pin', function ($row) {
+                return $row->pin ?? '';
+            })
             ->editColumn('status_id', function ($row) {
                 return '<button type="button" class="btn ' . $row->status->color . ' btn-sm" disabled>' . $row->status->name . '</button>';
             })
             ->rawColumns(['action', 'tanggal_submit', 'status_id', 'tanggal_proses', 'periode_wisuda', 'tanggal_terbit', 'tanggal_update'])
             ->toJson();
-    }
-
-    public function store(Request $request)
-    {
-        $request->validate([
-            'file' => ['required', 'file', 'mimes:pdf', 'max:10240']
-        ], [
-            'required' => ':attribute wajib diisi!',
-            'max' => 'ukuran :attribute tidak boleh lebih dari 10 MB',
-        ], [
-            'file' => 'File PDF'
-        ]);
-
-        try {
-            $fileName = 'VERIFWISUDA_' . trim(Auth::user()->name) . '_' . Auth::user()->nim . '_' . trim(Auth::user()->prodis->name) . '_' . time() . '.pdf';
-
-            // Initialize storage result for Google Drive only
-            $storageResult = [
-                'success' => false,
-                'local_path' => null,
-                'google_drive_id' => null,
-                'storage_method' => 'none'
-            ];
-
-            // Get periode wisuda from existing record or use current period
-            $existingVerifikasi = VerifikasiWisuda::where('user_id', Auth::user()->id)->first();
-            $periodeWisuda = null;
-
-            if ($existingVerifikasi && $existingVerifikasi->periode_wisuda) {
-                $periodeWisuda = $existingVerifikasi->periode_wisuda;
-            } else {
-                // Default to current month/year if no existing periode
-                $periodeWisuda = now()->format('Y-m');
-            }
-
-            // Try Google Drive upload as primary storage (required)
-            try {
-                $fileStorageService = app(FileStorageService::class);
-                $googleResult = $fileStorageService->store($request->file('file'), 'verifWisuda/upload', $fileName, $periodeWisuda);
-
-                if ($googleResult['success'] && $googleResult['storage_method'] === 'google_drive') {
-                    $storageResult['google_drive_id'] = $googleResult['google_drive_id'];
-                    $storageResult['storage_method'] = 'google_drive';
-                    $storageResult['success'] = true;
-                    Log::info('File uploaded to Google Drive: ' . $googleResult['google_drive_id'] . ' (Periode: ' . $periodeWisuda . ')');
-                } else {
-                    throw new \Exception('Google Drive upload failed: ' . ($googleResult['error'] ?? 'Unknown error'));
-                }
-            } catch (\BadMethodCallException $methodException) {
-                Log::error('Google Drive service method not available: ' . $methodException->getMessage());
-                throw new \Exception('File storage service not available');
-            } catch (\Exception $serviceException) {
-                Log::error('Google Drive upload failed: ' . $serviceException->getMessage());
-                throw new \Exception('Failed to upload file to Google Drive: ' . $serviceException->getMessage());
-            }
-
-            if ($existingVerifikasi) {
-                // Delete old local file if exists (cleanup from previous versions)
-                if ($existingVerifikasi->file && !$existingVerifikasi->google_drive_id) {
-                    Storage::disk('public')->delete('verifWisuda/upload/' . $existingVerifikasi->file);
-                }
-
-                // Update existing record with new file and storage info
-                $updateData = [
-                    'file' => $fileName, // Keep filename for reference
-                ];
-
-                // Only add storage info if columns exist and are provided
-                if (isset($storageResult['storage_method'])) {
-                    try {
-                        $updateData['storage_method'] = $storageResult['storage_method'];
-                    } catch (\Exception $e) {
-                        Log::info('storage_method column does not exist, skipping');
-                    }
-                }
-
-                if (isset($storageResult['google_drive_id']) && $storageResult['google_drive_id']) {
-                    try {
-                        $updateData['google_drive_id'] = $storageResult['google_drive_id'];
-                    } catch (\Exception $e) {
-                        Log::info('google_drive_id column does not exist, skipping');
-                    }
-                }
-
-                if ($existingVerifikasi->status_id == '1') {
-                    $updateData['status_id'] = '7';
-                }
-
-                $existingVerifikasi->update($updateData);
-                $message = 'File validasi berhasil diupload ke Google Drive!';
-            } else {
-                // Create new record
-                $createData = [
-                    'user_id' => Auth::user()->id,
-                    'status_id' => '7',
-                    'file' => $fileName, // Keep filename for reference
-                    'periode_wisuda' => $periodeWisuda, // Set default periode wisuda
-                ];
-
-                // Only add storage info if columns exist and are provided
-                if (isset($storageResult['storage_method'])) {
-                    try {
-                        $createData['storage_method'] = $storageResult['storage_method'];
-                    } catch (\Exception $e) {
-                        Log::info('storage_method column does not exist, skipping');
-                    }
-                }
-
-                if (isset($storageResult['google_drive_id']) && $storageResult['google_drive_id']) {
-                    try {
-                        $createData['google_drive_id'] = $storageResult['google_drive_id'];
-                    } catch (\Exception $e) {
-                        Log::info('google_drive_id column does not exist, skipping');
-                    }
-                }
-
-                VerifikasiWisuda::create($createData);
-                $message = 'File validasi berhasil diupload ke Google Drive!';
-            }
-
-            return response()->json(['status' => true, 'message' => $message], 200);
-        } catch (\Throwable $th) {
-            Log::error('Store file error: ' . $th->getMessage());
-            return response()->json(['status' => false, 'message' => 'Terjadi Kesalahan: ' . $th->getMessage()], 500);
-        }
     }
 
     public function import(Request $request)
@@ -477,69 +369,10 @@ class VerifikasiWisudaController extends Controller
             return response()->json(['status' => false, 'message' => 'terjadi kesalahan'], 500);
         }
     }
-
-    public function update(Request $request, $id)
-    {
-        $request->validate([
-            'file' => ['required', 'file', 'mimes:pdf', 'max:102400']
-        ], [
-            'required' => ':attribute wajib diisi!',
-            'max' => 'ukuran :attribute tidak boleh lebih dari 100 MB',
-        ], [
-            'file' => 'File PDF'
-        ]);
-
-        try {
-            $id = decodeId($id);
-            $ajuan = VerifikasiWisuda::findOrFail($id);
-
-            $fileName = 'VERIFWISUDA_' . trim(Auth::user()->name) . '_' . Auth::user()->nim . '_' . trim(Auth::user()->prodis->name) . '_' . time() . '.pdf';
-
-            // Upload to Google Drive only
-            try {
-                $fileStorageService = app(FileStorageService::class);
-                $googleResult = $fileStorageService->store($request->file('file'), 'verifWisuda/upload', $fileName, $ajuan->periode_wisuda);
-
-                if (!$googleResult['success'] || $googleResult['storage_method'] !== 'google_drive') {
-                    throw new \Exception('Google Drive upload failed: ' . ($googleResult['error'] ?? 'Unknown error'));
-                }
-
-                // Delete old local file if exists (cleanup from previous versions)
-                if ($ajuan->file && !$ajuan->google_drive_id) {
-                    Storage::disk('public')->delete('verifWisuda/upload/' . $ajuan->file);
-                }
-
-                $updateData = [
-                    'file' => $fileName,
-                ];
-
-                // Update Google Drive info
-                if ($googleResult['google_drive_id']) {
-                    try {
-                        $updateData['google_drive_id'] = $googleResult['google_drive_id'];
-                        $updateData['storage_method'] = 'google_drive';
-                    } catch (\Exception $e) {
-                        Log::info('Google Drive columns do not exist, skipping');
-                    }
-                }
-
-                $ajuan->update($updateData);
-
-                Log::info('File updated in Google Drive: ' . $googleResult['google_drive_id'] . ' (Periode: ' . $ajuan->periode_wisuda . ')');
-            } catch (\Exception $e) {
-                Log::error('Failed to update file in Google Drive: ' . $e->getMessage());
-                throw new \Exception('Failed to upload file to Google Drive: ' . $e->getMessage());
-            }
-        } catch (\Throwable $th) {
-            return response()->json(['status' => false, 'message' => 'Terjadi Kesalahan: ' . $th->getMessage()], 500);
-        }
-        return response()->json(['status' => true, 'message' => 'File berhasil diupdate di Google Drive!'], 200);
-    }
-
     public function proses(Request $request, $id)
     {
         $request->validate([
-            'status_id' => ['required'],
+            'status_id' => ['required', 'in:1,2,3'],
             'catatan' => ['nullable', 'string']
         ], [
             'required' => ':attribute wajib diisi!',
@@ -561,18 +394,6 @@ class VerifikasiWisudaController extends Controller
             // Update tanggal_update when status changes to 2 (Sudah Terverifikasi) or 3 (Tidak Terverifikasi)
             if (in_array($request->status_id, ['2', '3'])) {
                 $updateData['tanggal_update'] = now();
-            }
-
-            // Update tanggal_proses when status changes to 4 (Bersedia) or 5 (Tidak bersedia)
-            if (in_array($request->status_id, ['4', '5'])) {
-                $updateData['tanggal_proses'] = now();
-            }
-
-            // If status is changed to 1 (Belum Diproses), clear file validation data
-            // This forces student to re-upload validation file
-            if ($request->status_id == '1') {
-                $updateData['file_validasi_uploaded'] = false;
-                // Note: We keep the existing 'file' field (original upload) but clear validation file data
             }
 
             $ajuan->update($updateData);
@@ -607,12 +428,7 @@ class VerifikasiWisudaController extends Controller
                 }
             }
 
-            $message = 'Status berhasil diperbarui!';
-            if ($request->status_id == '1') {
-                $message .= ' Mahasiswa harus mengupload ulang file validasi.';
-            }
-
-            return response()->json(['status' => true, 'message' => $message], 200);
+            return response()->json(['status' => true, 'message' => 'Status berhasil diperbarui!'], 200);
         } catch (\Throwable $th) {
             return response()->json(['status' => false, 'message' => 'terjadi kesalahan'], 500);
         }
@@ -623,7 +439,11 @@ class VerifikasiWisudaController extends Controller
 
         $data = VerifikasiWisuda::with(['user.prodis', 'status'])
             ->whereYear('created_at', $year)
-            ->whereIn('status_id', [2, 4]) // Include verified (2) and confirmed (4) students
+            ->where('status_id', '2')
+            ->whereNotNull('no_seri_ijazah')
+            ->where('no_seri_ijazah', '<>', '')
+            ->whereNotNull('pin')
+            ->where('pin', '<>', '')
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -665,101 +485,16 @@ class VerifikasiWisudaController extends Controller
                 }
                 return $periode_wisuda;
             })
+            ->editColumn('pin', function ($row) {
+                return $row->pin ?? '';
+            })
             ->rawColumns(['action', 'status_id', 'periode_wisuda', 'tanggal_terbit', 'tanggal_update', 'tanggal_proses'])
             ->make(true);
 }
-
-public function terima($id)
-{
-    try {
-        $verifikasi = VerifikasiWisuda::findOrFail(decodeId($id));
-        $verifikasi->update([
-            'status_id' => 2, // 2 = Diterima
-            'tanggal_update' => now() // Update tanggal_update when verified
-        ]);
-
-        return response()->json([
-            'status' => true,
-            'message' => 'Wisudawan berhasil diterima'
-        ]);
-    } catch (\Exception $e) {
-        return response()->json([
-            'status' => false,
-            'message' => 'Gagal menerima wisudawan: ' . $e->getMessage()
-        ], 500);
-    }
-}
-
-public function tolak($id)
-{
-    try {
-        $verifikasi = VerifikasiWisuda::findOrFail(decodeId($id));
-        $verifikasi->update([
-            'status_id' => 3, // 3 = Ditolak
-            'tanggal_update' => now() // Update tanggal_update when rejected
-        ]);
-
-        return response()->json([
-            'status' => true,
-            'message' => 'Wisudawan berhasil ditolak'
-        ]);
-    } catch (\Exception $e) {
-        return response()->json([
-            'status' => false,
-            'message' => 'Gagal menolak wisudawan: ' . $e->getMessage()
-        ], 500);
-    }
-}
-
-public function konfirmasi(Request $request, $id)
-{
-    $request->validate([
-        'konfirmasi' => ['required', 'in:setuju,tidak_setuju'],
-        'catatan' => ['nullable', 'string']
-    ]);
-
-    try {
-        $id = decodeId($id);
-        $verifikasi = VerifikasiWisuda::where('id', $id)
-            ->where('user_id', Auth::user()->id)
-            ->firstOrFail();
-
-        // Check if file is already uploaded
-        if (empty($verifikasi->file)) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Silakan upload file validasi terlebih dahulu.'
-            ], 400);
-        }
-
-        $updateData = [
-            'tanggal_proses' => now(), // Update tanggal_proses when confirming
-            'catatan' => $request->catatan,
-        ];
-
-        if ($request->konfirmasi === 'setuju') {
-            $updateData['status_id'] = '4'; // Status: Bersedia
-        } else {
-            $updateData['status_id'] = '5'; // Status: Tidak bersedia
-        }
-
-        $verifikasi->update($updateData);
-
-        $message = $request->konfirmasi === 'setuju'
-            ? 'Terima kasih! Anda telah mengkonfirmasi kehadiran wisuda wisuda dengan status Bersedia.'
-            : 'Konfirmasi berhasil. Anda tidak bersedia mengikuti wisuda periode ini.';
-
-        return response()->json(['status' => true, 'message' => $message], 200);
-    } catch (\Throwable $th) {
-        return response()->json(['status' => false, 'message' => 'Terjadi kesalahan: ' . $th->getMessage()], 500);
-    }
-}
-
-
 public function bulkProcess(Request $request)
 {
     $request->validate([
-        'status_id' => ['required'],
+    'status_id' => ['required', 'in:1,2,3'],
         'catatan' => ['nullable', 'string'],
         'selected_ids' => ['required', 'string'],
         'periode_wisuda' => ['nullable', 'string']
@@ -809,16 +544,6 @@ public function bulkProcess(Request $request)
             $updateData['tanggal_update'] = now();
         }
 
-        // Update tanggal_proses when status changes to 4 (Bersedia) or 5 (Tidak bersedia)
-        if (in_array($request->status_id, ['4', '5'])) {
-            $updateData['tanggal_proses'] = now();
-        }
-
-        // If status is changed to 1 (Belum Diproses), clear file validation data
-        if ($request->status_id == '1') {
-            $updateData['file_validasi_uploaded'] = false;
-        }
-
         // Update all selected records using raw IDs
         $updated = VerifikasiWisuda::whereIn('id', $validIds)->update($updateData);
 
@@ -858,14 +583,9 @@ public function bulkProcess(Request $request)
             }
         }
 
-        $message = "Data berhasil diproses ({$updated} data berhasil diupdate)";
-        if ($request->status_id == '1') {
-            $message .= ". Mahasiswa yang diubah statusnya harus mengupload ulang file validasi.";
-        }
-
         return response()->json([
             'status' => true,
-            'message' => $message
+            'message' => "Data berhasil diproses ({$updated} data berhasil diupdate)"
         ], 200);
 
     } catch (\Exception $e) {

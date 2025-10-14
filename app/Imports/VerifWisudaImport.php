@@ -85,6 +85,11 @@ class VerifWisudaImport implements ToModel, WithHeadingRow, WithValidation, Skip
             $hasChanges = true;
         }
 
+        if (isset($row['pin']) && $existing->pin != $row['pin']) {
+            $updates['pin'] = $row['pin'];
+            $hasChanges = true;
+        }
+
         if (isset($row['catatan']) && $existing->catatan != $row['catatan']) {
             $updates['catatan'] = $row['catatan'];
             $hasChanges = true;
@@ -108,7 +113,7 @@ class VerifWisudaImport implements ToModel, WithHeadingRow, WithValidation, Skip
                     $tanggalTerbit = $row['tanggal_terbit'];
                 }
             }
-            
+
             if ($existing->tanggal_terbit != $tanggalTerbit) {
                 $updates['tanggal_terbit'] = $tanggalTerbit;
                 $hasChanges = true;
@@ -116,7 +121,7 @@ class VerifWisudaImport implements ToModel, WithHeadingRow, WithValidation, Skip
         }
 
         // Update if there are changes and not confirmed yet
-        if ($hasChanges && !in_array($existing->status_id, ['4', '5'])) {
+    if ($hasChanges) {
             // Update the existing record
             $existing->update($updates);
 

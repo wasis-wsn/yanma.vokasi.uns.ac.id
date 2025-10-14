@@ -31,6 +31,7 @@
                 { data: "user.name" },
                 { data: "user.nim" },
                 { data: "no_seri_ijazah" },
+                { data: "pin", render: function(data) { return data || ""; } },
                 { data: "tanggal_terbit" },
                 { data: "periode_wisuda" },
                 { data: "status_id" },
@@ -42,11 +43,11 @@
                 { className: "text-center", width: "8%", targets: [3, 4] }, // tanggal_update, tanggal_proses
                 { className: "text-wrap", width: "15%", targets: [5] }, // user.name
                 { className: "text-center", width: "8%", targets: [6] }, // user.nim
-                { className: "text-center", width: "10%", targets: [7, 8] }, // no_seri_ijazah, tanggal_terbit
-                { className: "text-center", width: "10%", targets: [9] }, // periode_wisuda
-                { className: "text-center", width: "8%", targets: [10] }, // status_id
-                { className: "text-center align-middle", width: "8%", targets: [11] }, // action
-                { className: "text-wrap", width: "15%", targets: [12] }, // catatan
+                { className: "text-center", width: "10%", targets: [7, 8, 9] }, // no_seri_ijazah, pin, tanggal_terbit
+                { className: "text-center", width: "10%", targets: [10] }, // periode_wisuda
+                { className: "text-center", width: "8%", targets: [11] }, // status_id
+                { className: "text-center align-middle", width: "8%", targets: [12] }, // action
+                { className: "text-wrap", width: "15%", targets: [13] }, // catatan
             ],
             order: [[0, "desc"]],
         });
@@ -75,6 +76,7 @@
                 { data: "user.name" },
                 { data: "user.nim" },
                 { data: "no_seri_ijazah" },
+                { data: "pin", render: function(data) { return data || ""; } },
                 { data: "tanggal_terbit" },
                 { data: "periode_wisuda" },
                 { data: "status_id" },
@@ -86,11 +88,11 @@
                 { className: "text-center", width: "8%", targets: [3, 4] }, // tanggal_update, tanggal_proses
                 { className: "text-wrap", width: "15%", targets: [5] }, // user.name
                 { className: "text-center", width: "8%", targets: [6] }, // user.nim
-                { className: "text-center", width: "10%", targets: [7, 8] }, // no_seri_ijazah, tanggal_terbit
-                { className: "text-center", width: "10%", targets: [9] }, // periode_wisuda
-                { className: "text-center", width: "8%", targets: [10] }, // status_id
-                { className: "text-center align-middle", width: "8%", targets: [11] }, // action
-                { className: "text-wrap", width: "15%", targets: [12] }, // catatan
+                { className: "text-center", width: "10%", targets: [7, 8, 9] }, // no_seri_ijazah, pin, tanggal_terbit
+                { className: "text-center", width: "10%", targets: [10] }, // periode_wisuda
+                { className: "text-center", width: "8%", targets: [11] }, // status_id
+                { className: "text-center align-middle", width: "8%", targets: [12] }, // action
+                { className: "text-wrap", width: "15%", targets: [13] }, // catatan
             ],
             order: [[0, "desc"]],
         });
@@ -542,123 +544,6 @@
         });
     }
 
-    // Add event handlers for accept/reject buttons
-    $(document).on("click", ".btn-terima", function() {
-        let id = $(this).data("id");
-        if (!id) return;
-
-        Swal.fire({
-            title: 'Terima Wisudawan?',
-            text: "Anda yakin ingin menerima wisudawan ini?",
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Ya, Terima!',
-            cancelButtonText: 'Batal'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                let url = window.Laravel.routeTerima.replace(":id", id);
-                $.ajax({
-                    url: url,
-                    type: "POST",
-                    headers: {
-                        "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content"),
-                    },
-                    beforeSend: function() {
-                        Swal.showLoading();
-                    },
-                    success: function(res) {
-                        if (res.status) {
-                            Swal.fire({
-                                title: "Berhasil!",
-                                text: res.message,
-                                icon: "success",
-                                showConfirmButton: false,
-                                timer: 1500,
-                            });
-                            if (wisudawanTable) {
-                                wisudawanTable.ajax.reload();
-                            }
-                        } else {
-                            Swal.fire({
-                                title: "Gagal!",
-                                text: res.message,
-                                icon: "error",
-                            });
-                        }
-                    },
-                    error: function(xhr) {
-                        var err = JSON.parse(xhr.responseText);
-                        Swal.fire({
-                            title: "Error!",
-                            text: err.message || "Terjadi kesalahan",
-                            icon: "error",
-                        });
-                    }
-                });
-            }
-        });
-    });
-
-    $(document).on("click", ".btn-tolak", function() {
-        let id = $(this).data("id");
-        if (!id) return;
-
-        Swal.fire({
-            title: 'Tolak Wisudawan?',
-            text: "Anda yakin ingin menolak wisudawan ini?",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Ya, Tolak!',
-            cancelButtonText: 'Batal'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                let url = window.Laravel.routeTolak.replace(":id", id);
-                $.ajax({
-                    url: url,
-                    type: "POST",
-                    headers: {
-                        "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content"),
-                    },
-                    beforeSend: function() {
-                        Swal.showLoading();
-                    },
-                    success: function(res) {
-                        if (res.status) {
-                            Swal.fire({
-                                title: "Berhasil!",
-                                text: res.message,
-                                icon: "success",
-                                showConfirmButton: false,
-                                timer: 1500,
-                            });
-                            if (wisudawanTable) {
-                                wisudawanTable.ajax.reload();
-                            }
-                        } else {
-                            Swal.fire({
-                                title: "Gagal!",
-                                text: res.message,
-                                icon: "error",
-                            });
-                        }
-                    },
-                    error: function(xhr) {
-                        var err = JSON.parse(xhr.responseText);
-                        Swal.fire({
-                            title: "Error!",
-                            text: err.message || "Terjadi kesalahan",
-                            icon: "error",
-                        });
-                    }
-                });
-            }
-        });
-    });
-
     // Process button handler (works for both regular verification and wisudawan)
     $(document).on("click", ".btn-proses", function() {
         let id = $(this).data("id");
@@ -709,28 +594,19 @@
                     $('#periode_wisuda').prop('readonly', true).val(data.periode_wisuda || '');
                     $('#no_seri_ijazah').prop('required', false);
                     $('#periode_wisuda').prop('required', false);
+                    if ($('#pin').length) {
+                        $('#pin').prop('readonly', true).val(data.pin || '');
+                    }
 
                     // Show all fields
                     $('.form-v9').show();
 
                     // Populate status dropdown based on context
-                    let statusOptions = '';
-                    if (type === 'wisudawan') {
-                        statusOptions = `
-                        <option value="2">Sudah Terverifikasi</option>
-                        <option value="3">Tidak Terverifikasi</option>
-                        <option value="4">Bersedia</option>
-                        <option value="5">Tidak Bersedia</option>
-                        `;
-                    } else {
-                        statusOptions = `
+                    const statusOptions = `
                         <option value="1">Belum Diproses</option>
                         <option value="2">Sudah Terverifikasi</option>
                         <option value="3">Tidak Terverifikasi</option>
-                        <option value="4">Bersedia</option>
-                        <option value="5">Tidak Bersedia</option>
-                        `;
-                    }
+                    `;
 
                     $('#status_id').html(statusOptions);
 
@@ -742,12 +618,9 @@
                     if (data.catatan && data.catatan.trim() !== '') {
                         // Check if the existing catatan matches any default notes
                         const defaultNotes = {
-                            '1': 'Mohon konfirmasi kesediaan untuk mengikuti prosesi wisuda yang akan diselenggarakan.',
-                            '2': 'Selamat! Data Anda telah terverifikasi, Sebagai peserta wisuda periode ini.',
-                            '3': 'Data tidak dapat diverifikasi.',
-                            '4': 'Anda telah terdaftar sebagai peserta wisuda. Informasi lebih lanjut akan disampaikan kemudian.',
-                            '5': 'Anda tidak mengikuti wisuda pada periode ini.',
-                            '6': 'Data Anda siap untuk dikonfirmasi. Silakan lakukan konfirmasi kehadiran wisuda.'
+                            '1': 'Data sedang menunggu verifikasi dari staff akademik.',
+                            '2': 'Selamat! Data Anda telah terverifikasi sebagai peserta wisuda.',
+                            '3': 'Data tidak dapat diverifikasi. Silakan lengkapi kembali persyaratan yang diminta.'
                         };
 
                         const currentStatusNote = defaultNotes[data.status_id];
@@ -847,12 +720,9 @@
         // Only auto-fill if manual catatan is not checked
         if (!manualCatatan) {
             const defaultNotes = {
-                '1': 'Mohon konfirmasi kesediaan untuk mengikuti prosesi wisuda yang akan diselenggarakan.',
-                '2': 'Selamat! Data Anda telah terverifikasi, Sebagai peserta wisuda periode ini.',
-                '3': 'Data tidak dapat diverifikasi.',
-                '4': 'Anda telah terdaftar sebagai peserta wisuda. Informasi lebih lanjut akan disampaikan kemudian.',
-                '5': 'Anda tidak mengikuti wisuda pada periode ini.',
-                '6': 'Data Anda siap untuk dikonfirmasi. Silakan lakukan konfirmasi kehadiran wisuda.'
+                '1': 'Data sedang menunggu verifikasi dari staff akademik.',
+                '2': 'Selamat! Data Anda telah terverifikasi sebagai peserta wisuda.',
+                '3': 'Data tidak dapat diverifikasi. Silakan lengkapi kembali persyaratan yang diminta.'
             };
 
             // Set default note if available
