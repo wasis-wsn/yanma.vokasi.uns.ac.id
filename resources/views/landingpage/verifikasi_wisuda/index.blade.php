@@ -104,7 +104,7 @@
         border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
         animation: morph 8s ease-in-out infinite;
     }
-    
+
     .shape-3 {
         top: 40%;
         right: 20%;
@@ -136,7 +136,7 @@
             opacity: 0.3;
         }
     }
-    
+
     /* Content styling */
     #main {
         background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
@@ -211,7 +211,7 @@
     }
 
     /* Strong text highlighting */
-    .content-card b, 
+    .content-card b,
     .content-card strong {
         color: #1e293b;
         background: linear-gradient(to bottom, transparent 50%, rgba(var(--color-secondary-rgb), 0.1) 50%);
@@ -229,6 +229,35 @@
         opacity: 1;
         transform: translateY(0);
     }
+
+    /* Tombol di pojok kanan atas card */
+.btn-link-ijazah {
+    position: absolute;
+    top: 25px;
+    right: 25px;
+    background: linear-gradient(90deg, #2563eb, #3b82f6);
+    color: #fff;
+    font-weight: 600;
+    font-size: 14px;
+    padding: 8px 18px;
+    border-radius: 50px;
+    text-decoration: none;
+    box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3);
+    transition: all 0.3s ease;
+    z-index: 2;
+}
+
+.btn-link-ijazah:hover {
+    background: linear-gradient(90deg, #1e40af, #2563eb);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(37, 99, 235, 0.4);
+}
+
+.btn-link-ijazah i {
+    margin-right: 6px;
+    vertical-align: middle;
+}
+
 </style>
 @endpush
 
@@ -261,6 +290,13 @@
         <section>
             <div class="container">
                 <div class="content-card fade-in-up" data-aos="fade-up">
+                    <a href="https://docs.google.com/spreadsheets/d/e/2PACX-1vQAlLaBKmtW4BXRY1Tge-7dIAShOYKTmEibHlu5D1mWbIXwBDvXrCidxTgKsN2zuEpfQbn0l8v3Yuu2/pubhtml?gid=1613271101&single=true"
+   target="_blank"
+   class="btn-link-ijazah text-white">
+   <i class="bx bx-spreadsheet"></i>
+   Lihat Daftar Nomor Seri Ijazah Nasional
+</a>
+
                     <h3>Verifikasi Wisuda</h3>
                     <h5>Alur Baru Verifikasi Wisuda Sekolah Vokasi UNS</h5>
                     <ol>
