@@ -15,10 +15,6 @@ const initializeDataTable = (status, year) => {
             { data: "mulai_kegiatan" },
             { data: "no_surat" },
             { data: "status_id" },
-            { 
-                data: "queue_number",
-                className: "queue-info",
-            },
             { data: "catatan" },
             { data: "action" },
         ],
@@ -34,7 +30,7 @@ const initializeDataTable = (status, year) => {
             },
             {
                 className: "btn-group-vertical",
-                targets: [11],
+                targets: [10],
                 orderable: false,
                 searchable: false,
             },
@@ -67,27 +63,7 @@ $(".status-menu").click(function () {
     table = initializeDataTable(status_table, year);
 });
 
-// Cek update antrian setiap 30 detik
-setInterval(function() {
-    if ($('#modalDetail').is(':visible') || $('.dataTables_filter input').is(':focus')) {
-        $.ajax({
-            url: '/st/queue-status',
-            type: "GET",
-            success: function(res) {
-                if (res.status) {
-                    // Update tabel
-                    table.ajax.reload(null, false);
-                    
-                    // Update modal detail jika terbuka
-                    if ($('#modalDetail').is(':visible')) {
-                        $("#detail-queue-number").text(res.user_queue);
-                        $("#detail-total-queue").text(res.total_waiting);
-                    }
-                }
-            }
-        });
-    }
-}, 30000);
+// Queue feature removed: no periodic polling
 $("#show_data").on("click", ".btn-detail", function () {
     let id = $(this).data("id");
 
@@ -105,16 +81,8 @@ $("#show_data").on("click", ".btn-detail", function () {
                 $("#detail-nama").html(": " + res.data.user.name);
                 $("#detail-nim").html(": " + res.data.user.nim);
                 $("#detail-prodi").html(": " + res.data.user.prodis.name);
-                $("#detail-queue-number").text(res.data.queue_number);
-                $.ajax({
-                    url: '/st/queue-status',
-                    type: 'GET',
-                    success: function(queueRes) {
-                        if (queueRes.status) {
-                            $("#detail-total-queue").text(queueRes.total_waiting);
-                        }
-                    }
-                });
+                $("#detail-queue-number").text('-');
+                $("#detail-total-queue").text('-');
                 $("#detail-no-wa").html(": " + res.data.user.no_wa);
                 $("#detail-tanggal-kegiatan").html(
                     ": " + res.data.tanggal_kegiatan
@@ -142,6 +110,12 @@ $("#show_data").on("click", ".btn-detail", function () {
                 const canProses = ["1", "3", "4", "5", "6"];
                 if (canProses.includes(res.data.status_id)) {
                     $("#tombol-proses").data("id", id);
+                    $("#tombol-proses").html('<i class="fa fa-file-pen"></i> Proses');
+                    $("#tombol-proses").removeAttr("hidden");
+                } else if (res.data.status_id == '9') {
+                    // When status is 9, show Edit button so staff can edit the status
+                    $("#tombol-proses").data("id", id);
+                    $("#tombol-proses").html('<i class="fa fa-pen"></i> Edit');
                     $("#tombol-proses").removeAttr("hidden");
                 } else {
                     $("#tombol-proses").attr("hidden", true);

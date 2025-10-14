@@ -131,7 +131,7 @@
                             </div>
                         @endcanany
                         @include('pages.surat_tugas.modal_detail')
-                        
+
                         <div class="table-responsive">
                             <table id="suket-datatable" class="table table-striped" width="100%">
                                 <thead>
@@ -144,7 +144,7 @@
                                             {{-- <th>Tempat</th> --}}
                                             <th>Waktu</th>
                                             <th>Status</th>
-                                            <th>Antrian</th>
+                                            <!-- Antrian column removed -->
                                             <th>Catatan</th>
                                             <th>Aksi</th>
                                             @endcan
@@ -162,7 +162,7 @@
                                             <th>Waktu Kegiatan</th>
                                             <th>No Surat</th>
                                             <th>Status</th>
-                                            <th>Antrian</th>
+                                            <!-- Antrian column removed -->
                                             <th>Catatan</th>
                                             <th>Aksi</th>
                                         @endcanany

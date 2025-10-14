@@ -15,10 +15,6 @@ const initializeDataTable = (status, year) => {
             { data: "mulai_kegiatan" },
             { data: "no_surat" },
             { data: "status_id" },
-            { 
-                data: "queue_number",
-                className: "queue-info"
-            },
             { data: "catatan" },
             { data: "action" },
         ],
@@ -34,7 +30,7 @@ const initializeDataTable = (status, year) => {
             },
             {
                 className: "btn-group-vertical",
-                targets: [11],
+                targets: [10],
                 orderable: false,
                 searchable: false,
             },
@@ -67,27 +63,7 @@ $(".status-menu").click(function () {
     table = initializeDataTable(status_table, year);
 });
 
-// Cek update antrian setiap 30 detik
-setInterval(function() {
-    if ($('#modalDetail').is(':visible') || $('.dataTables_filter input').is(':focus')) {
-        $.ajax({
-            url: '/st/queue-status',
-            type: "GET",
-            success: function(res) {
-                if (res.status) {
-                    // Update tabel
-                    table.ajax.reload(null, false);
-                    
-                    // Update modal detail jika terbuka
-                    if ($('#modalDetail').is(':visible')) {
-                        $("#detail-queue-number").text(res.user_queue);
-                        $("#detail-total-queue").text(res.total_waiting);
-                    }
-                }
-            }
-        });
-    }
-}, 30000);
+// Queue feature removed: no periodic polling
 
 $("#show_data").on("click", ".btn-detail", function () {
     let id = $(this).data("id");
@@ -106,7 +82,7 @@ $("#show_data").on("click", ".btn-detail", function () {
                 $("#detail-nama").html(": " + res.data.user.name);
                 $("#detail-nim").html(": " + res.data.user.nim);
                 $("#detail-prodi").html(": " + res.data.user.prodis.name);
-                $("#detail-antrian").html(": " + res.data.queue_number);
+                $("#detail-antrian").html(": -");
                 $("#detail-no-wa").html(": " + res.data.user.no_wa);
                 $("#detail-tanggal-kegiatan").html(
                     ": " + res.data.tanggal_kegiatan
