@@ -264,8 +264,8 @@
                         @else
                         <div class="alert alert-info">
                             <h5><i class="fa fa-info-circle"></i> Informasi</h5>
-                            <p>Anda belum terdaftar untuk wisuda. Data akan muncul setelah staff melakukan
-                                import data.</p>
+                            <p>Silahkan cek List Seri Nomor Ijazah Terbaru
+                                <a href="http://uns.id/ListAntrianVerifikasiWisuda" target="_blank">disini</a></p>
                         </div>
                         @endif
                         @endcan
