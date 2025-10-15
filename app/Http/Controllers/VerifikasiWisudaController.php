@@ -14,6 +14,7 @@ use App\Models\VerifikasiWisuda;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Facades\Excel;
 use Yajra\DataTables\Facades\DataTables;
 // use App\Services\GoogleDriveService;
@@ -24,6 +25,37 @@ class VerifikasiWisudaController extends Controller
     public function landingPage(Request $request)
     {
         return view('landingpage.verifikasi_wisuda.index');
+    }
+
+    // Temporary debug method - remove after testing
+    public function debugData(Request $request)
+    {
+        $year = $request->year ?? date('Y');
+        $allData = VerifikasiWisuda::with('user', 'status')
+                    ->whereYear('created_at', $year)
+                    ->orderBy('created_at', 'desc')
+                    ->take(10)
+                    ->get();
+
+        $debugInfo = [];
+        foreach ($allData as $item) {
+            $debugInfo[] = [
+                'id' => $item->id,
+                'nim' => $item->user->nim ?? 'No User',
+                'name' => $item->user->name ?? 'No User',
+                'status_id' => $item->status_id,
+                'status_name' => $item->status->name ?? 'No Status',
+                'no_seri_ijazah' => $item->no_seri_ijazah,
+                'pin' => $item->pin,
+                'periode_wisuda' => $item->periode_wisuda,
+                'created_at' => $item->created_at
+            ];
+        }
+
+        return response()->json([
+            'total_records' => VerifikasiWisuda::whereYear('created_at', $year)->count(),
+            'latest_records' => $debugInfo
+        ]);
     }
     public function index(Request $request)
     {
@@ -48,15 +80,20 @@ class VerifikasiWisudaController extends Controller
         $data = VerifikasiWisuda::with('user.prodis', 'status')->whereYear('created_at', $request->year);
         if ($request->status != 'all') $data = $data->where('status_id', $request->status);
 
-        // Exclude verified students and records that already have PIN & ijazah number
-        $data = $data->whereNotIn('status_id', ['2'])
-            ->where(function ($query) {
-                $query->whereNull('no_seri_ijazah')
-                    ->orWhere('no_seri_ijazah', '')
-                    ->orWhereNull('pin')
-                    ->orWhere('pin', '')
-                    ->orWhere('status_id', '3');
-            });
+        // Show all records that are not fully verified (status_id != 2)
+        // OR records that don't have both PIN and ijazah number (need processing)
+        $data = $data->where(function ($query) {
+            $query->where('status_id', '!=', '2') // Not verified yet
+                  ->orWhere(function ($subQuery) {
+                      $subQuery->where('status_id', '2') // Verified but missing data
+                               ->where(function ($innerQuery) {
+                                   $innerQuery->whereNull('no_seri_ijazah')
+                                              ->orWhere('no_seri_ijazah', '')
+                                              ->orWhereNull('pin')
+                                              ->orWhere('pin', '');
+                               });
+                  });
+        });
 
         $data = $data->orderBy('created_at', 'desc')->get();
 
@@ -113,15 +150,20 @@ class VerifikasiWisudaController extends Controller
         $data = VerifikasiWisuda::with('user.prodis', 'status')->whereYear('created_at', $request->year);
         if ($request->status != 'all') $data = $data->where('status_id', $request->status);
 
-        // Exclude verified students and records that already have PIN & ijazah number
-        $data = $data->whereNotIn('status_id', ['2'])
-            ->where(function ($query) {
-                $query->whereNull('no_seri_ijazah')
-                    ->orWhere('no_seri_ijazah', '')
-                    ->orWhereNull('pin')
-                    ->orWhere('pin', '')
-                    ->orWhere('status_id', '3');
-            });
+        // Show all records that are not fully verified (status_id != 2)
+        // OR records that don't have both PIN and ijazah number (need processing)
+        $data = $data->where(function ($query) {
+            $query->where('status_id', '!=', '2') // Not verified yet
+                  ->orWhere(function ($subQuery) {
+                      $subQuery->where('status_id', '2') // Verified but missing data
+                               ->where(function ($innerQuery) {
+                                   $innerQuery->whereNull('no_seri_ijazah')
+                                              ->orWhere('no_seri_ijazah', '')
+                                              ->orWhereNull('pin')
+                                              ->orWhere('pin', '');
+                               });
+                  });
+        });
 
         $data = $data->orderBy('created_at', 'desc')->get();
 
@@ -265,7 +307,11 @@ class VerifikasiWisudaController extends Controller
             $successMessage .= "Total baris diproses: {$totalRows}. ";
 
             if ($skippedRows > 0) {
-                $successMessage .= "Data dilewati (tidak ada di tabel verifikasi): {$skippedRows}. ";
+                $successMessage .= "Data dilewati (mahasiswa tidak ditemukan): {$skippedRows}. ";
+            }
+
+            if ($newRecords > 0) {
+                $successMessage .= "Data baru ditambahkan: {$newRecords}. ";
             }
 
             if ($updatedRecords > 0) {
@@ -306,7 +352,7 @@ class VerifikasiWisudaController extends Controller
                 'message' => $successMessage
             ], 200);
         } catch (\Throwable $th) {
-            \Log::error('Import error: ' . $th->getMessage());
+            Log::error('Import error: ' . $th->getMessage());
             return response()->json([
                 'status' => false,
                 'message' => 'Terjadi kesalahan saat mengimport data: ' . $th->getMessage()
@@ -589,8 +635,8 @@ public function bulkProcess(Request $request)
         ], 200);
 
     } catch (\Exception $e) {
-        \Log::error('Bulk process error: ' . $e->getMessage());
-        \Log::error('Request data: ' . json_encode($request->all()));
+        Log::error('Bulk process error: ' . $e->getMessage());
+        Log::error('Request data: ' . json_encode($request->all()));
 
         return response()->json([
             'status' => false,

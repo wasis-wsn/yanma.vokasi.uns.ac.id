@@ -42,14 +42,8 @@ class VerifWisudaImport implements ToModel, WithHeadingRow, WithValidation, Skip
             return null;
         }
 
-        // Check if student already exists in VerifikasiWisuda - ONLY process existing records
+        // Check if student already exists in VerifikasiWisuda
         $existing = VerifikasiWisuda::where('user_id', $user->id)->first();
-
-        if (!$existing) {
-            // Skip if student doesn't exist in VerifikasiWisuda table
-            $this->skippedRows++; // Increment skipped rows
-            return null;
-        }
 
         // Get active graduation period for this year - ALWAYS apply this
         $activePeriode = PeriodeWisuda::getActivePeriode($this->tahun);
@@ -57,6 +51,11 @@ class VerifWisudaImport implements ToModel, WithHeadingRow, WithValidation, Skip
 
         if ($activePeriode) {
             $periodeWisuda = $this->tahun . '-' . str_pad($activePeriode->bulan, 2, '0', STR_PAD_LEFT);
+        }
+
+        // If no existing record, create new one
+        if (!$existing) {
+            return $this->createNewRecord($row, $user, $periodeWisuda);
         }
 
         // Track what fields are being updated
@@ -75,25 +74,12 @@ class VerifWisudaImport implements ToModel, WithHeadingRow, WithValidation, Skip
             $hasChanges = true;
         }
 
-        if (isset($row['kode_akses']) && $existing->kode_akses != $row['kode_akses']) {
-            $updates['kode_akses'] = $row['kode_akses'];
-            $hasChanges = true;
-        }
-
-        if (isset($row['jadwal']) && $existing->jadwal != $row['jadwal']) {
-            $updates['jadwal'] = $row['jadwal'];
-            $hasChanges = true;
-        }
 
         if (isset($row['pin']) && $existing->pin != $row['pin']) {
             $updates['pin'] = $row['pin'];
             $hasChanges = true;
         }
 
-        if (isset($row['catatan']) && $existing->catatan != $row['catatan']) {
-            $updates['catatan'] = $row['catatan'];
-            $hasChanges = true;
-        }
 
         // Handle tanggal_terbit field
         if (isset($row['tanggal_terbit'])) {
@@ -151,6 +137,46 @@ class VerifWisudaImport implements ToModel, WithHeadingRow, WithValidation, Skip
         }
 
         return null; // Never create new records, only update existing ones
+    }
+
+    private function createNewRecord(array $row, $user, $periodeWisuda)
+    {
+        // Handle tanggal_terbit field for new record
+        $tanggalTerbit = null;
+        if (isset($row['tanggal_terbit']) && !empty($row['tanggal_terbit'])) {
+            try {
+                if (is_numeric($row['tanggal_terbit'])) {
+                    // Excel serial date
+                    $tanggalTerbit = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['tanggal_terbit'])->format('Y-m-d');
+                } else {
+                    // String date
+                    $tanggalTerbit = \Carbon\Carbon::parse($row['tanggal_terbit'])->format('Y-m-d');
+                }
+            } catch (\Exception $e) {
+                // If parsing fails, keep the original value
+                $tanggalTerbit = $row['tanggal_terbit'];
+            }
+        }
+
+        // Create new VerifikasiWisuda record
+        $newRecord = new VerifikasiWisuda();
+        $newRecord->user_id = $user->id;
+        $newRecord->status_id = '1'; // Default to "Belum Diproses"
+        $newRecord->periode_wisuda = $periodeWisuda;
+        $newRecord->no_seri_ijazah = $row['no_seri_ijazah'] ?? null;
+        $newRecord->pin = $row['pin'] ?? null;
+        $newRecord->tanggal_terbit = $tanggalTerbit;
+
+        $this->newCount++;
+
+        // Count for statistics
+        if (!empty($row['no_seri_ijazah'])) {
+            $this->importedWithSeriIjazah++;
+        } else {
+            $this->importedWithoutSeriIjazah++;
+        }
+
+        return $newRecord;
     }
 
     public function rules(): array
