@@ -41,6 +41,7 @@ class DatabaseSeeder extends Seeder
             BeritaSeeder::class,
             PeriodeWisudaSeeder::class,
             SuratKeteranganAlumniSeeder::class,
+            SuratRekomendasiSeeder::class,
         ]);
     }
 }
