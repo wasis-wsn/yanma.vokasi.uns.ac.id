@@ -23,7 +23,7 @@
     </div>          <!-- Nav Header Component End -->
     <!--Nav End-->
 
-    <div class="conatiner-fluid content-inner mt-n5 py-0">
+    <div class="container-fluid content-inner mt-n5 py-0">
         <div class="row">
             <div class="col-sm-12">
                 <div class="card">
@@ -103,11 +103,11 @@
                             @include('modals.export')
                             <div class="d-flex justify-content-end pb-4">
                                 <div class="dropdown mx-2">
-                                    <button class="btn btn-light btn-sm dropdown-toggle" type="button" id="prodiDropdown" data-bs-toggle="dropdown" data-status="all" aria-expanded="false">Prodi</button>
+                                    <button class="btn btn-light btn-sm dropdown-toggle" type="button" id="prodiDropdown" data-bs-toggle="dropdown" data-prodi="all" aria-expanded="false">Prodi</button>
                                     <ul class="dropdown-menu" aria-labelledby="prodiDropdown">
-                                        <li><a class="dropdown-item prodi-menu" href="#" data-status="all">Semua</a></li>
+                                        <li><a class="dropdown-item prodi-menu" href="#" data-prodi="all">Semua</a></li>
                                         @foreach ($prodis as $prodi)
-                                        <li><a class="dropdown-item prodi-menu" href="#" data-status="{{ $prodi->id }}">{{ $prodi->name }}</a></li>
+                                        <li><a class="dropdown-item prodi-menu" href="#" data-prodi="{{ $prodi->id }}">{{ $prodi->name }}</a></li>
                                         @endforeach
                                     </ul>
                                 </div>

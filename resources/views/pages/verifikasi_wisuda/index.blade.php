@@ -256,9 +256,11 @@
                                 <i class="fa fa-times-circle"></i> Anda belum dapat mengikuti wisuda pada periode ini <strong>(kuota telah penuh)</strong>, Silahkan konfirmasi ulang pada periode selnjutnya.
                             </div>
                         @else
-                            <div class="alert alert-info mt-3">
-                                <i class="fa fa-info-circle"></i> Status pengajuan Anda sedang diperbarui. Silakan hubungi staff apabila membutuhkan bantuan lebih lanjut.
-                            </div>
+                        <div class="alert alert-info">
+                            <h5><i class="fa fa-info-circle"></i> Informasi</h5>
+                            <p>Silahkan cek List Seri Nomor Ijazah Terbaru
+                                <a href="http://uns.id/ListAntrianVerifikasiWisuda" target="_blank">disini</a></p>
+                        </div>
                         @endif
 
                         @else
