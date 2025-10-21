@@ -760,8 +760,8 @@
 
         <div class="container d-flex flex-column justify-content-center align-items-center text-center position-relative"
             data-aos="zoom-out" data-aos-duration="1000">
-            <h2 data-aos="fade-up" data-aos-delay="200">{{ env('APP_NAME') }}</h2>
-            <p data-aos="fade-up" data-aos-delay="400">Portal Layanan Mahasiswa Sekolah Vokasi<br>Universitas Sebelas Maret</p>
+            <h2 data-aos="fade-up" data-aos-delay="200" style="font-size: 3rem;">{{ env('APP_NAME') }}</h2>
+            <p data-aos="fade-up" data-aos-delay="400">Sekolah Vokasi <br> Universitas Sebelas Maret</p>
 
             <!-- CTA Buttons -->
             <div class="hero-cta" data-aos="fade-up" data-aos-delay="600">
