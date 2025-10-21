@@ -40,6 +40,7 @@ class DatabaseSeeder extends Seeder
             SemesterSeeder::class,
             BeritaSeeder::class,
             PeriodeWisudaSeeder::class,
+            SuratKeteranganAlumniSeeder::class,
         ]);
     }
 }
