@@ -45,7 +45,6 @@
                                 <button type="button" class="btn btn-success mx-2" id="btn-export">Export Data</button>
                             </div>
                             @include('modals.proses')
-                            @include('modals.export_semester')
                         @endcanany
                         @include('pages.surat_keterangan_alumni.modal_detail')
 
