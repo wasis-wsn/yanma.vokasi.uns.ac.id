@@ -59,7 +59,8 @@
                                         <tr class="ligth">
                                             <th>#</th>
                                             <th>Prodi</th>
-                                            <th>Tahun</th>
+                                            <th>Tanggal Awal</th>
+                                            <th>Tanggal Akhir</th>
                                             <th>File</th>
                                             <th style="min-width: 100px">Action</th>
                                         </tr>
@@ -94,7 +95,8 @@
             columns: [
                 { data: "DT_RowIndex" },
                 { data: "prodi.name" },
-                { data: "tahun" },
+                { data: "tanggal_awal_label" },
+                { data: "tanggal_akhir_label" },
                 { data: "file" },
                 { data: "action" },
             ],
@@ -103,11 +105,16 @@
                     searchable: false,
                     orderable: false,
                     className: "text-center",
-                    targets: 4,
+                    targets: 5,
                 },{
                     searchable: false,
                     className: "text-center",
                     targets: 0,
+                },{
+                    searchable: false,
+                    orderable: false,
+                    className: "text-center",
+                    targets: 4,
                 },
             ],
             order: [[1, "asc"]],
@@ -136,6 +143,8 @@
         $('#modalTitle').html('Tambah Akreditasi');
         $('button#save').html('Tambah');
         $('#prodi_id').val('').trigger('change');
+        $('#tanggal_awal').val('');
+        $('#tanggal_akhir').val('');
         $('#infoCustomFile1').attr('hidden', true);
         $('#modalTambah').modal('show');
     })
@@ -154,7 +163,8 @@
                 if (res.status) {
                     $('#form-tambah').attr('action', action);
                     $('#prodi_id').val(res.data.prodi_id).trigger('change');
-                    $('#tahun').val(res.data.tahun);
+                    $('#tanggal_awal').val(res.data.tanggal_awal);
+                    $('#tanggal_akhir').val(res.data.tanggal_akhir);
                     $('#modalTitle').html('Edit Akreditasi');
                     $('button#save').html('Simpan');
                     $('#infoCustomFile1').removeAttr('hidden');
@@ -268,6 +278,10 @@
             success: function (res) {
                 if (res.status) {
                     form.reset();
+                    $('#prodi_id').val('').trigger('change');
+                    $('#tanggal_awal').val('');
+                    $('#tanggal_akhir').val('');
+                    $('#infoCustomFile1').attr('hidden', true);
                     $("#modalTambah").modal("hide");
                     Swal.fire({
                         title: "Berhasil!",

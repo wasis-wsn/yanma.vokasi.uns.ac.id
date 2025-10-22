@@ -16,13 +16,17 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="tahun" class="form-label custom-file-input">Tahun <span class="text-danger">*</span></label>
-                        <input class="form-control" type="text" id="tahun" name="tahun">
+                        <label for="tanggal_awal" class="form-label">Tanggal Awal <span class="text-danger">*</span></label>
+                        <input class="form-control" type="date" id="tanggal_awal" name="tanggal_awal" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="tanggal_akhir" class="form-label">Tanggal Akhir <span class="text-danger">*</span></label>
+                        <input class="form-control" type="date" id="tanggal_akhir" name="tanggal_akhir" required>
                     </div>
                     <div class="form-group">
                         <label for="customFile1" class="form-label custom-file-input">File Akreditasi <span class="text-danger">*</span></label>
                         <input class="form-control" type="file" id="customFile1" name="file" accept="application/pdf">
-                        <small class="text-dager" id="infoCustomFile1" hidden>Jangan upload apapun jika tidak ada perubahan file</small>
+                        <small class="text-danger" id="infoCustomFile1" hidden>Jangan upload apapun jika tidak ada perubahan file</small>
                     </div>
                 </div>
                 <div class="modal-footer">

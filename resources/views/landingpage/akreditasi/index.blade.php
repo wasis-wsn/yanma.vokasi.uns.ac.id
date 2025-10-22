@@ -292,7 +292,7 @@
         <section id="faq" class="faq">
             <div class="container-fluid" data-aos="fade-up">
                 <div class="section-header">
-                    <h2 class="text-dark" data-aos="fade-up">Gunakan Dokumen Akreditasi sesuai dengan tahun kelulusan</h2>
+                    <h2 class="text-dark" data-aos="fade-up">Gunakan Dokumen Akreditasi sesuai dengan periode berlakunya</h2>
                 </div>
 
                 <div class="container" data-aos="fade-up" data-aos-delay="200">
@@ -318,19 +318,35 @@
 @endsection
 @push('js')
     <script>
-        function accordionBody(akreditasi) {
+        const detailUrlTemplate = `{{ route('akreditasi.prodi', ':id') }}`;
+
+        function accordionBody(prodi) {
             let akreditasiLinks = '';
-            akreditasi.forEach(item => {
-                akreditasiLinks += `
-                    <a href="${'{{ asset('storage/akreditasi/') }}/' + item.file}" target="_blank" class="btn btn-info my-2">
-                        ${item.tahun}
-                    </a>
-                `;
+            prodi.akreditasi.forEach(item => {
+                const label = item.periode_label || '-';
+                if (item.file_url) {
+                    akreditasiLinks += `
+                        <a href="${item.file_url}" target="_blank" class="btn btn-info my-2">
+                            ${label}
+                        </a>
+                    `;
+                } else {
+                    akreditasiLinks += `
+                        <span class="d-inline-block btn btn-secondary my-2 disabled">${label}</span>
+                    `;
+                }
             });
+
+            const detailUrl = detailUrlTemplate.replace(':id', prodi.encoded_id);
 
             return `
                 <div class="accordion-body">
                     ${akreditasiLinks}
+                    <div class="text-end mt-3">
+                        <a href="${detailUrl}" class="btn btn-outline-primary">
+                            Lihat Semua Akreditasi <i class="fa-solid fa-arrow-right ms-1"></i>
+                        </a>
+                    </div>
                 </div>
             `;
         }
@@ -344,14 +360,15 @@
                         </button>
                     </h3>
                     <div id="faq-content-${prodi.id}" class="accordion-collapse collapse" data-bs-parent="#faqlist">
-                        ${accordionBody(prodi.akreditasi)}
+                        ${accordionBody(prodi)}
                     </div>
                 </div>
             `
         }
 
         function getData(q) {
-            let url = q ? `{{ route("akreditasi.landingPage.getData") }}?prodi=${q}` :  `{{ route("akreditasi.landingPage.getData") }}`;
+            const query = q ? encodeURIComponent(q) : '';
+            let url = q ? `{{ route("akreditasi.landingPage.getData") }}?prodi=${query}` :  `{{ route("akreditasi.landingPage.getData") }}`;
             $.get(url)
             .done(function(prodis) {
                 let accordionProdi = '';
@@ -371,8 +388,16 @@
         $(document).ready(function () {
             const searchInput = $('#searchInput');
             const prodiList = $('#faqlist');
+            const params = new URLSearchParams(window.location.search);
+            const initialProdi = params.get('prodi');
 
-            getData();
+            if (initialProdi) {
+                const decoded = decodeURIComponent(initialProdi.replace(/\+/g, ' ').trim());
+                searchInput.val(decoded);
+                getData(decoded);
+            } else {
+                getData();
+            }
 
             // Definisikan fungsi debounce
             function debounce(func, wait, immediate) {
@@ -396,7 +421,7 @@
                 prodiList.empty();
 
                 if (keyword.trim() !== '') {
-                    getData(keyword);
+                    getData(keyword.trim());
                 } else {
                     getData();
                 }

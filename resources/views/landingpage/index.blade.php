@@ -274,6 +274,126 @@
         text-shadow: 0 1px 5px rgba(0,0,0,0.2);
     }
 
+    /* Akreditasi Section */
+    .akreditasi-section {
+        background: linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);
+        padding: 90px 0;
+        position: relative;
+    }
+
+    .akreditasi-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #6366f1 0%, #38bdf8 100%);
+    }
+
+    .akreditasi-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 24px;
+    }
+
+    .akreditasi-card {
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 20px;
+        padding: 28px;
+        border: 1px solid rgba(99, 102, 241, 0.15);
+        box-shadow: 0 15px 35px rgba(99, 102, 241, 0.12);
+        text-decoration: none;
+        color: #1e293b;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .akreditasi-card::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(56, 189, 248, 0.12));
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .akreditasi-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 25px 45px rgba(99, 102, 241, 0.18);
+    }
+
+    .akreditasi-card:hover::after {
+        opacity: 1;
+    }
+
+    .akreditasi-card-body {
+        position: relative;
+        z-index: 1;
+    }
+
+    .akreditasi-card h3 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin-bottom: 12px;
+    }
+
+    .akreditasi-count {
+        display: inline-block;
+        font-size: 0.9rem;
+        padding: 6px 12px;
+        border-radius: 999px;
+        background: rgba(99, 102, 241, 0.15);
+        color: #4338ca;
+        font-weight: 600;
+        margin-bottom: 16px;
+    }
+
+    .akreditasi-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 600;
+        color: #2563eb;
+    }
+
+    .akreditasi-link i {
+        transition: transform 0.3s ease;
+    }
+
+    .akreditasi-card:hover .akreditasi-link i {
+        transform: translateX(4px);
+    }
+
+    .akreditasi-pagination {
+        margin-top: 36px;
+    }
+
+    .akreditasi-pagination .pagination {
+        justify-content: center;
+        gap: 6px;
+    }
+
+    .akreditasi-pagination .page-item .page-link {
+        border-radius: 999px;
+        padding: 8px 14px;
+        border: none;
+        color: #334155;
+        box-shadow: 0 6px 16px rgba(148, 163, 184, 0.15);
+    }
+
+    .akreditasi-pagination .page-item.active .page-link {
+        background: linear-gradient(135deg, #6366f1 0%, #2563eb 100%);
+        color: #fff;
+        box-shadow: 0 10px 24px rgba(99, 102, 241, 0.25);
+    }
+
+    .akreditasi-pagination .page-item .page-link:hover {
+        background: rgba(99, 102, 241, 0.12);
+        color: #2563eb;
+    }
+
     /* Berita Section Redesign */
     .berita-section {
         background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
@@ -886,6 +1006,42 @@
                 </section>
             @endforeach
         </div>
+
+        @if(isset($prodisAkreditasi) && $prodisAkreditasi->count())
+        <section id="akreditasi-overview" class="akreditasi-section">
+            <div class="container">
+                <div class="section-header fade-in-up">
+                    <h2 data-aos="fade-up">Akreditasi Program Studi</h2>
+                    <p data-aos="fade-up" data-aos-delay="120">Telusuri dokumen akreditasi resmi untuk setiap program studi di Sekolah Vokasi UNS.</p>
+                </div>
+
+                <div class="akreditasi-grid">
+                    @foreach($prodisAkreditasi as $index => $prodi)
+                        <a href="{{ route('akreditasi.prodi', encodeId($prodi->id)) }}"
+                           class="akreditasi-card fade-in-up"
+                           data-aos="fade-up"
+                           data-aos-delay="{{ ($index % 6) * 60 }}"
+                           data-aos-duration="500">
+                            <div class="akreditasi-card-body">
+                                <h3>{{ $prodi->name }}</h3>
+                                <span class="akreditasi-count">{{ $prodi->akreditasi_count }} dokumen</span>
+                                <span class="akreditasi-link">
+                                    Lihat Akreditasi
+                                    <i class="fa-solid fa-arrow-right"></i>
+                                </span>
+                            </div>
+                        </a>
+                    @endforeach
+                </div>
+
+                @if($prodisAkreditasi instanceof \Illuminate\Contracts\Pagination\Paginator && $prodisAkreditasi->hasPages())
+                    <div class="akreditasi-pagination">
+                        {{ $prodisAkreditasi->links('pagination::bootstrap-5') }}
+                    </div>
+                @endif
+            </div>
+        </section>
+        @endif
     </main>
 @endsection
 
