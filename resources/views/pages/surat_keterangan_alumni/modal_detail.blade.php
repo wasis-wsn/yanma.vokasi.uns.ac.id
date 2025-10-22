@@ -21,6 +21,10 @@
                             <td id="detail-prodi"></td>
                         </tr>
                         <tr>
+                            <td>Permohonan</td>
+                            <td id="detail-permohonan"></td>
+                        </tr>
+                        <tr>
                             <td>Tanggal Lulus</td>
                             <td id="detail-tanggal_lulus"></td>
                         </tr>
@@ -52,11 +56,6 @@
                         @endcanany
                     </table>
                 </div>
-            </div>
-            <div class="modal-footer d-flex justify-content-end">
-                @canany(['staff','dekanat','subkoor','adminprodi','fo'])
-                <button class="btn btn-success btn-proses" id="tombol-proses" data-id="" hidden><i class="fa fa-file-pen"></i> Proses</button>
-                @endcanany
             </div>
         </div>
     </div>

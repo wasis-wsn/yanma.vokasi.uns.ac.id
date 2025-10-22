@@ -114,6 +114,7 @@ $("#show_data").on("click", ".btn-detail", function () {
                 $("#detail-nama").html(": " + (res.data.user ? res.data.user.name : '-'));
                 $("#detail-nim").html(": " + (res.data.user ? res.data.user.nim : '-'));
                 $("#detail-prodi").html(": " + (res.data.user && res.data.user.prodis ? res.data.user.prodis.nama : '-'));
+                $("#detail-permohonan").html(": " + (res.data.permohonan || '-'));
                 $("#detail-tanggal_lulus").html(": " + (res.data.tanggal_lulus || "-"));
                 $("#detail-nomor_ijazah").html(": " + (res.data.nomor_ijazah || "-"));
 
@@ -193,6 +194,7 @@ function showModalEdit(p) {
         success: function (res) {
             if (res.status) {
                 $("form#form-edit").attr("action", action);
+                $("#form-edit textarea[name='permohonan']").val(res.data.permohonan || '');
                 $("#form-edit input[name='tanggal_lulus']").val(res.data.tanggal_lulus || '');
                 $("#form-edit input[name='nomor_ijazah']").val(res.data.nomor_ijazah || '');
                 $("#form-edit input[type='file']").val('');

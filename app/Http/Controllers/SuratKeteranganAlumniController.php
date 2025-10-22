@@ -30,16 +30,21 @@ class SuratKeteranganAlumniController extends Controller
     private function canStore()
     {
         // Check if user already has a pending or approved request
-        if (!is_null(auth()->user()->suratKeteranganAlumni)) return false;
+        $existingRequest = auth()->user()->suratKeteranganAlumni()->whereIn('status_id', [1, 3, 4, 5, 6, 9])->exists();
+        if ($existingRequest) return false;
         return true;
     }
 
     public function list(Request $request)
     {
-        $data = SuratKeteranganAlumni::with('user.prodis')
-            ->whereYear('created_at', $request->year)
-            ->orderBy('created_at', 'desc')
-            ->get();
+        $query = SuratKeteranganAlumni::with('user.prodis');
+        
+        // Only filter by year if provided
+        if ($request->has('year') && $request->year) {
+            $query->whereYear('created_at', $request->year);
+        }
+        
+        $data = $query->orderBy('created_at', 'desc')->get();
 
         return DataTables::of($data)
             ->addIndexColumn()
@@ -78,10 +83,14 @@ class SuratKeteranganAlumniController extends Controller
 
     public function listStaff(Request $request)
     {
-        $data = SuratKeteranganAlumni::with('user.prodis')
-            ->whereYear('created_at', $request->year)
-            ->orderBy('created_at', 'desc')
-            ->get();
+        $query = SuratKeteranganAlumni::with('user.prodis');
+        
+        // Only filter by year if provided
+        if ($request->has('year') && $request->year) {
+            $query->whereYear('created_at', $request->year);
+        }
+        
+        $data = $query->orderBy('created_at', 'desc')->get();
 
         return DataTables::of($data)
             ->addIndexColumn()
@@ -121,13 +130,17 @@ class SuratKeteranganAlumniController extends Controller
     public function listMahasiswa(Request $request)
     {
         $userId = Auth::id();
-        $data = SuratKeteranganAlumni::with('user.prodis')
+        $query = SuratKeteranganAlumni::with('user.prodis')
             ->whereHas('user', function ($query) use ($userId) {
                 $query->where('id', $userId);
-            })
-            ->whereYear('created_at', $request->year)
-            ->orderBy('created_at', 'desc')
-            ->get();
+            });
+        
+        // Only filter by year if provided
+        if ($request->has('year') && $request->year) {
+            $query->whereYear('created_at', $request->year);
+        }
+        
+        $data = $query->orderBy('created_at', 'desc')->get();
 
         return DataTables::of($data)
             ->addIndexColumn()
@@ -166,6 +179,7 @@ class SuratKeteranganAlumniController extends Controller
     public function store(Request $request)
     {
         $request->validate([
+            'permohonan' => ['required', 'string'],
             'nomor_ijazah' => ['required', 'string', 'max:100'],
             'tanggal_lulus' => ['required', 'date'],
             'file' => ['nullable', 'file', 'mimes:pdf', 'max:2048'],
@@ -177,13 +191,14 @@ class SuratKeteranganAlumniController extends Controller
             'mimes' => ':attribute harus berformat PDF!',
             'file.max' => 'Ukuran :attribute maksimal 2MB!',
         ], [
+            'permohonan' => 'Permohonan',
             'nomor_ijazah' => 'Nomor Ijazah',
             'tanggal_lulus' => 'Tanggal Lulus',
             'file' => 'File',
         ]);
 
         try {
-            $data = $request->only(['nomor_ijazah', 'tanggal_lulus']);
+            $data = $request->only(['permohonan', 'nomor_ijazah', 'tanggal_lulus']);
             $data['user_id'] = Auth::id();
 
             if ($request->hasFile('file')) {
@@ -237,6 +252,7 @@ class SuratKeteranganAlumniController extends Controller
     public function update(Request $request, $id)
     {
         $request->validate([
+            'permohonan' => ['required', 'string'],
             'nomor_ijazah' => ['required', 'string', 'max:100'],
             'tanggal_lulus' => ['required', 'date'],
             'file' => ['nullable', 'file', 'mimes:pdf', 'max:2048'],
@@ -248,6 +264,7 @@ class SuratKeteranganAlumniController extends Controller
             'mimes' => ':attribute harus berformat PDF!',
             'file.max' => 'Ukuran :attribute maksimal 2MB!',
         ], [
+            'permohonan' => 'Permohonan',
             'nomor_ijazah' => 'Nomor Ijazah',
             'tanggal_lulus' => 'Tanggal Lulus',
             'file' => 'File',
@@ -257,7 +274,7 @@ class SuratKeteranganAlumniController extends Controller
             $id = decodeId($id);
             $surat = SuratKeteranganAlumni::findOrFail($id);
 
-            $data = $request->only(['nomor_ijazah', 'tanggal_lulus']);
+            $data = $request->only(['permohonan', 'nomor_ijazah', 'tanggal_lulus']);
 
             if ($request->hasFile('file')) {
                 // Delete old file if exists
@@ -384,6 +401,7 @@ class SuratKeteranganAlumniController extends Controller
     public function revisi(Request $request, $id)
     {
         $request->validate([
+            'permohonan' => ['required', 'string'],
             'tanggal_lulus' => ['required', 'date'],
             'nomor_ijazah' => ['required', 'string'],
             'file' => ['nullable', 'file', 'mimes:pdf', 'max:2048'],
@@ -393,6 +411,7 @@ class SuratKeteranganAlumniController extends Controller
             'file.mimes' => ':attribute harus berformat PDF!',
             'file.max' => 'Ukuran :attribute maksimal 2MB!',
         ], [
+            'permohonan' => 'Permohonan',
             'tanggal_lulus' => 'Tanggal Lulus',
             'nomor_ijazah' => 'Nomor Ijazah',
             'file' => 'File',
@@ -403,6 +422,7 @@ class SuratKeteranganAlumniController extends Controller
             $data = SuratKeteranganAlumni::findOrFail($id);
 
             $data_update = [
+                'permohonan' => $request->permohonan,
                 'tanggal_lulus' => $request->tanggal_lulus,
                 'nomor_ijazah' => $request->nomor_ijazah,
             ];

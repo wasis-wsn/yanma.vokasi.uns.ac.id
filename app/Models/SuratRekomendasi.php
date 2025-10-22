@@ -14,6 +14,7 @@ class SuratRekomendasi extends Model
 
     protected $fillable = [
         'user_id',
+        'permohonan',
         'nomor_ijazah',
         'tanggal_lulus',
         'file',

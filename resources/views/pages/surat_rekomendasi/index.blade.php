@@ -95,6 +95,7 @@
                 'baseUrl' => url('/'),
                 'listData' => route('suratRekomendasi.listMahasiswa'),
                 'store' => route('suratRekomendasi.store'),
+                'updateData' => route('suratRekomendasi.update', ':id'),
                 'revisi' => route('suratRekomendasi.update', ':id'),
                 'getData' => route('suratRekomendasi.show', ':id'),
                 'deleteData' => route('suratRekomendasi.destroy', ':id'),

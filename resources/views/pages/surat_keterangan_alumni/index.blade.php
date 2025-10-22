@@ -99,6 +99,7 @@
                 'baseUrl' => url('/'),
                 'listData' => route('suketAlumni.listMahasiswa'),
                 'store' => route('suketAlumni.store'),
+                'updateData' => route('suketAlumni.update', ':id'),
                 'revisi' => route('suketAlumni.update', ':id'),
                 'getData' => route('suketAlumni.show', ':id'),
                 'deleteData' => route('suketAlumni.destroy', ':id'),

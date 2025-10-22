@@ -69,6 +69,7 @@ $("#show_data").on("click", ".btn-edit", function () {
         success: function (res) {
             if (res.status) {
                 $("form#form-edit").attr("action", action);
+                $("#form-edit textarea[name='permohonan']").val(res.data.permohonan || '');
                 $("#form-edit input[name='tanggal_lulus']").val(res.data.tanggal_lulus || '');
                 $("#form-edit input[name='nomor_ijazah']").val(res.data.nomor_ijazah || '');
                 $("#form-edit input[type='file']").val("");
@@ -109,6 +110,7 @@ $("#show_data").on("click", ".btn-detail", function () {
                 $("#detail-nama").html(": " + (res.data.user ? res.data.user.name : '-'));
                 $("#detail-nim").html(": " + (res.data.user ? res.data.user.nim : '-'));
                 $("#detail-prodi").html(": " + (res.data.user && res.data.user.prodis ? res.data.user.prodis.nama : '-'));
+                $("#detail-permohonan").html(": " + (res.data.permohonan || '-'));
                 $("#detail-tanggal_lulus").html(": " + (res.data.tanggal_lulus || "-"));
                 $("#detail-nomor_ijazah").html(": " + (res.data.nomor_ijazah || "-"));
 
@@ -209,14 +211,15 @@ $("#show_data").on("click", ".btn-delete", function () {
 
 $("#form-tambah").submit(function (e) {
     e.preventDefault();
+    var form = this;
     // basic client-side validation to avoid sending empty payload
     var missing = [];
 
     // gather missing using form context
-    ['nomor_ijazah','tanggal_lulus'].forEach(function(name){
-        var $el = $(this).find('[name="' + name + '"]');
+    ['permohonan','nomor_ijazah','tanggal_lulus'].forEach(function(name){
+        var $el = $(form).find('[name="' + name + '"]');
         if (!$el.val() || $el.val().toString().trim() === '') missing.push(name);
-    }.bind(this));
+    });
 
     if (missing.length) {
         Swal.fire({ title: 'Field required', text: 'Mohon isi: ' + missing.join(', '), icon: 'warning' });
@@ -233,10 +236,10 @@ $("#form-tambah").submit(function (e) {
         confirmButtonText: "Ya, Sudah!",
     }).then((result) => {
         if (result.isConfirmed) {
-            let formData = new FormData(this);
+            let formData = new FormData(form);
 
             $.ajax({
-                url: $(this).attr("action"),
+                url: $(form).attr("action"),
                 type: "POST",
                 headers: {
                     "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr(

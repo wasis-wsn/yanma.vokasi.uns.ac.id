@@ -8,6 +8,10 @@
             <form action="" method="POST" id="form-edit" enctype="multipart/form-data">
                 <div class="modal-body text-dark">
                     <div class="form-group">
+                        <label class="form-label" for="permohonan-revisi">Permohonan <span class="text-danger">*</span></label>
+                        <textarea class="form-control" id="permohonan-revisi" name="permohonan" rows="3" placeholder="Tuliskan keperluan/tujuan permohonan surat..." required></textarea>
+                    </div>
+                    <div class="form-group">
                         <label class="form-label" for="nomor_ijazah-revisi">Nomor Ijazah <span class="text-danger">*</span></label>
                         <input class="form-control" id="nomor_ijazah-revisi" type="text" name="nomor_ijazah" required>
                     </div>
