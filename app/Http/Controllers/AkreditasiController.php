@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Models\Akreditasi;
 use App\Models\Prodi;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -21,13 +22,25 @@ class AkreditasiController extends Controller
 
     public function getAkreditasi(Request $request)
     {
-        $prodis = Prodi::with('akreditasi')->where('id', '!=', '1')->whereHas('akreditasi');
-        if ($request->prodi != null || $request->prodi != '') {
-            $q = $request->prodi;
-            $prodis = $prodis->where(DB::raw('LOWER(name)'), 'LIKE', '%' . strtolower($q) . '%');
+        $keyword = $request->prodi ? urldecode($request->prodi) : null;
+
+        $prodis = Prodi::with(['akreditasi' => function ($query) {
+            $query->orderByDesc('tanggal_akhir')->orderByDesc('tanggal_awal');
+        }])->where('id', '!=', '1')->whereHas('akreditasi');
+        if ($keyword) {
+            $prodis = $prodis->where(DB::raw('LOWER(name)'), 'LIKE', '%' . strtolower($keyword) . '%');
         }
         $prodis = $prodis->orderBy('name', 'desc')->get();
-        return response()->json($prodis, 200);;
+        $prodis->each(function ($prodi) {
+            $prodi->encoded_id = encodeId($prodi->id);
+            $prodi->akreditasi->transform(function ($item) {
+                $item->file_url = $item->file ? asset('storage/akreditasi/' . $item->file) : null;
+                $item->periode_label = $this->formatPeriode($item->tanggal_awal, $item->tanggal_akhir);
+                return $item;
+            });
+        });
+
+        return response()->json($prodis, 200);
     }
 
     public function index()
@@ -40,7 +53,7 @@ class AkreditasiController extends Controller
     {
         $list = Akreditasi::with('prodi');
         if ($request->prodi != 'all') $list = $list->where('prodi_id', $request->prodi);
-        $list = $list->orderBy('prodi_id')->get();
+        $list = $list->orderBy('prodi_id')->orderByDesc('tanggal_akhir')->get();
         return DataTables::of($list)
             ->addIndexColumn()
             ->addColumn('action', function ($row) {
@@ -52,6 +65,12 @@ class AkreditasiController extends Controller
                     </button>';
                 return $aksi;
             })
+            ->addColumn('tanggal_awal_label', function ($row) {
+                return $row->tanggal_awal ? $row->tanggal_awal->translatedFormat('d F Y') : '-';
+            })
+            ->addColumn('tanggal_akhir_label', function ($row) {
+                return $row->tanggal_akhir ? $row->tanggal_akhir->translatedFormat('d F Y') : '-';
+            })
             ->editColumn('file', function ($row) {
                 return '<a href="' . asset('storage/akreditasi/' . $row->file) . '" target="_blank" rel="noopener noreferrer">' . $row->file . '</a>';
             })
@@ -62,27 +81,37 @@ class AkreditasiController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'prodi_id' => ['required'],
-            'tahun' => ['required'],
+            'prodi_id' => ['required', 'exists:ref_prodi,id'],
+            'tanggal_awal' => ['required', 'date'],
+            'tanggal_akhir' => ['required', 'date', 'after_or_equal:tanggal_awal'],
             'file' => ['required', 'file', 'mimes:pdf'],
         ], [
             'required' => ':attribute wajib diisi',
+            'exists' => ':attribute tidak valid',
+            'date' => ':attribute tidak valid',
+            'after_or_equal' => ':attribute harus sama atau setelah tanggal awal',
             'file' => ':attribute tidak valid',
             'mimes' => ':attribute tidak valid',
         ], [
             'prodi_id' => 'Prodi',
-            'tahun' => 'Tahun',
+            'tanggal_awal' => 'Tanggal Awal',
+            'tanggal_akhir' => 'Tanggal Akhir',
             'file' => 'File Akreditasi',
         ]);
 
         try {
             $prodi = Prodi::findOrFail($request->prodi_id);
-            $tahun = $request->tahun;
-            $fileName = Str::of($prodi->name)->replace(' ', '') . '_' . Str::of($tahun)->replace(' ', '') . '.pdf';
-            $request->file->storeAs('akreditasi/', $fileName, 'public');
+            $start = Carbon::parse($request->tanggal_awal);
+            $end = Carbon::parse($request->tanggal_akhir);
+
+            $file = $request->file('file');
+            $fileName = Str::slug($prodi->name, '_') . '_' . $start->format('Ymd') . '_' . $end->format('Ymd') . '_' . time() . '.' . $file->getClientOriginalExtension();
+            $file->storeAs('akreditasi/', $fileName, 'public');
+
             Akreditasi::create([
                 'prodi_id' => $request->prodi_id,
-                'tahun' => $tahun,
+                'tanggal_awal' => $start,
+                'tanggal_akhir' => $end,
                 'file' => $fileName,
             ]);
             return response()->json(['status' => true, 'message' => 'Akreditasi berhasil ditambahkan'], 200);
@@ -105,16 +134,21 @@ class AkreditasiController extends Controller
     public function update(Request $request, string $id)
     {
         $request->validate([
-            'prodi_id' => ['required'],
-            'tahun' => ['required'],
+            'prodi_id' => ['required', 'exists:ref_prodi,id'],
+            'tanggal_awal' => ['required', 'date'],
+            'tanggal_akhir' => ['required', 'date', 'after_or_equal:tanggal_awal'],
             'file' => ['file', 'mimes:pdf'],
         ], [
             'required' => ':attribute wajib diisi',
+            'exists' => ':attribute tidak valid',
+            'date' => ':attribute tidak valid',
+            'after_or_equal' => ':attribute harus sama atau setelah tanggal awal',
             'file' => ':attribute tidak valid',
             'mimes' => ':attribute tidak valid',
         ], [
             'prodi_id' => 'Prodi',
-            'tahun' => 'Tahun',
+            'tanggal_awal' => 'Tanggal Awal',
+            'tanggal_akhir' => 'Tanggal Akhir',
             'file' => 'File Akreditasi',
         ]);
 
@@ -123,19 +157,24 @@ class AkreditasiController extends Controller
 
             $akreditasi = Akreditasi::findOrFail($id);
 
-            $tahun = $request->tahun;
+            $start = Carbon::parse($request->tanggal_awal);
+            $end = Carbon::parse($request->tanggal_akhir);
             $fileName = $akreditasi->file;
 
             if ($request->hasFile('file')) {
                 $prodi = Prodi::findOrFail($request->prodi_id);
-                $fileName = Str::of($prodi->name)->replace(' ', '') . '_' . Str::of($tahun)->replace(' ', '') . '.pdf';
-                Storage::disk('public')->delete('akreditasi/' . $akreditasi->file);
-                $request->file->storeAs('akreditasi/', $fileName, 'public');
+                $file = $request->file('file');
+                $fileName = Str::slug($prodi->name, '_') . '_' . $start->format('Ymd') . '_' . $end->format('Ymd') . '_' . time() . '.' . $file->getClientOriginalExtension();
+                if ($akreditasi->file && Storage::disk('public')->exists('akreditasi/' . $akreditasi->file)) {
+                    Storage::disk('public')->delete('akreditasi/' . $akreditasi->file);
+                }
+                $file->storeAs('akreditasi/', $fileName, 'public');
             }
 
             $akreditasi->update([
                 'prodi_id' => $request->prodi_id,
-                'tahun' => $tahun,
+                'tanggal_awal' => $start,
+                'tanggal_akhir' => $end,
                 'file' => $fileName,
             ]);
             return response()->json(['status' => true, 'message' => 'Akreditasi berhasil diupdate'], 200);
@@ -149,11 +188,59 @@ class AkreditasiController extends Controller
         try {
             $id = decodeId($id);
             $akreditasi = Akreditasi::findOrFail($id);
-            Storage::disk('public')->delete('akreditasi/' . $akreditasi->file);
+            if ($akreditasi->file && Storage::disk('public')->exists('akreditasi/' . $akreditasi->file)) {
+                Storage::disk('public')->delete('akreditasi/' . $akreditasi->file);
+            }
             $akreditasi->delete();
             return response()->json(['status' => true, 'message' => 'Akreditasi berhasil dihapus'], 200);
         } catch (\Throwable $th) {
             return response()->json(['status' => false, 'message' => 'Terjadi Kesalahan'], 500);
         }
+    }
+
+    public function showProdi(string $encodedId)
+    {
+        try {
+            $id = decodeId($encodedId);
+        } catch (\Throwable $th) {
+            abort(404);
+        }
+
+        $prodi = Prodi::with(['akreditasi' => function ($query) {
+            $query->orderByDesc('tanggal_akhir')->orderByDesc('tanggal_awal');
+        }])->findOrFail($id);
+
+        $akreditasi = $prodi->akreditasi->map(function ($item) {
+            return [
+                'file_url' => $item->file ? asset('storage/akreditasi/' . $item->file) : null,
+                'periode_label' => $this->formatPeriode($item->tanggal_awal, $item->tanggal_akhir),
+                'tanggal_awal' => $item->tanggal_awal,
+                'tanggal_akhir' => $item->tanggal_akhir,
+                'created_at' => $item->created_at,
+            ];
+        });
+
+        return view('landingpage.akreditasi.prodi', [
+            'prodi' => $prodi,
+            'akreditasi' => $akreditasi,
+            'otherProdi' => Prodi::withCount('akreditasi')
+                ->where('id', '!=', $prodi->id)
+                ->where('id', '!=', 1)
+                ->whereHas('akreditasi')
+                ->orderBy('name')
+                ->get(),
+        ]);
+    }
+
+    private function formatPeriode(?Carbon $start, ?Carbon $end): string
+    {
+        $startLabel = $start ? $start->translatedFormat('d F Y') : '-';
+        $endLabel = $end ? $end->translatedFormat('d F Y') : '-';
+
+        if ($startLabel === '-' && $endLabel === '-') {
+            return '-';
+        }
+
+        return "{$startLabel} - {$endLabel}";
     }
 }

@@ -34,6 +34,8 @@ use App\Http\Controllers\SuratKeteranganAlumniController;
 use App\Http\Controllers\SuratRekomendasiController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\GoogleAuthController;
+use App\Models\Prodi;
+use Illuminate\Http\Request as HttpRequest;
 
 /*
 |--------------------------------------------------------------------------
@@ -46,9 +48,17 @@ use App\Http\Controllers\GoogleAuthController;
 |
 */
 
-Route::get('/', function () {
+Route::get('/', function (HttpRequest $request) {
     $berita = \App\Models\Berita::orderByDesc('tanggal')->paginate(3);
-    return view('landingpage.index', compact('berita'));
+    $prodisAkreditasi = Prodi::withCount('akreditasi')
+        ->where('id', '!=', 1)
+        ->whereHas('akreditasi')
+        ->orderBy('name')
+        ->paginate(10)
+        ->onEachSide(1)
+        ->withQueryString();
+
+    return view('landingpage.index', compact('berita', 'prodisAkreditasi'));
 })->name('home');
 /* * * * * * * * * * * * * * * * *
 *                                *
@@ -103,6 +113,7 @@ Route::name('verifikasiWisuda.')->prefix('verifikasiWisuda')->group(function () 
 * * * * * * * * * * * * * * */
 Route::get('/akreditasi/lp', [AkreditasiController::class, 'landingPage'])->name('akreditasi.landingPage');
 Route::get('/akreditasi/lp/getData', [AkreditasiController::class, 'getAkreditasi'])->name('akreditasi.landingPage.getData');
+Route::get('/akreditasi/prodi/{id}', [AkreditasiController::class, 'showProdi'])->name('akreditasi.prodi');
 
 /* * * * * * * * * * * * * * * * *
 *                                *
