@@ -3,17 +3,20 @@
 namespace App\Http\Controllers;
 
 use App\Models\Layanan;
+use App\Models\StatusAlumni;
 use App\Models\SuratKeteranganAlumni;
 use App\Models\Tahun;
 use App\Models\Template;
 use App\Models\User;
-use App\Models\StatusAlumni;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use PhpOffice\PhpWord\TemplateProcessor;
 use Yajra\DataTables\Facades\DataTables;
+use ZipArchive;
 
 class SuratKeteranganAlumniController extends Controller
 {
@@ -201,33 +204,24 @@ class SuratKeteranganAlumniController extends Controller
             'permohonan' => ['required', 'string'],
             'nomor_ijazah' => ['required', 'string', 'max:100'],
             'tanggal_lulus' => ['required', 'date'],
-            'file' => ['nullable', 'file', 'mimes:pdf', 'max:2048'],
         ], [
             'required' => ':attribute wajib diisi!',
             'string' => ':attribute harus berupa teks!',
             'max' => ':attribute maksimal :max karakter!',
             'date' => ':attribute harus berupa tanggal yang valid!',
-            'mimes' => ':attribute harus berformat PDF!',
-            'file.max' => 'Ukuran :attribute maksimal 2MB!',
         ], [
             'permohonan' => 'Permohonan',
             'nomor_ijazah' => 'Nomor Ijazah',
             'tanggal_lulus' => 'Tanggal Lulus',
-            'file' => 'File',
         ]);
 
         try {
             $data = $request->only(['permohonan', 'nomor_ijazah', 'tanggal_lulus']);
             $data['user_id'] = Auth::id();
 
-            if ($request->hasFile('file')) {
-                $file = $request->file('file');
-                $filename = time() . '_' . $file->getClientOriginalName();
-                $path = $file->storeAs('surat_keterangan_alumni', $filename, 'public');
-                $data['file'] = $path;
-            }
+            $surat = SuratKeteranganAlumni::create($data);
 
-            SuratKeteranganAlumni::create($data);
+            $this->generateLetterDocument($surat);
 
             return response()->json([
                 'status' => true,
@@ -254,6 +248,9 @@ class SuratKeteranganAlumniController extends Controller
                     'message' => 'Data tidak ditemukan'
                 ], 404);
             }
+
+            $data->file_url = $data->file ? Storage::url($data->file) : null;
+            $data->surat_hasil_url = $data->surat_hasil ? Storage::url($data->surat_hasil) : null;
 
             return response()->json([
                 'status' => true,
@@ -290,25 +287,19 @@ class SuratKeteranganAlumniController extends Controller
                 'permohonan' => ['nullable', 'string'],
                 'nomor_ijazah' => ['nullable', 'string', 'max:100'],
                 'tanggal_lulus' => ['nullable', 'date'],
-                'file' => ['nullable', 'file', 'mimes:pdf', 'max:2048'],
             ], [
                 'string' => ':attribute harus berupa teks!',
                 'max' => ':attribute maksimal :max karakter!',
                 'date' => ':attribute harus berupa tanggal yang valid!',
-                'mimes' => ':attribute harus berformat PDF!',
-                'file.max' => 'Ukuran :attribute maksimal 2MB!',
             ], [
                 'permohonan' => 'Permohonan',
                 'nomor_ijazah' => 'Nomor Ijazah',
                 'tanggal_lulus' => 'Tanggal Lulus',
-                'file' => 'File',
             ]);
         }
 
         try {
             $id = decodeId($id);
-            $surat = SuratKeteranganAlumni::findOrFail($id);
-
             $surat = SuratKeteranganAlumni::findOrFail($id);
 
             $data_update = [];
@@ -341,19 +332,6 @@ class SuratKeteranganAlumniController extends Controller
                 if ($request->filled('tanggal_lulus')) {
                     $data_update['tanggal_lulus'] = $request->tanggal_lulus;
                 }
-
-                // Handle file upload if provided
-                if ($request->hasFile('file')) {
-                    // Delete old file if exists
-                    if ($surat->file && Storage::disk('public')->exists($surat->file)) {
-                        Storage::disk('public')->delete($surat->file);
-                    }
-
-                    $file = $request->file('file');
-                    $filename = time() . '_' . $file->getClientOriginalName();
-                    $path = $file->storeAs('surat_keterangan_alumni', $filename, 'public');
-                    $data_update['file'] = $path;
-                }
             }
 
             $surat->update($data_update);
@@ -365,6 +343,9 @@ class SuratKeteranganAlumniController extends Controller
                 'status_id' => $surat->status_id,
                 'tanggal_proses' => $surat->tanggal_proses,
             ]);
+
+            // Regenerate letter when data changed or status updated
+            $this->generateLetterDocument($surat);
 
             return response()->json([
                 'status' => true,
@@ -390,6 +371,10 @@ class SuratKeteranganAlumniController extends Controller
                 Storage::disk('public')->delete($surat->file);
             }
 
+            if ($surat->surat_hasil && Storage::disk('public')->exists($surat->surat_hasil)) {
+                Storage::disk('public')->delete($surat->surat_hasil);
+            }
+
             $surat->delete();
 
             return response()->json([
@@ -412,7 +397,6 @@ class SuratKeteranganAlumniController extends Controller
             'no_surat' => \Illuminate\Validation\Rule::requiredIf(function () use ($request) {
                 return in_array($request->status_id, ['5', '6']);
             }),
-            'file' => ['required_if:status_id,9'],
             'catatan' => \Illuminate\Validation\Rule::requiredIf(function () use ($request) {
                 return in_array($request->status_id, ['3', '7', '8']);
             })
@@ -440,24 +424,27 @@ class SuratKeteranganAlumniController extends Controller
                 $data_update['no_surat'] = $request->no_surat;
                 $message = 'Ajuan Berhasil Diproses!';
             } elseif (in_array($request->status_id, ['7', '8'])) { //status ditolak
-                // Hapus file upload jika ajuan ditolak
+                // Hapus file jika ajuan ditolak
                 if ($ajuan->file) {
                     Storage::disk('public')->delete($ajuan->file);
+                    $data_update['file'] = null;
                 }
                 $message = 'Ajuan Berhasil Ditolak!';
             } elseif ($request->status_id == '9') { //status selesai
-                // Hapus file upload
-                if ($ajuan->file) {
-                    Storage::disk('public')->delete($ajuan->file);
-                }
-                // Upload surat hasil jika ajuan telah selesai
-                $fileName = $ajuan->user->nim . '-' . $ajuan->user->name . '-SKA-' . time() . '.pdf';
-                $request->file->storeAs('surat_keterangan_alumni/hasil/', $fileName, 'public');
-                $data_update['surat_hasil'] = $fileName;
                 $message = 'Ajuan telah selesai!';
             }
 
             $ajuan->update($data_update);
+
+            $ajuan->refresh();
+
+            if (!in_array($request->status_id, ['7', '8'])) {
+                $this->generateLetterDocument($ajuan);
+            }
+
+            if ($request->status_id == '9') {
+                $this->generateLetterDocument($ajuan, 'surat_hasil');
+            }
 
             return response()->json([
                 'status' => true,
@@ -472,5 +459,196 @@ class SuratKeteranganAlumniController extends Controller
                 'message' => $th->getMessage()
             ], 500);
         }
+    }
+
+    private function generateLetterDocument(SuratKeteranganAlumni $surat, string $targetColumn = 'file'): void
+    {
+        $templatePath = public_path('storage/template/TemplateSuratKeteranganAlumni.docx');
+        if (!file_exists($templatePath)) {
+            Log::error('Template surat keterangan alumni tidak ditemukan.', ['path' => $templatePath]);
+            return;
+        }
+
+        [$tempTemplatePath, $templateProcessor] = $this->prepareTemplateProcessor($templatePath);
+
+        $surat->loadMissing('user.prodis');
+        $user = $surat->user;
+        $prodi = optional($user)->prodis;
+
+        $createdDate = $surat->created_at ?? Carbon::now();
+
+        $templateProcessor->setValues([
+            'nomor_surat' => $surat->no_surat ?: '-',
+            'nama_alumni' => optional($user)->name ?: '-',
+            'nim_alumni' => optional($user)->nim ?: '-',
+            'program_studi' => optional($prodi)->nama ?: '-',
+            'nomor_ijazah' => $surat->nomor_ijazah ?: '-',
+            'tanggal_lulus' => $surat->tanggal_lulus
+                ? Carbon::parse($surat->tanggal_lulus)->translatedFormat('d F Y')
+                : '-',
+            'permohonan' => $surat->permohonan ?: '-',
+            'tanggal_terbit' => $surat->tanggal_proses
+                ? Carbon::parse($surat->tanggal_proses)->translatedFormat('d F Y')
+                : Carbon::parse($createdDate)->translatedFormat('d F Y'),
+        ]);
+
+        $tempOutput = storage_path('app/tmp/ska_' . Str::uuid() . '.docx');
+        if (!is_dir(dirname($tempOutput))) {
+            mkdir(dirname($tempOutput), 0775, true);
+        }
+
+        $templateProcessor->saveAs($tempOutput);
+
+        $directory = $targetColumn === 'surat_hasil'
+            ? 'surat_keterangan_alumni/hasil'
+            : 'surat_keterangan_alumni/generated';
+
+        $fileName = Str::slug((optional($user)->nim ?: 'ska') . '-' . (optional($user)->name ?: 'alumni'), '_')
+            . '-SKA-' . time() . '.docx';
+        $storagePath = $directory . '/' . $fileName;
+
+        if (!Storage::disk('public')->exists($directory)) {
+            Storage::disk('public')->makeDirectory($directory);
+        }
+
+        Storage::disk('public')->put($storagePath, file_get_contents($tempOutput));
+
+        if ($targetColumn === 'file' && $surat->file) {
+            Storage::disk('public')->delete($surat->file);
+        }
+
+        if ($targetColumn === 'surat_hasil' && $surat->surat_hasil) {
+            Storage::disk('public')->delete($surat->surat_hasil);
+        }
+
+        $surat->{$targetColumn} = $storagePath;
+        $surat->save();
+
+        @unlink($tempOutput);
+        @unlink($tempTemplatePath);
+    }
+
+    private function prepareTemplateProcessor(string $templatePath): array
+    {
+        $tempPath = storage_path('app/tmp/template_ska_' . Str::uuid() . '.docx');
+        if (!is_dir(dirname($tempPath))) {
+            mkdir(dirname($tempPath), 0775, true);
+        }
+
+        copy($templatePath, $tempPath);
+
+        $zip = new ZipArchive();
+        if ($zip->open($tempPath) === true) {
+            $xml = $zip->getFromName('word/document.xml');
+            $xml = $this->injectPlaceholders($xml);
+            $zip->addFromString('word/document.xml', $xml);
+            $zip->close();
+        } else {
+            throw new \RuntimeException('Tidak dapat membuka template surat.');
+        }
+
+        return [$tempPath, new TemplateProcessor($tempPath)];
+    }
+
+    private function injectPlaceholders(string $xml): string
+    {
+        $doc = new \DOMDocument();
+        $doc->preserveWhiteSpace = false;
+        $doc->loadXML($xml);
+
+        $xpath = new \DOMXPath($doc);
+        $xpath->registerNamespace('w', 'http://schemas.openxmlformats.org/wordprocessingml/2006/main');
+
+        $labelPlaceholders = [
+            'Nama' => 'nama_alumni',
+            'NIM' => 'nim_alumni',
+            'Program Studi' => 'program_studi',
+            'Nomor Ijazah' => 'nomor_ijazah',
+            'Tanggal Lulus' => 'tanggal_lulus',
+        ];
+
+        foreach ($labelPlaceholders as $label => $placeholder) {
+            foreach ($xpath->query("//w:p[w:r/w:t='{$label}']") as $paragraph) {
+                $hasPlaceholder = false;
+                foreach ($xpath->query('.//w:t', $paragraph) as $textNode) {
+                    if (str_contains($textNode->textContent, '${')) {
+                        $hasPlaceholder = true;
+                        break;
+                    }
+                }
+
+                if ($hasPlaceholder) {
+                    continue;
+                }
+
+                $paragraphText = '';
+                foreach ($xpath->query('.//w:t', $paragraph) as $textNode) {
+                    $paragraphText .= $textNode->textContent;
+                }
+
+                $colonRun = null;
+                foreach ($xpath->query('.//w:r', $paragraph) as $runNode) {
+                    $textContent = '';
+                    foreach ($xpath->query('.//w:t', $runNode) as $tNode) {
+                        $textContent .= $tNode->textContent;
+                    }
+                    if (str_contains($textContent, ':')) {
+                        $colonRun = $runNode;
+                        break;
+                    }
+                }
+
+                $colonPos = strpos($paragraphText, ':');
+                if ($colonPos !== false) {
+                    $afterColon = trim(substr($paragraphText, $colonPos + 1));
+                    if ($afterColon !== '') {
+                        continue;
+                    }
+                }
+
+                $newRun = $doc->createElementNS('http://schemas.openxmlformats.org/wordprocessingml/2006/main', 'w:r');
+                $text = $doc->createElementNS('http://schemas.openxmlformats.org/wordprocessingml/2006/main', 'w:t', ' ${' . $placeholder . '}');
+                $text->setAttributeNS('http://www.w3.org/XML/1998/namespace', 'xml:space', 'preserve');
+                $newRun->appendChild($text);
+
+                if ($colonRun && $colonRun->parentNode) {
+                    if ($colonRun->nextSibling) {
+                        $colonRun->parentNode->insertBefore($newRun, $colonRun->nextSibling);
+                    } else {
+                        $colonRun->parentNode->appendChild($newRun);
+                    }
+                } else {
+                    $paragraph->appendChild($newRun);
+                }
+            }
+        }
+
+        foreach ($xpath->query("//w:p[w:r/w:t='Nomor:']") as $paragraph) {
+            $hasPlaceholder = false;
+            foreach ($xpath->query('.//w:t', $paragraph) as $textNode) {
+                if (str_contains($textNode->textContent, '${')) {
+                    $hasPlaceholder = true;
+                    break;
+                }
+            }
+
+            if (!$hasPlaceholder) {
+                $run = $doc->createElementNS('http://schemas.openxmlformats.org/wordprocessingml/2006/main', 'w:r');
+                $text = $doc->createElementNS('http://schemas.openxmlformats.org/wordprocessingml/2006/main', 'w:t', ' ${nomor_surat}');
+                $text->setAttributeNS('http://www.w3.org/XML/1998/namespace', 'xml:space', 'preserve');
+                $run->appendChild($text);
+                $paragraph->appendChild($run);
+            }
+        }
+
+        foreach ($xpath->query("//w:t[contains(.,'isi keperluan permohonan')]") as $textNode) {
+            $textNode->nodeValue = '${permohonan}';
+        }
+
+        foreach ($xpath->query("//w:t[contains(.,'Tanggal Terbit Surat')]") as $textNode) {
+            $textNode->nodeValue = '${tanggal_terbit}';
+        }
+
+        return $doc->saveXML();
     }
 }

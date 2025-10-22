@@ -77,8 +77,8 @@ $('#show_data').on('click', '.btn-detail', function() {
                     $('#detail-tanggal_lulus').html(': ' + (res.data.tanggal_lulus || '-'));
                     $('#detail-nomor_ijazah').html(': ' + (res.data.nomor_ijazah || '-'));
 
-                    if (res.data.file) {
-                        $('#detail-file').attr('href', '/storage/' + res.data.file).removeClass('disabled').removeAttr('aria-disabled');
+                    if (res.data.file_url) {
+                        $('#detail-file').attr('href', res.data.file_url).removeClass('disabled').removeAttr('aria-disabled');
                     } else {
                         $('#detail-file').attr('href', '#').addClass('disabled').attr('aria-disabled', 'true');
                     }
@@ -116,7 +116,6 @@ $('#show_data').on('click', '.btn-edit', function() {
                 $('#form-edit textarea[name="permohonan"]').val(res.data.permohonan || '');
                 $('#form-edit input[name="tanggal_lulus"]').val(res.data.tanggal_lulus);
                 $('#form-edit input[name="nomor_ijazah"]').val(res.data.nomor_ijazah || '');
-                $('#form-edit input[type="file"]').val('');
 
                 $('#modalEdit').modal('show');
             } else {

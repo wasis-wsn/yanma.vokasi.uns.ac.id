@@ -5,7 +5,7 @@
                 <h5 class="modal-title" id="exampleModalLabel">Edit Ajuan Surat Rekomendasi</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form action="" method="POST" id="form-edit" enctype="multipart/form-data">
+            <form action="" method="POST" id="form-edit">
                 <div class="modal-body text-dark">
                     @can('mahasiswa')
                     <!-- Form untuk Mahasiswa -->
@@ -20,11 +20,6 @@
                     <div class="form-group">
                         <label class="form-label" for="tanggal_lulus-revisi">Tanggal Lulus <span class="text-danger">*</span></label>
                         <input class="form-control" id="tanggal_lulus-revisi" type="date" name="tanggal_lulus" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="customFile1-revisi" class="form-label custom-file-input">Upload File (PDF)</label>
-                        <input class="form-control" type="file" id="customFile1-revisi" name="file" accept="application/pdf">
-                        <small class="text-danger"><i class="fa fa-warning"></i> Jangan Upload Apapun Jika File Tidak Direvisi atau Diedit!</small>
                     </div>
                     @endcan
 

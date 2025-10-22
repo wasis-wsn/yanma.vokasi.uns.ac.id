@@ -119,8 +119,8 @@ $("#show_data").on("click", ".btn-detail", function () {
                 $("#detail-tanggal_lulus").html(": " + (res.data.tanggal_lulus || '-'));
                 $("#detail-nomor_ijazah").html(": " + (res.data.nomor_ijazah || '-'));
 
-                if (res.data.file) {
-                    $("#detail-file").attr("href", '/storage/' + res.data.file).removeClass('disabled').removeAttr('aria-disabled');
+                if (res.data.file_url) {
+                    $("#detail-file").attr("href", res.data.file_url).removeClass('disabled').removeAttr('aria-disabled');
                 } else {
                     $("#detail-file").attr("href", '#').addClass('disabled').attr('aria-disabled', 'true');
                 }
@@ -194,7 +194,6 @@ function showModalEdit(p) {
                 $("#form-edit select[name='status_id']").val(res.data.status_id || '');
                 $("#form-edit input[name='no_surat']").val(res.data.no_surat || '');
                 $("#form-edit textarea[name='catatan']").val(res.data.catatan || '');
-                $("#form-edit input[type='file']").val('');
 
                 $("#modalEdit").modal("show");
             } else {
@@ -229,7 +228,6 @@ function showModalProses(p) {
     $("form#form-proses").attr("action", action);
     $("#form-proses textarea").val("");
     $("#form-proses input[type='text']").val("");
-    $("#form-proses input[type='file']").val("");
     if (window.Laravel.getData) {
         $.ajax({
             url: window.Laravel.getData.replace(":id", id),
@@ -267,11 +265,6 @@ $('#status_id').change(function () {
         $('#form-no-surat').removeAttr('hidden');
     } else {
         $('#form-no-surat').attr('hidden', true);
-    }
-    if ($(this).val() === '9') {
-        $('#form-surat-hasil').removeAttr('hidden');
-    } else {
-        $('#form-surat-hasil').attr('hidden', true);
     }
 });
 
