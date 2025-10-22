@@ -1,0 +1,111 @@
+@extends('_template.master')
+
+@section('title', 'Surat Rekomendasi')
+
+@section('content')
+<div class="position-relative">
+    @include('_template.navbar')
+    <div class="iq-navbar-header" style="height: 80px;">
+        <div class="container-fluid iq-container">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap">
+                        <div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="iq-header-img">
+            <img src="{{asset('back/assets/images/dashboard/top-header1.png')}}" alt="header" class="img-fluid w-100 h-100 animated-scaleX">
+        </div>
+    </div>
+
+    <div class="conatiner-fluid content-inner mt-n5 py-0">
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between">
+                        <div class="header-title">
+                            <h4 class="card-title">Surat Rekomendasi</h4>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        @can('mahasiswa')
+                            <div class="d-flex justify-content-end pb-4 px-4">
+                                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalTambah">Tambah Ajuan</button>
+                            </div>
+                            @include('pages.surat_rekomendasi.modal_tambah')
+                            @include('pages.surat_rekomendasi.modal_edit')
+                        @endcan
+                        @canany(['staff','dekanat','subkoor','fo'])
+                            <div class="d-flex justify-content-start pb-4">
+                                <button type="button" class="btn btn-success mx-2" id="btn-export">Export Data</button>
+                            </div>
+                            @include('modals.proses')
+                            @include('modals.export_semester')
+                        @endcanany
+                        @include('pages.surat_rekomendasi.modal_detail')
+
+                        <div class="table-responsive">
+                            <table id="sr-datatable" class="table table-striped" width="100%">
+                                <thead>
+                                    <tr>
+                                        @can('mahasiswa')
+                                            <th>No</th>
+                                            <th>Keperluan Surat</th>
+                                            <th>Tanggal Submit</th>
+                                            <th>Status</th>
+                                            <th>Antrian</th>
+                                            <th>Catatan</th>
+                                            <th>Tanggal Proses</th>
+                                            <th>Aksi</th>
+                                        @endcan
+                                        @canany(['staff','dekanat','subkoor','adminprodi','fo'])
+                                            <th hidden>created_at</th>
+                                            <th>No</th>
+                                            <th>Nama</th>
+                                            <th>NIM</th>
+                                            <th>Tanggal Submit</th>
+                                            <th>Tanggal Proses</th>
+                                            <th>Keperluan Surat</th>
+                                            <th>No Surat</th>
+                                            <th>Status</th>
+                                            <th>Antrian</th>
+                                            <th>Catatan</th>
+                                            <th>Aksi</th>
+                                        @endcanany
+                                    </tr>
+                                </thead>
+                                <tbody id="show_data">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+@endsection
+
+@push('js')
+    <script>
+        window.Laravel = {!! json_encode([
+            'baseUrl' => url('/'),
+            'listData' => route('suratRekomendasi.index'),
+            'store' => route('suratRekomendasi.store'),
+            'revisi' => route('suratRekomendasi.update', ':id'),
+            'getData' => route('suratRekomendasi.show', ':id'),
+            'deleteData' => route('suratRekomendasi.destroy', ':id'),
+            'download' => route('suratRekomendasi.download', ':id'),
+        ]) !!};
+    </script>
+    @can('mahasiswa')
+        <script src="{{ asset('custom/js/surat_rekomendasi/mahasiswa.js') }}"></script>
+    @endcan
+    @canany(['staff','dekanat','subkoor','adminprodi','fo'])
+        <script src="{{ asset('custom/js/surat_rekomendasi/staff.js') }}"></script>
+    @endcanany
+@endpush
