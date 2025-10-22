@@ -9,24 +9,12 @@
                 @csrf
                 <div class="modal-body text-dark">
                     <div class="form-group">
-                        <label class="form-label" for="nama">Nama <span class="text-danger">*</span></label>
-                        <input class="form-control" id="nama" type="text" name="nama">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="nim">NIM <span class="text-danger">*</span></label>
-                        <input class="form-control" id="nim" type="text" name="nim">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="program_studi">Program Studi <span class="text-danger">*</span></label>
-                        <input class="form-control" id="program_studi" type="text" name="program_studi">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="nomor_ijazah">Nomor Ijazah</label>
-                        <input class="form-control" id="nomor_ijazah" type="text" name="nomor_ijazah">
+                        <label class="form-label" for="nomor_ijazah">Nomor Ijazah <span class="text-danger">*</span></label>
+                        <input class="form-control" id="nomor_ijazah" type="text" name="nomor_ijazah" required>
                     </div>
                     <div class="form-group">
                         <label class="form-label" for="tanggal_lulus">Tanggal Lulus <span class="text-danger">*</span></label>
-                        <input class="form-control" id="tanggal_lulus" type="date" name="tanggal_lulus">
+                        <input class="form-control" id="tanggal_lulus" type="date" name="tanggal_lulus" required>
                     </div>
                     <div class="form-group">
                         <label for="customFile1" class="form-label custom-file-input">Unggah File (PDF)</label>

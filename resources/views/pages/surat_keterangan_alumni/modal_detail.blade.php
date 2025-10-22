@@ -32,10 +32,31 @@
                             <td>File</td>
                             <td>: <a href="" target="_blank" class="btn btn-primary btn-small" id="detail-file"><i class="fa fa-eye"></i>Lihat File</a></td>
                         </tr>
+                        @canany(['staff','dekanat','subkoor','adminprodi','fo'])
+                        <tr>
+                            <td>Nomor Surat</td>
+                            <td id="detail-no"></td>
+                        </tr>
+                        <tr>
+                            <td>Catatan</td>
+                            <td id="detail-catatan"></td>
+                        </tr>
+                        <tr>
+                            <td>Tanggal Diproses</td>
+                            <td id="detail-proses"></td>
+                        </tr>
+                        <tr>
+                            <td>Status Ajuan</td>
+                            <td>: <button id="detail-status"></button></td>
+                        </tr>
+                        @endcanany
                     </table>
                 </div>
             </div>
             <div class="modal-footer d-flex justify-content-end">
+                @canany(['staff','dekanat','subkoor','adminprodi','fo'])
+                <button class="btn btn-success btn-proses" id="tombol-proses" data-id="" hidden><i class="fa fa-file-pen"></i> Proses</button>
+                @endcanany
             </div>
         </div>
     </div>

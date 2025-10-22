@@ -98,7 +98,6 @@
                                             <th>Tanggal Submit</th>
                                             <th>Tanggal Proses</th>
                                             <th>Status</th>
-                                            <th>Antrian</th>
                                             <th>Catatan</th>
                                             <th>Aksi</th>
                                         @endcan
@@ -111,7 +110,6 @@
                                             <th>NIM</th>
                                             <th>No Surat</th>
                                             <th>Status</th>
-                                            <th>Antrian</th>
                                             <th>Catatan</th>
                                             <th>Aksi</th>
                                         @endcanany

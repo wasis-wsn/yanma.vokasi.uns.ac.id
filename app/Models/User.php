@@ -230,4 +230,24 @@ class User extends Authenticatable
     {
         return $this->hasMany(SuratTugas::class, 'user_id', 'id');
     }
+
+    /**
+     * Get all of the suratKeteranganAlumni for the User
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function suratKeteranganAlumni()
+    {
+        return $this->hasMany(SuratKeteranganAlumni::class, 'user_id', 'id');
+    }
+
+    /**
+     * Get all of the suratRekomendasi for the User
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function suratRekomendasi()
+    {
+        return $this->hasMany(SuratRekomendasi::class, 'user_id', 'id');
+    }
 }

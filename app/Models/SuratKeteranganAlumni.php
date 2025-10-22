@@ -13,18 +13,34 @@ class SuratKeteranganAlumni extends Model
     protected $table = 'surat_keterangan_alumni';
 
     protected $fillable = [
-        'nama',
-        'nim',
-        'program_studi',
+        'user_id',
         'nomor_ijazah',
         'tanggal_lulus',
         'file',
+        'status_id',
+        'no_surat',
+        'catatan',
+        'tanggal_proses',
+        'surat_hasil',
     ];
 
     protected $dates = [
         'tanggal_lulus',
+        'tanggal_proses',
         'created_at',
         'updated_at',
         'deleted_at',
     ];
+
+    // Relasi dengan User
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
+    // Relasi dengan Status
+    public function status()
+    {
+        return $this->belongsTo(StatusKemahasiswaan::class, 'status_id');
+    }
 }

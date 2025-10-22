@@ -2,110 +2,469 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Layanan;
 use App\Models\SuratRekomendasi;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\Rule;
+use App\Models\Tahun;
+use App\Models\Template;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use Yajra\DataTables\Facades\DataTables;
 
 class SuratRekomendasiController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return view('pages.surat_rekomendasi.index');
+        $layanan = Layanan::where('url_mhs', $request->url())->orWhere('url_staff', $request->url())->first();
+        $ajuan = $this->canStore();
+        $tahuns = Tahun::select('tahun')->orderBy('tahun', 'desc')->get();
+        $templates = Template::where('layanan_id', $layanan->id)->get();
+        $status = \App\Models\StatusKemahasiswaan::all();
+
+        return view('pages.surat_rekomendasi.index', compact('ajuan', 'layanan', 'tahuns', 'templates', 'status'));
+    }
+
+    private function canStore()
+    {
+        // Check if user already has a pending or approved request
+        if (!is_null(auth()->user()->suratRekomendasi)) return false;
+        return true;
+    }
+
+    public function list(Request $request)
+    {
+        $data = SuratRekomendasi::with('user.prodis')
+            ->whereYear('created_at', $request->year)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return DataTables::of($data)
+            ->addIndexColumn()
+            ->addColumn('nama', function ($row) {
+                return $row->user ? $row->user->name : '-';
+            })
+            ->addColumn('nim', function ($row) {
+                return $row->user ? $row->user->nim : '-';
+            })
+            ->addColumn('program_studi', function ($row) {
+                return $row->user && $row->user->prodis ? $row->user->prodis->nama : '-';
+            })
+            ->editColumn('nomor_ijazah', function ($row) {
+                return $row->nomor_ijazah ?? '-';
+            })
+            ->addColumn('action', function ($row) {
+                $aksi = '<button type="button" class="btn btn-primary btn-sm btn-detail" data-id="' . encodeId($row->id) . '"><i class="fas fa-eye"></i></button>';
+                $aksi .= ' <button type="button" class="btn btn-warning btn-sm btn-edit" data-id="' . encodeId($row->id) . '"><i class="fas fa-edit"></i></button>';
+
+                return $aksi;
+            })
+            ->editColumn('tanggal_submit', function ($row) {
+                return Carbon::parse($row->created_at)->translatedFormat('d F Y') . '<br/>' . Carbon::parse($row->created_at)->translatedFormat('H:i:s') . ' WIB';
+            })
+            ->editColumn('tanggal_lulus', function ($row) {
+                return $row->tanggal_lulus ? Carbon::parse($row->tanggal_lulus)->translatedFormat('d F Y') : '';
+            })
+            ->editColumn('file', function ($row) {
+                if ($row->file) {
+                    return '<a href="' . Storage::url($row->file) . '" target="_blank" class="btn btn-info btn-sm"><i class="fas fa-download"></i> Download</a>';
+                }
+                return '-';
+            })
+            ->rawColumns(['action', 'tanggal_submit', 'tanggal_lulus', 'file'])
+            ->toJson();
+    }
+
+    public function listStaff(Request $request)
+    {
+        $data = SuratRekomendasi::with('user.prodis')
+            ->whereYear('created_at', $request->year)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return DataTables::of($data)
+            ->addIndexColumn()
+            ->addColumn('nama', function ($row) {
+                return $row->user ? $row->user->name : '-';
+            })
+            ->addColumn('nim', function ($row) {
+                return $row->user ? $row->user->nim : '-';
+            })
+            ->addColumn('program_studi', function ($row) {
+                return $row->user && $row->user->prodis ? $row->user->prodis->nama : '-';
+            })
+            ->editColumn('nomor_ijazah', function ($row) {
+                return $row->nomor_ijazah ?? '-';
+            })
+            ->addColumn('action', function ($row) {
+                $aksi = '<button type="button" class="btn btn-primary btn-sm btn-detail" data-id="' . encodeId($row->id) . '"><i class="fas fa-eye"></i></button>';
+                $aksi .= ' <button type="button" class="btn btn-warning btn-sm btn-edit" data-id="' . encodeId($row->id) . '"><i class="fas fa-edit"></i></button>';
+                return $aksi;
+            })
+            ->editColumn('tanggal_submit', function ($row) {
+                return Carbon::parse($row->created_at)->translatedFormat('d F Y') . '<br/>' . Carbon::parse($row->created_at)->translatedFormat('H:i:s') . ' WIB';
+            })
+            ->editColumn('tanggal_lulus', function ($row) {
+                return $row->tanggal_lulus ? Carbon::parse($row->tanggal_lulus)->translatedFormat('d F Y') : '';
+            })
+            ->editColumn('file', function ($row) {
+                if ($row->file) {
+                    return '<a href="' . Storage::url($row->file) . '" target="_blank" class="btn btn-info btn-sm"><i class="fas fa-download"></i> Download</a>';
+                }
+                return '-';
+            })
+            ->rawColumns(['action', 'tanggal_submit', 'tanggal_lulus', 'file'])
+            ->toJson();
+    }
+
+    public function listMahasiswa(Request $request)
+    {
+        $userId = Auth::id();
+        $data = SuratRekomendasi::with('user.prodis')
+            ->whereHas('user', function ($query) use ($userId) {
+                $query->where('id', $userId);
+            })
+            ->whereYear('created_at', $request->year)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return DataTables::of($data)
+            ->addIndexColumn()
+            ->addColumn('nama', function ($row) {
+                return $row->user ? $row->user->name : '-';
+            })
+            ->addColumn('nim', function ($row) {
+                return $row->user ? $row->user->nim : '-';
+            })
+            ->addColumn('program_studi', function ($row) {
+                return $row->user && $row->user->prodis ? $row->user->prodis->nama : '-';
+            })
+            ->editColumn('nomor_ijazah', function ($row) {
+                return $row->nomor_ijazah ?? '-';
+            })
+            ->addColumn('action', function ($row) {
+                $aksi = '<button type="button" class="btn btn-primary btn-sm btn-detail" data-id="' . encodeId($row->id) . '"><i class="fas fa-eye"></i></button>';
+                return $aksi;
+            })
+            ->editColumn('tanggal_submit', function ($row) {
+                return Carbon::parse($row->created_at)->translatedFormat('d F Y') . '<br/>' . Carbon::parse($row->created_at)->translatedFormat('H:i:s') . ' WIB';
+            })
+            ->editColumn('tanggal_lulus', function ($row) {
+                return $row->tanggal_lulus ? Carbon::parse($row->tanggal_lulus)->translatedFormat('d F Y') : '';
+            })
+            ->editColumn('file', function ($row) {
+                if ($row->file) {
+                    return '<a href="' . Storage::url($row->file) . '" target="_blank" class="btn btn-info btn-sm"><i class="fas fa-download"></i> Download</a>';
+                }
+                return '-';
+            })
+            ->rawColumns(['action', 'tanggal_submit', 'tanggal_lulus', 'file'])
+            ->toJson();
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'nama' => ['required', 'string'],
-            'nim' => ['required', 'string'],
-            'program_studi' => ['required', 'string'],
-            'nomor_ijazah' => ['nullable', 'string'],
+            'nomor_ijazah' => ['required', 'string', 'max:100'],
             'tanggal_lulus' => ['required', 'date'],
-            'file' => ['nullable', 'file', 'mimes:pdf', 'max:10240'],
+            'file' => ['nullable', 'file', 'mimes:pdf', 'max:2048'],
+        ], [
+            'required' => ':attribute wajib diisi!',
+            'string' => ':attribute harus berupa teks!',
+            'max' => ':attribute maksimal :max karakter!',
+            'date' => ':attribute harus berupa tanggal yang valid!',
+            'mimes' => ':attribute harus berformat PDF!',
+            'file.max' => 'Ukuran :attribute maksimal 2MB!',
+        ], [
+            'nomor_ijazah' => 'Nomor Ijazah',
+            'tanggal_lulus' => 'Tanggal Lulus',
+            'file' => 'File',
         ]);
 
         try {
-            $fileName = null;
+            $data = $request->only(['nomor_ijazah', 'tanggal_lulus']);
+            $data['user_id'] = Auth::id();
+
             if ($request->hasFile('file')) {
-                $fileName = 'SREK-' . time() . '-' . uniqid() . '.pdf';
-                $request->file->storeAs('surat_rekomendasi/', $fileName, 'public');
+                $file = $request->file('file');
+                $filename = time() . '_' . $file->getClientOriginalName();
+                $path = $file->storeAs('surat_rekomendasi', $filename, 'public');
+                $data['file'] = $path;
             }
 
-            $record = SuratRekomendasi::create([
-                'nama' => $request->nama,
-                'nim' => $request->nim,
-                'program_studi' => $request->program_studi,
-                'nomor_ijazah' => $request->nomor_ijazah,
-                'tanggal_lulus' => Carbon::parse($request->tanggal_lulus)->toDateString(),
-                'file' => $fileName,
-            ]);
+            SuratRekomendasi::create($data);
 
-            return response()->json(['status' => true, 'data' => $record], 201);
+            return response()->json([
+                'status' => true,
+                'message' => 'Data berhasil disimpan!'
+            ], 200);
         } catch (\Throwable $th) {
-            return response()->json(['status' => false, 'message' => 'Terjadi Kesalahan'], 500);
+            Log::error('Store error: ' . $th->getMessage());
+            return response()->json([
+                'status' => false,
+                'message' => 'Terjadi kesalahan saat menyimpan data!'
+            ], 500);
         }
     }
 
     public function show($id)
     {
-        $record = SuratRekomendasi::findOrFail($id);
-        return response()->json(['status' => true, 'data' => $record], 200);
+        try {
+            $id = decodeId($id);
+            $data = SuratRekomendasi::with('user.prodis', 'status')->where('id', $id)->first();
+
+            if (!$data) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Data tidak ditemukan'
+                ], 404);
+            }
+
+            return response()->json([
+                'status' => true,
+                'data' => $data
+            ], 200);
+        } catch (\Throwable $th) {
+            Log::error('Show error: ' . $th->getMessage());
+            return response()->json([
+                'status' => false,
+                'message' => 'Terjadi kesalahan'
+            ], 500);
+        }
     }
 
     public function update(Request $request, $id)
     {
         $request->validate([
-            'nama' => ['required', 'string'],
-            'nim' => ['required', 'string'],
-            'program_studi' => ['required', 'string'],
-            'nomor_ijazah' => ['nullable', 'string'],
+            'nomor_ijazah' => ['required', 'string', 'max:100'],
             'tanggal_lulus' => ['required', 'date'],
-            'file' => ['nullable', 'file', 'mimes:pdf', 'max:10240'],
+            'file' => ['nullable', 'file', 'mimes:pdf', 'max:2048'],
+        ], [
+            'required' => ':attribute wajib diisi!',
+            'string' => ':attribute harus berupa teks!',
+            'max' => ':attribute maksimal :max karakter!',
+            'date' => ':attribute harus berupa tanggal yang valid!',
+            'mimes' => ':attribute harus berformat PDF!',
+            'file.max' => 'Ukuran :attribute maksimal 2MB!',
+        ], [
+            'nomor_ijazah' => 'Nomor Ijazah',
+            'tanggal_lulus' => 'Tanggal Lulus',
+            'file' => 'File',
         ]);
 
         try {
-            $record = SuratRekomendasi::findOrFail($id);
+            $id = decodeId($id);
+            $surat = SuratRekomendasi::findOrFail($id);
+
+            $data = $request->only(['nomor_ijazah', 'tanggal_lulus']);
 
             if ($request->hasFile('file')) {
-                $fileName = 'SREK-' . time() . '-' . uniqid() . '.pdf';
-                $request->file->storeAs('surat_rekomendasi/', $fileName, 'public');
-                if ($record->file) Storage::disk('public')->delete('surat_rekomendasi/' . $record->file);
-                $record->file = $fileName;
+                // Delete old file if exists
+                if ($surat->file && Storage::disk('public')->exists($surat->file)) {
+                    Storage::disk('public')->delete($surat->file);
+                }
+
+                $file = $request->file('file');
+                $filename = time() . '_' . $file->getClientOriginalName();
+                $path = $file->storeAs('surat_rekomendasi', $filename, 'public');
+                $data['file'] = $path;
             }
 
-            $record->update([
-                'nama' => $request->nama,
-                'nim' => $request->nim,
-                'program_studi' => $request->program_studi,
-                'nomor_ijazah' => $request->nomor_ijazah,
-                'tanggal_lulus' => Carbon::parse($request->tanggal_lulus)->toDateString(),
-            ]);
+            $surat->update($data);
 
-            return response()->json(['status' => true, 'data' => $record], 200);
+            return response()->json([
+                'status' => true,
+                'message' => 'Data berhasil diperbarui!'
+            ], 200);
         } catch (\Throwable $th) {
-            return response()->json(['status' => false, 'message' => 'Terjadi Kesalahan'], 500);
+            Log::error('Update error: ' . $th->getMessage());
+            return response()->json([
+                'status' => false,
+                'message' => 'Terjadi kesalahan saat memperbarui data!'
+            ], 500);
         }
     }
 
     public function destroy($id)
     {
         try {
-            $record = SuratRekomendasi::findOrFail($id);
-            if ($record->file) Storage::disk('public')->delete('surat_rekomendasi/' . $record->file);
-            $record->delete();
-            return response()->json(['status' => true, 'message' => 'Data dihapus'], 200);
+            $id = decodeId($id);
+            $surat = SuratRekomendasi::findOrFail($id);
+
+            // Delete file if exists
+            if ($surat->file && Storage::disk('public')->exists($surat->file)) {
+                Storage::disk('public')->delete($surat->file);
+            }
+
+            $surat->delete();
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Data berhasil dihapus!'
+            ], 200);
         } catch (\Throwable $th) {
-            return response()->json(['status' => false, 'message' => 'Terjadi Kesalahan'], 500);
+            Log::error('Delete error: ' . $th->getMessage());
+            return response()->json([
+                'status' => false,
+                'message' => 'Terjadi kesalahan saat menghapus data!'
+            ], 500);
         }
     }
 
-    public function downloadFile($id)
+    public function proses(Request $request, $id)
     {
-        $record = SuratRekomendasi::findOrFail($id);
-        if (!$record->file) return response()->json(['status' => false, 'message' => 'File tidak ditemukan'], 404);
-        return response()->download(storage_path('app/public/surat_rekomendasi/' . $record->file));
+        $request->validate([
+            'status_id' => ['required'],
+            'no_surat' => \Illuminate\Validation\Rule::requiredIf(function () use ($request) {
+                return in_array($request->status_id, ['5', '6']);
+            }),
+            'file' => ['required_if:status_id,9'],
+            'catatan' => \Illuminate\Validation\Rule::requiredIf(function () use ($request) {
+                return in_array($request->status_id, ['3', '7', '8']);
+            })
+        ], [
+            'required' => ':attribute harus diisi!',
+            'required_if' => ':attribute harus diisi!'
+        ]);
+
+        try {
+            $id = decodeId($id);
+            $ajuan = SuratRekomendasi::with('user.prodis', 'status')->findOrFail($id);
+
+            $data_update = [
+                'no_surat' => $ajuan->no_surat,
+                'status_id' => $request->status_id,
+                'catatan' => $request->catatan,
+                'surat_hasil' => $ajuan->surat_hasil,
+                'tanggal_proses' => new \DateTime(),
+            ];
+
+            $message = '';
+
+            // ajuan diproses
+            if (in_array($request->status_id, ['5', '6'])) {
+                $data_update['no_surat'] = $request->no_surat;
+                $message = 'Ajuan Berhasil Diproses!';
+            } elseif (in_array($request->status_id, ['7', '8'])) { //status ditolak
+                // Hapus file upload jika ajuan ditolak
+                if ($ajuan->file) {
+                    Storage::disk('public')->delete($ajuan->file);
+                }
+                $message = 'Ajuan Berhasil Ditolak!';
+            } elseif ($request->status_id == '9') { //status selesai
+                // Hapus file upload
+                if ($ajuan->file) {
+                    Storage::disk('public')->delete($ajuan->file);
+                }
+                // Upload surat hasil jika ajuan telah selesai
+                $fileName = $ajuan->user->nim . '-' . $ajuan->user->name . '-SR-' . time() . '.pdf';
+                $request->file->storeAs('surat_rekomendasi/hasil/', $fileName, 'public');
+                $data_update['surat_hasil'] = $fileName;
+                $message = 'Ajuan telah selesai!';
+            }
+
+            $ajuan->update($data_update);
+
+            return response()->json([
+                'status' => true,
+                'message' => $message,
+                'status_id' => $request->status_id
+            ], 200);
+
+        } catch (\Throwable $th) {
+            Log::error('Proses error: ' . $th->getMessage());
+            return response()->json([
+                'status' => false,
+                'message' => $th->getMessage()
+            ], 500);
+        }
+    }
+
+    public function revisi(Request $request, $id)
+    {
+        $request->validate([
+            'tanggal_lulus' => ['required', 'date'],
+            'nomor_ijazah' => ['required', 'string'],
+            'file' => ['nullable', 'file', 'mimes:pdf', 'max:2048'],
+        ], [
+            'required' => ':attribute wajib diisi!',
+            'date' => ':attribute harus berupa tanggal yang valid!',
+            'file.mimes' => ':attribute harus berformat PDF!',
+            'file.max' => 'Ukuran :attribute maksimal 2MB!',
+        ], [
+            'tanggal_lulus' => 'Tanggal Lulus',
+            'nomor_ijazah' => 'Nomor Ijazah',
+            'file' => 'File',
+        ]);
+
+        try {
+            $id = decodeId($id);
+            $data = SuratRekomendasi::findOrFail($id);
+
+            $data_update = [
+                'tanggal_lulus' => $request->tanggal_lulus,
+                'nomor_ijazah' => $request->nomor_ijazah,
+            ];
+
+            // Handle file upload if provided
+            if ($request->hasFile('file')) {
+                // Delete old file if exists
+                if ($data->file) {
+                    Storage::disk('public')->delete($data->file);
+                }
+
+                $file = $request->file('file');
+                $fileName = time() . '_' . $file->getClientOriginalName();
+                $filePath = $file->storeAs('surat_rekomendasi/upload', $fileName, 'public');
+                $data_update['file'] = $filePath;
+            }
+
+            $data->update($data_update);
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Data berhasil diperbarui'
+            ], 200);
+
+        } catch (\Throwable $th) {
+            Log::error('Revisi error: ' . $th->getMessage());
+            return response()->json([
+                'status' => false,
+                'message' => 'Terjadi kesalahan saat memperbarui data'
+            ], 500);
+        }
+    }
+
+    public function export(Request $request)
+    {
+        $request->validate([
+            'tahun' => ['required']
+        ], [
+            'required' => ':attribute wajib diisi',
+        ], [
+            'tahun' => 'Tahun'
+        ]);
+
+        $tahun = $request->tahun;
+        $name = 'Rekap_Surat_Rekomendasi_Tahun_' . $tahun;
+
+        try {
+            $export = new \App\Exports\SuratRekomendasiExport($tahun);
+
+            return Excel::download($export, $name . '.xlsx', \Maatwebsite\Excel\Excel::XLSX, [
+                'Content-Disposition' => 'attachment; filename="' . $name . '.xlsx"'
+            ]);
+
+        } catch (\Exception $e) {
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Gagal export data: ' . $e->getMessage()
+                ], 500);
+            }
+
+            return back()->with('error', 'Gagal export data: ' . $e->getMessage());
+        }
     }
 }

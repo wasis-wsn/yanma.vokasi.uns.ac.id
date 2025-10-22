@@ -13,9 +13,7 @@ return new class extends Migration
     {
         Schema::create('surat_keterangan_alumni', function (Blueprint $table) {
             $table->id();
-            $table->string('nama');
-            $table->string('nim');
-            $table->string('program_studi');
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->string('nomor_ijazah')->nullable();
             $table->date('tanggal_lulus');
             $table->string('file')->nullable();

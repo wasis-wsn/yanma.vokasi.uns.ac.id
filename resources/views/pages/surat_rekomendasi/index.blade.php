@@ -38,11 +38,9 @@
                             @include('pages.surat_rekomendasi.modal_tambah')
                             @include('pages.surat_rekomendasi.modal_edit')
                         @endcan
-                        @canany(['staff','dekanat','subkoor','fo'])
-                            <div class="d-flex justify-content-start pb-4">
-                                <button type="button" class="btn btn-success mx-2" id="btn-export">Export Data</button>
-                            </div>
+                        @canany(['staff','dekanat','subkoor','adminprodi','fo'])
                             @include('modals.proses')
+                            @include('pages.surat_rekomendasi.modal_edit')
                         @endcanany
                         @include('pages.surat_rekomendasi.modal_detail')
 
@@ -51,27 +49,27 @@
                                 <thead>
                                     <tr>
                                         @can('mahasiswa')
-                                            <th>No</th>
-                                            <th>Keperluan Surat</th>
-                                            <th>Tanggal Submit</th>
-                                            <th>Status</th>
-                                            <th>Antrian</th>
-                                            <th>Catatan</th>
-                                            <th>Tanggal Proses</th>
-                                            <th>Aksi</th>
-                                        @endcan
-                                        @canany(['staff','dekanat','subkoor','adminprodi','fo'])
-                                            <th hidden>created_at</th>
+                                            <th style="display:none;">Created At</th>
                                             <th>No</th>
                                             <th>Nama</th>
                                             <th>NIM</th>
+                                            <th>Program Studi</th>
+                                            <th>Tanggal Lulus</th>
+                                            <th>Nomor Ijazah</th>
                                             <th>Tanggal Submit</th>
-                                            <th>Tanggal Proses</th>
-                                            <th>Keperluan Surat</th>
-                                            <th>No Surat</th>
-                                            <th>Status</th>
-                                            <th>Antrian</th>
-                                            <th>Catatan</th>
+                                            <th>File</th>
+                                            <th>Aksi</th>
+                                        @endcan
+                                        @canany(['staff','dekanat','subkoor','adminprodi','fo'])
+                                            <th style="display:none;">Created At</th>
+                                            <th>No</th>
+                                            <th>Nama</th>
+                                            <th>NIM</th>
+                                            <th>Program Studi</th>
+                                            <th>Tanggal Lulus</th>
+                                            <th>Nomor Ijazah</th>
+                                            <th>Tanggal Submit</th>
+                                            <th>File</th>
                                             <th>Aksi</th>
                                         @endcanany
                                     </tr>
@@ -91,15 +89,28 @@
 
 @push('js')
     <script>
-        window.Laravel = {!! json_encode([
-            'baseUrl' => url('/'),
-            'listData' => route('suratRekomendasi.index'),
-            'store' => route('suratRekomendasi.store'),
-            'revisi' => route('suratRekomendasi.update', ':id'),
-            'getData' => route('suratRekomendasi.show', ':id'),
-            'deleteData' => route('suratRekomendasi.destroy', ':id'),
-            'download' => route('suratRekomendasi.download', ':id'),
-        ]) !!};
+        // Set role-specific list endpoints so DataTables requests the JSON list instead of loading the HTML index route
+        @can('mahasiswa')
+            window.Laravel = {!! json_encode([
+                'baseUrl' => url('/'),
+                'listData' => route('suratRekomendasi.listMahasiswa'),
+                'store' => route('suratRekomendasi.store'),
+                'revisi' => route('suratRekomendasi.update', ':id'),
+                'getData' => route('suratRekomendasi.show', ':id'),
+                'deleteData' => route('suratRekomendasi.destroy', ':id'),
+            ]) !!};
+        @endcan
+        @canany(['staff','dekanat','subkoor','adminprodi','fo'])
+            window.Laravel = {!! json_encode([
+                'baseUrl' => url('/'),
+                'listData' => route('suratRekomendasi.listStaff'),
+                'store' => route('suratRekomendasi.store'),
+                'revisi' => route('suratRekomendasi.revisi', ':id'),
+                'getData' => route('suratRekomendasi.show', ':id'),
+                'deleteData' => route('suratRekomendasi.destroy', ':id'),
+                'routeProses' => route('suratRekomendasi.proses', ':id'),
+            ]) !!};
+        @endcanany
     </script>
     @can('mahasiswa')
         <script src="{{ asset('custom/js/surat_rekomendasi/mahasiswa.js') }}"></script>

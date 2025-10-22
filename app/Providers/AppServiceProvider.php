@@ -33,18 +33,34 @@ class AppServiceProvider extends ServiceProvider
 
     private function cekTahun()
     {
-        $tahun = date('Y');
-        $cek = Tahun::where('tahun', $tahun)->first();
-        if (!$cek) {
-            Tahun::create(['tahun' => $tahun]);
+        try {
+            if (!\Illuminate\Support\Facades\Schema::hasTable('tahuns')) {
+                return;
+            }
+
+            $tahun = date('Y');
+            $cek = Tahun::where('tahun', $tahun)->first();
+            if (!$cek) {
+                Tahun::create(['tahun' => $tahun]);
+            }
+        } catch (\Exception $e) {
+            // Skip jika ada error
         }
     }
 
     private function cekTahunAkademik() {
-        $tahunAkademik = (string)date('Y') . '/' . (string)(date('Y') + 1);
-        $cek = TahunAkademik::where('tahun_akademik', $tahunAkademik)->first();
-        if (!$cek) {
-            TahunAkademik::create(['tahun_akademik' => $tahunAkademik]);
+        try {
+            if (!\Illuminate\Support\Facades\Schema::hasTable('tahun_akademik')) {
+                return;
+            }
+
+            $tahunAkademik = (string)date('Y') . '/' . (string)(date('Y') + 1);
+            $cek = TahunAkademik::where('tahun_akademik', $tahunAkademik)->first();
+            if (!$cek) {
+                TahunAkademik::create(['tahun_akademik' => $tahunAkademik]);
+            }
+        } catch (\Exception $e) {
+            // Skip jika ada error
         }
     }
 

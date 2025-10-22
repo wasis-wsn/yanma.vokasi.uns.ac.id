@@ -40,11 +40,9 @@
                             @include('pages.surat_keterangan_alumni.modal_tambah')
                             @include('pages.surat_keterangan_alumni.modal_edit')
                         @endcan
-                        @canany(['staff','dekanat','subkoor','fo'])
-                            <div class="d-flex justify-content-start pb-4">
-                                <button type="button" class="btn btn-success mx-2" id="btn-export">Export Data</button>
-                            </div>
+                        @canany(['staff','dekanat','subkoor','adminprodi','fo'])
                             @include('modals.proses')
+                            @include('pages.surat_keterangan_alumni.modal_edit')
                         @endcanany
                         @include('pages.surat_keterangan_alumni.modal_detail')
 
@@ -52,31 +50,33 @@
                             <table id="ska-datatable" class="table table-striped" width="100%">
                                 <thead>
                                     <tr>
-                                        @can('mahasiswa')
-                                            <th>No</th>
-                                            <th>Keperluan Surat</th>
-                                            <th>Tanggal Submit</th>
-                                            <th>Status</th>
-                                            <th>Antrian</th>
-                                            <th>Catatan</th>
-                                            <th>Tanggal Proses</th>
-                                            <th>Aksi</th>
-                                        @endcan
-                                        @canany(['staff','dekanat','subkoor','adminprodi','fo'])
-                                            <th hidden>created_at</th>
-                                            <th>No</th>
-                                            <th>Nama</th>
-                                            <th>NIM</th>
-                                            <th>Tanggal Submit</th>
-                                            <th>Tanggal Proses</th>
-                                            <th>Keperluan Surat</th>
-                                            <th>No Surat</th>
-                                            <th>Status</th>
-                                            <th>Antrian</th>
-                                            <th>Catatan</th>
-                                            <th>Aksi</th>
-                                        @endcanany
-                                    </tr>
+    @can('mahasiswa')
+        <th style="display:none;">Created At</th>
+        <th>No</th>
+        <th>Nama</th>
+        <th>NIM</th>
+        <th>Program Studi</th>
+        <th>Tanggal Lulus</th>
+        <th>Nomor Ijazah</th>
+        <th>Tanggal Submit</th>
+        <th>File</th>
+        <th>Aksi</th>
+    @endcan
+
+    @canany(['staff','dekanat','subkoor','adminprodi','fo'])
+        <th style="display:none;">Created At</th>
+        <th>No</th>
+        <th>Nama</th>
+        <th>NIM</th>
+        <th>Program Studi</th>
+        <th>Tanggal Lulus</th>
+        <th>Nomor Ijazah</th>
+        <th>Tanggal Submit</th>
+        <th>File</th>
+        <th>Aksi</th>
+    @endcanany
+</tr>
+
                                 </thead>
                                 <tbody id="show_data">
                                 </tbody>
@@ -93,15 +93,28 @@
 
 @push('js')
     <script>
-        window.Laravel = {!! json_encode([
-            'baseUrl' => url('/'),
-            'listData' => route('suratKeteranganAlumni.index'),
-            'store' => route('suratKeteranganAlumni.store'),
-            'revisi' => route('suratKeteranganAlumni.update', ':id'),
-            'getData' => route('suratKeteranganAlumni.show', ':id'),
-            'deleteData' => route('suratKeteranganAlumni.destroy', ':id'),
-            'download' => route('suratKeteranganAlumni.download', ':id'),
-        ]) !!};
+        // Set role-specific list endpoints so DataTables requests the JSON list instead of loading the HTML index route
+        @can('mahasiswa')
+            window.Laravel = {!! json_encode([
+                'baseUrl' => url('/'),
+                'listData' => route('suketAlumni.listMahasiswa'),
+                'store' => route('suketAlumni.store'),
+                'revisi' => route('suketAlumni.update', ':id'),
+                'getData' => route('suketAlumni.show', ':id'),
+                'deleteData' => route('suketAlumni.destroy', ':id'),
+            ]) !!};
+        @endcan
+        @canany(['staff','dekanat','subkoor','adminprodi','fo'])
+            window.Laravel = {!! json_encode([
+                'baseUrl' => url('/'),
+                'listData' => route('suketAlumni.listStaff'),
+                'store' => route('suketAlumni.store'),
+                'revisi' => route('suketAlumni.revisi', ':id'),
+                'getData' => route('suketAlumni.show', ':id'),
+                'deleteData' => route('suketAlumni.destroy', ':id'),
+                'routeProses' => route('suketAlumni.proses', ':id'),
+            ]) !!};
+        @endcanany
     </script>
     @can('mahasiswa')
         <script src="{{ asset('custom/js/surat_keterangan_alumni/mahasiswa.js') }}"></script>

@@ -485,24 +485,30 @@ Route::middleware('auth')->group(function () {
         Route::post('/proses/{id}', [LegalisirController::class, 'proses'])->name('proses')->middleware('role:fo');
     });
 
-    // Routes for Surat Keterangan Alumni (CRUD)
-    Route::name('suratKeteranganAlumni.')->prefix('suratKeteranganAlumni')->group(function () {
-        Route::get('/', [SuratKeteranganAlumniController::class, 'index'])->name('index')->middleware('role:staff,mahasiswa');
-        Route::post('/store', [SuratKeteranganAlumniController::class, 'store'])->name('store')->middleware('role:mahasiswa,staff');
-        Route::get('/{id}', [SuratKeteranganAlumniController::class, 'show'])->name('show')->middleware('role:staff,mahasiswa');
-        Route::post('/{id}', [SuratKeteranganAlumniController::class, 'update'])->name('update')->middleware('role:mahasiswa,staff');
+    Route::name('suketAlumni.')->prefix('suketAlumni')->group(function () {
+        Route::get('/', [SuratKeteranganAlumniController::class, 'index'])->name('index')->middleware('role:mahasiswa,staff,dekanat,subkoor,fo,adminprodi');
+        Route::get('/list', [SuratKeteranganAlumniController::class, 'list'])->name('list')->middleware('role:staff');
+        Route::get('/listMahasiswa', [SuratKeteranganAlumniController::class, 'listMahasiswa'])->name('listMahasiswa')->middleware('role:mahasiswa');
+        Route::get('/listStaff', [SuratKeteranganAlumniController::class, 'listStaff'])->name('listStaff')->middleware('role:staff,dekanat,subkoor,fo,adminprodi');
+        Route::post('/', [SuratKeteranganAlumniController::class, 'store'])->name('store')->middleware('role:mahasiswa,staff');
+        Route::get('/show/{id}', [SuratKeteranganAlumniController::class, 'show'])->name('show')->middleware('role:mahasiswa,staff,dekanat,subkoor,fo,adminprodi');
+        Route::post('/proses/{id}', [SuratKeteranganAlumniController::class, 'proses'])->name('proses')->middleware('role:staff,dekanat,subkoor,fo,adminprodi');
+        Route::put('/revisi/{id}', [SuratKeteranganAlumniController::class, 'revisi'])->name('revisi')->middleware('role:staff,dekanat,subkoor,fo,adminprodi');
+        Route::post('/update/{id}', [SuratKeteranganAlumniController::class, 'update'])->name('update')->middleware('role:staff');
         Route::delete('/{id}', [SuratKeteranganAlumniController::class, 'destroy'])->name('destroy')->middleware('role:mahasiswa,staff');
-        Route::get('/{id}/download', [SuratKeteranganAlumniController::class, 'downloadFile'])->name('download')->middleware('role:staff,mahasiswa');
     });
 
-    // Routes for Surat Rekomendasi (CRUD)
     Route::name('suratRekomendasi.')->prefix('suratRekomendasi')->group(function () {
-        Route::get('/', [SuratRekomendasiController::class, 'index'])->name('index')->middleware('role:staff,mahasiswa');
-        Route::post('/store', [SuratRekomendasiController::class, 'store'])->name('store')->middleware('role:mahasiswa,staff');
-        Route::get('/{id}', [SuratRekomendasiController::class, 'show'])->name('show')->middleware('role:staff,mahasiswa');
-        Route::post('/{id}', [SuratRekomendasiController::class, 'update'])->name('update')->middleware('role:mahasiswa,staff');
+        Route::get('/', [SuratRekomendasiController::class, 'index'])->name('index')->middleware('role:mahasiswa,staff,dekanat,subkoor,fo,adminprodi');
+        Route::get('/list', [SuratRekomendasiController::class, 'list'])->name('list')->middleware('role:staff');
+        Route::get('/listMahasiswa', [SuratRekomendasiController::class, 'listMahasiswa'])->name('listMahasiswa')->middleware('role:mahasiswa');
+        Route::get('/listStaff', [SuratRekomendasiController::class, 'listStaff'])->name('listStaff')->middleware('role:staff,dekanat,subkoor,fo,adminprodi');
+        Route::post('/', [SuratRekomendasiController::class, 'store'])->name('store')->middleware('role:mahasiswa,staff');
+        Route::get('/show/{id}', [SuratRekomendasiController::class, 'show'])->name('show')->middleware('role:mahasiswa,staff,dekanat,subkoor,fo,adminprodi');
+        Route::post('/proses/{id}', [SuratRekomendasiController::class, 'proses'])->name('proses')->middleware('role:staff,dekanat,subkoor,fo,adminprodi');
+        Route::put('/revisi/{id}', [SuratRekomendasiController::class, 'revisi'])->name('revisi')->middleware('role:staff,dekanat,subkoor,fo,adminprodi');
+        Route::post('/update/{id}', [SuratRekomendasiController::class, 'update'])->name('update')->middleware('role:staff');
         Route::delete('/{id}', [SuratRekomendasiController::class, 'destroy'])->name('destroy')->middleware('role:mahasiswa,staff');
-        Route::get('/{id}/download', [SuratRekomendasiController::class, 'downloadFile'])->name('download')->middleware('role:staff,mahasiswa');
     });
 
 });
