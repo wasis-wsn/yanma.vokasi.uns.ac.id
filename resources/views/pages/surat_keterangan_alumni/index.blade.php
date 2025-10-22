@@ -58,6 +58,7 @@
         <th>Program Studi</th>
         <th>Tanggal Lulus</th>
         <th>Nomor Ijazah</th>
+        <th>Status</th>
         <th>Tanggal Submit</th>
         <th>File</th>
         <th>Aksi</th>
@@ -71,6 +72,7 @@
         <th>Program Studi</th>
         <th>Tanggal Lulus</th>
         <th>Nomor Ijazah</th>
+        <th>Status</th>
         <th>Tanggal Submit</th>
         <th>File</th>
         <th>Aksi</th>
@@ -100,7 +102,6 @@
                 'listData' => route('suketAlumni.listMahasiswa'),
                 'store' => route('suketAlumni.store'),
                 'updateData' => route('suketAlumni.update', ':id'),
-                'revisi' => route('suketAlumni.update', ':id'),
                 'getData' => route('suketAlumni.show', ':id'),
                 'deleteData' => route('suketAlumni.destroy', ':id'),
             ]) !!};
@@ -110,7 +111,7 @@
                 'baseUrl' => url('/'),
                 'listData' => route('suketAlumni.listStaff'),
                 'store' => route('suketAlumni.store'),
-                'revisi' => route('suketAlumni.revisi', ':id'),
+                'updateData' => route('suketAlumni.update', ':id'),
                 'getData' => route('suketAlumni.show', ':id'),
                 'deleteData' => route('suketAlumni.destroy', ':id'),
                 'routeProses' => route('suketAlumni.proses', ':id'),

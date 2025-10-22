@@ -56,6 +56,7 @@
                                             <th>Program Studi</th>
                                             <th>Tanggal Lulus</th>
                                             <th>Nomor Ijazah</th>
+                                            <th>Status</th>
                                             <th>Tanggal Submit</th>
                                             <th>File</th>
                                             <th>Aksi</th>
@@ -68,6 +69,7 @@
                                             <th>Program Studi</th>
                                             <th>Tanggal Lulus</th>
                                             <th>Nomor Ijazah</th>
+                                            <th>Status</th>
                                             <th>Tanggal Submit</th>
                                             <th>File</th>
                                             <th>Aksi</th>
@@ -106,7 +108,7 @@
                 'baseUrl' => url('/'),
                 'listData' => route('suratRekomendasi.listStaff'),
                 'store' => route('suratRekomendasi.store'),
-                'revisi' => route('suratRekomendasi.revisi', ':id'),
+                'updateData' => route('suratRekomendasi.update', ':id'),
                 'getData' => route('suratRekomendasi.show', ':id'),
                 'deleteData' => route('suratRekomendasi.destroy', ':id'),
                 'routeProses' => route('suratRekomendasi.proses', ':id'),

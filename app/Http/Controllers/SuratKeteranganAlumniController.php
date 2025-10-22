@@ -7,6 +7,7 @@ use App\Models\SuratKeteranganAlumni;
 use App\Models\Tahun;
 use App\Models\Template;
 use App\Models\User;
+use App\Models\StatusAlumni;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -22,7 +23,7 @@ class SuratKeteranganAlumniController extends Controller
         $ajuan = $this->canStore();
         $tahuns = Tahun::select('tahun')->orderBy('tahun', 'desc')->get();
         $templates = Template::where('layanan_id', $layanan->id)->get();
-        $status = \App\Models\StatusKemahasiswaan::all();
+        $status = StatusAlumni::all();
 
         return view('pages.surat_keterangan_alumni.index', compact('ajuan', 'layanan', 'tahuns', 'templates', 'status'));
     }
@@ -37,13 +38,13 @@ class SuratKeteranganAlumniController extends Controller
 
     public function list(Request $request)
     {
-        $query = SuratKeteranganAlumni::with('user.prodis');
-        
+        $query = SuratKeteranganAlumni::with('user.prodis', 'status');
+
         // Only filter by year if provided
         if ($request->has('year') && $request->year) {
             $query->whereYear('created_at', $request->year);
         }
-        
+
         $data = $query->orderBy('created_at', 'desc')->get();
 
         return DataTables::of($data)
@@ -59,6 +60,12 @@ class SuratKeteranganAlumniController extends Controller
             })
             ->editColumn('nomor_ijazah', function ($row) {
                 return $row->nomor_ijazah ?? '-';
+            })
+            ->addColumn('status', function ($row) {
+                if ($row->status) {
+                    return '<span class="btn btn-sm ' . $row->status->color . '">' . $row->status->name . '</span>';
+                }
+                return '<span class="btn btn-sm btn-secondary">Belum Ada Status</span>';
             })
             ->addColumn('action', function ($row) {
                 $aksi = '<button type="button" class="btn btn-primary btn-sm btn-detail" data-id="' . encodeId($row->id) . '"><i class="fas fa-eye"></i></button>';
@@ -77,19 +84,19 @@ class SuratKeteranganAlumniController extends Controller
                 }
                 return '-';
             })
-            ->rawColumns(['action', 'tanggal_submit', 'tanggal_lulus', 'file'])
+            ->rawColumns(['action', 'tanggal_submit', 'tanggal_lulus', 'file', 'status'])
             ->toJson();
     }
 
     public function listStaff(Request $request)
     {
-        $query = SuratKeteranganAlumni::with('user.prodis');
-        
+        $query = SuratKeteranganAlumni::with('user.prodis', 'status');
+
         // Only filter by year if provided
         if ($request->has('year') && $request->year) {
             $query->whereYear('created_at', $request->year);
         }
-        
+
         $data = $query->orderBy('created_at', 'desc')->get();
 
         return DataTables::of($data)
@@ -105,6 +112,12 @@ class SuratKeteranganAlumniController extends Controller
             })
             ->editColumn('nomor_ijazah', function ($row) {
                 return $row->nomor_ijazah ?? '-';
+            })
+            ->addColumn('status', function ($row) {
+                if ($row->status) {
+                    return '<span class="btn btn-sm ' . $row->status->color . '">' . $row->status->name . '</span>';
+                }
+                return '<span class="btn btn-sm btn-secondary">Belum Ada Status</span>';
             })
             ->addColumn('action', function ($row) {
                 $aksi = '<button type="button" class="btn btn-primary btn-sm btn-detail" data-id="' . encodeId($row->id) . '"><i class="fas fa-eye"></i></button>';
@@ -123,23 +136,23 @@ class SuratKeteranganAlumniController extends Controller
                 }
                 return '-';
             })
-            ->rawColumns(['action', 'tanggal_submit', 'tanggal_lulus', 'file'])
+            ->rawColumns(['action', 'tanggal_submit', 'tanggal_lulus', 'file', 'status'])
             ->toJson();
     }
 
     public function listMahasiswa(Request $request)
     {
         $userId = Auth::id();
-        $query = SuratKeteranganAlumni::with('user.prodis')
+        $query = SuratKeteranganAlumni::with('user.prodis', 'status')
             ->whereHas('user', function ($query) use ($userId) {
                 $query->where('id', $userId);
             });
-        
+
         // Only filter by year if provided
         if ($request->has('year') && $request->year) {
             $query->whereYear('created_at', $request->year);
         }
-        
+
         $data = $query->orderBy('created_at', 'desc')->get();
 
         return DataTables::of($data)
@@ -155,6 +168,12 @@ class SuratKeteranganAlumniController extends Controller
             })
             ->editColumn('nomor_ijazah', function ($row) {
                 return $row->nomor_ijazah ?? '-';
+            })
+            ->addColumn('status', function ($row) {
+                if ($row->status) {
+                    return '<span class="btn btn-sm ' . $row->status->color . '">' . $row->status->name . '</span>';
+                }
+                return '<span class="btn btn-sm btn-secondary">Belum Ada Status</span>';
             })
             ->addColumn('action', function ($row) {
                 $aksi = '<button type="button" class="btn btn-primary btn-sm btn-detail" data-id="' . encodeId($row->id) . '"><i class="fas fa-eye"></i></button>';
@@ -172,7 +191,7 @@ class SuratKeteranganAlumniController extends Controller
                 }
                 return '-';
             })
-            ->rawColumns(['action', 'tanggal_submit', 'tanggal_lulus', 'file'])
+            ->rawColumns(['action', 'tanggal_submit', 'tanggal_lulus', 'file', 'status'])
             ->toJson();
     }
 
@@ -251,44 +270,101 @@ class SuratKeteranganAlumniController extends Controller
 
     public function update(Request $request, $id)
     {
-        $request->validate([
-            'permohonan' => ['required', 'string'],
-            'nomor_ijazah' => ['required', 'string', 'max:100'],
-            'tanggal_lulus' => ['required', 'date'],
-            'file' => ['nullable', 'file', 'mimes:pdf', 'max:2048'],
-        ], [
-            'required' => ':attribute wajib diisi!',
-            'string' => ':attribute harus berupa teks!',
-            'max' => ':attribute maksimal :max karakter!',
-            'date' => ':attribute harus berupa tanggal yang valid!',
-            'mimes' => ':attribute harus berformat PDF!',
-            'file.max' => 'Ukuran :attribute maksimal 2MB!',
-        ], [
-            'permohonan' => 'Permohonan',
-            'nomor_ijazah' => 'Nomor Ijazah',
-            'tanggal_lulus' => 'Tanggal Lulus',
-            'file' => 'File',
-        ]);
+        // Validasi berbeda untuk staff dan mahasiswa
+        $roleGate = optional(auth()->user()->roles)->gate_name;
+        $isStaff = in_array($roleGate, ['staff', 'dekanat', 'subkoor', 'adminprodi', 'fo']);
+
+        if ($isStaff) {
+            // Validasi untuk Staff - hanya edit status
+            $request->validate([
+                'status_id' => ['required', 'exists:status_alumni,id'],
+            ], [
+                'required' => ':attribute wajib diisi!',
+                'exists' => ':attribute tidak valid!',
+            ], [
+                'status_id' => 'Status',
+            ]);
+        } else {
+            // Validasi untuk Mahasiswa - edit data pengajuan
+            $request->validate([
+                'permohonan' => ['nullable', 'string'],
+                'nomor_ijazah' => ['nullable', 'string', 'max:100'],
+                'tanggal_lulus' => ['nullable', 'date'],
+                'file' => ['nullable', 'file', 'mimes:pdf', 'max:2048'],
+            ], [
+                'string' => ':attribute harus berupa teks!',
+                'max' => ':attribute maksimal :max karakter!',
+                'date' => ':attribute harus berupa tanggal yang valid!',
+                'mimes' => ':attribute harus berformat PDF!',
+                'file.max' => 'Ukuran :attribute maksimal 2MB!',
+            ], [
+                'permohonan' => 'Permohonan',
+                'nomor_ijazah' => 'Nomor Ijazah',
+                'tanggal_lulus' => 'Tanggal Lulus',
+                'file' => 'File',
+            ]);
+        }
 
         try {
             $id = decodeId($id);
             $surat = SuratKeteranganAlumni::findOrFail($id);
 
-            $data = $request->only(['permohonan', 'nomor_ijazah', 'tanggal_lulus']);
+            $surat = SuratKeteranganAlumni::findOrFail($id);
 
-            if ($request->hasFile('file')) {
-                // Delete old file if exists
-                if ($surat->file && Storage::disk('public')->exists($surat->file)) {
-                    Storage::disk('public')->delete($surat->file);
+            $data_update = [];
+
+            // Update berdasarkan role
+            if ($isStaff) {
+                // Staff: Update status saja
+                // Log incoming request for debugging
+                Log::debug('SuratKeteranganAlumni update request (staff)', [
+                    'id' => $id,
+                    'decoded_id' => $id,
+                    'request_all' => $request->all(),
+                ]);
+
+                $data_update['status_id'] = $request->status_id;
+                $data_update['tanggal_proses'] = now();
+
+                // Log data prepared for update
+                Log::debug('SuratKeteranganAlumni prepared update data (staff)', [
+                    'data_update' => $data_update,
+                ]);
+            } else {
+                // Mahasiswa: Update data pengajuan (hanya yang diisi)
+                if ($request->filled('permohonan')) {
+                    $data_update['permohonan'] = $request->permohonan;
+                }
+                if ($request->filled('nomor_ijazah')) {
+                    $data_update['nomor_ijazah'] = $request->nomor_ijazah;
+                }
+                if ($request->filled('tanggal_lulus')) {
+                    $data_update['tanggal_lulus'] = $request->tanggal_lulus;
                 }
 
-                $file = $request->file('file');
-                $filename = time() . '_' . $file->getClientOriginalName();
-                $path = $file->storeAs('surat_keterangan_alumni', $filename, 'public');
-                $data['file'] = $path;
+                // Handle file upload if provided
+                if ($request->hasFile('file')) {
+                    // Delete old file if exists
+                    if ($surat->file && Storage::disk('public')->exists($surat->file)) {
+                        Storage::disk('public')->delete($surat->file);
+                    }
+
+                    $file = $request->file('file');
+                    $filename = time() . '_' . $file->getClientOriginalName();
+                    $path = $file->storeAs('surat_keterangan_alumni', $filename, 'public');
+                    $data_update['file'] = $path;
+                }
             }
 
-            $surat->update($data);
+            $surat->update($data_update);
+
+            // Log status after update
+            $surat->refresh();
+            Log::debug('SuratKeteranganAlumni after update', [
+                'id' => $surat->id,
+                'status_id' => $surat->status_id,
+                'tanggal_proses' => $surat->tanggal_proses,
+            ]);
 
             return response()->json([
                 'status' => true,
@@ -395,96 +471,6 @@ class SuratKeteranganAlumniController extends Controller
                 'status' => false,
                 'message' => $th->getMessage()
             ], 500);
-        }
-    }
-
-    public function revisi(Request $request, $id)
-    {
-        $request->validate([
-            'permohonan' => ['required', 'string'],
-            'tanggal_lulus' => ['required', 'date'],
-            'nomor_ijazah' => ['required', 'string'],
-            'file' => ['nullable', 'file', 'mimes:pdf', 'max:2048'],
-        ], [
-            'required' => ':attribute wajib diisi!',
-            'date' => ':attribute harus berupa tanggal yang valid!',
-            'file.mimes' => ':attribute harus berformat PDF!',
-            'file.max' => 'Ukuran :attribute maksimal 2MB!',
-        ], [
-            'permohonan' => 'Permohonan',
-            'tanggal_lulus' => 'Tanggal Lulus',
-            'nomor_ijazah' => 'Nomor Ijazah',
-            'file' => 'File',
-        ]);
-
-        try {
-            $id = decodeId($id);
-            $data = SuratKeteranganAlumni::findOrFail($id);
-
-            $data_update = [
-                'permohonan' => $request->permohonan,
-                'tanggal_lulus' => $request->tanggal_lulus,
-                'nomor_ijazah' => $request->nomor_ijazah,
-            ];
-
-            // Handle file upload if provided
-            if ($request->hasFile('file')) {
-                // Delete old file if exists
-                if ($data->file) {
-                    Storage::disk('public')->delete($data->file);
-                }
-
-                $file = $request->file('file');
-                $fileName = time() . '_' . $file->getClientOriginalName();
-                $filePath = $file->storeAs('surat_keterangan_alumni/upload', $fileName, 'public');
-                $data_update['file'] = $filePath;
-            }
-
-            $data->update($data_update);
-
-            return response()->json([
-                'status' => true,
-                'message' => 'Data berhasil diperbarui'
-            ], 200);
-
-        } catch (\Throwable $th) {
-            Log::error('Revisi error: ' . $th->getMessage());
-            return response()->json([
-                'status' => false,
-                'message' => 'Terjadi kesalahan saat memperbarui data'
-            ], 500);
-        }
-    }
-
-    public function export(Request $request)
-    {
-        $request->validate([
-            'tahun' => ['required']
-        ], [
-            'required' => ':attribute wajib diisi',
-        ], [
-            'tahun' => 'Tahun'
-        ]);
-
-        $tahun = $request->tahun;
-        $name = 'Rekap_Surat_Keterangan_Alumni_Tahun_' . $tahun;
-
-        try {
-            $export = new \App\Exports\SuratKeteranganAlumniExport($tahun);
-
-            return Excel::download($export, $name . '.xlsx', \Maatwebsite\Excel\Excel::XLSX, [
-                'Content-Disposition' => 'attachment; filename="' . $name . '.xlsx"'
-            ]);
-
-        } catch (\Exception $e) {
-            if ($request->expectsJson() || $request->ajax()) {
-                return response()->json([
-                    'status' => false,
-                    'message' => 'Gagal export data: ' . $e->getMessage()
-                ], 500);
-            }
-
-            return back()->with('error', 'Gagal export data: ' . $e->getMessage());
         }
     }
 }

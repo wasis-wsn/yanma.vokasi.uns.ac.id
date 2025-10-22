@@ -7,6 +7,8 @@
             </div>
             <form action="" method="POST" id="form-edit" enctype="multipart/form-data">
                 <div class="modal-body text-dark">
+                    @can('mahasiswa')
+                    <!-- Form untuk Mahasiswa -->
                     <div class="form-group">
                         <label class="form-label" for="permohonan-revisi">Permohonan <span class="text-danger">*</span></label>
                         <textarea class="form-control" id="permohonan-revisi" name="permohonan" rows="3" placeholder="Tuliskan keperluan/tujuan permohonan surat..." required></textarea>
@@ -24,10 +26,24 @@
                         <input class="form-control" type="file" id="customFile1-revisi" name="file" accept="application/pdf">
                         <small class="text-danger"><i class="fa fa-warning"></i> Jangan Upload Apapun Jika File Tidak Direvisi atau Diedit!</small>
                     </div>
+                    @endcan
+
+                    @canany(['staff','dekanat','subkoor','adminprodi','fo'])
+                    <!-- Form untuk Staff - Hanya Edit Status -->
+                    <div class="form-group">
+                        <label class="form-label" for="status_id-revisi">Status Ajuan <span class="text-danger">*</span></label>
+                        <select class="form-control" id="status_id-revisi" name="status_id" required>
+                            <option value="">-- Pilih Status --</option>
+                            @foreach($status as $s)
+                                <option value="{{ $s->id }}">{{ $s->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    @endcanany
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-primary">Kirim</button>
+                    <button type="submit" class="btn btn-primary">Simpan</button>
                 </div>
             </form>
         </div>

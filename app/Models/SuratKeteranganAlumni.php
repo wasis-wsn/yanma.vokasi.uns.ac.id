@@ -42,6 +42,6 @@ class SuratKeteranganAlumni extends Model
     // Relasi dengan Status
     public function status()
     {
-        return $this->belongsTo(StatusKemahasiswaan::class, 'status_id');
+        return $this->belongsTo(StatusAlumni::class, 'status_id');
     }
 }

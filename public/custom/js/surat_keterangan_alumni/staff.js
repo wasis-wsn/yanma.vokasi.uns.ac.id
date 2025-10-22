@@ -33,6 +33,7 @@
             { data: "program_studi" },
             { data: "tanggal_lulus" },
             { data: "nomor_ijazah" },
+            { data: "status" },
             { data: "tanggal_submit" },
             { data: "file" },
             { data: "action" },
@@ -45,11 +46,11 @@
             },
             {
                 width: "10%",
-                targets: [3,7],
+                targets: [3,8],
             },
             {
                 className: "btn-group-vertical",
-                targets: [9],
+                targets: [10],
             },
             {
                 className: "text-wrap",
@@ -57,7 +58,7 @@
             },
             {
                 className: "text-center",
-                targets: [5,6,8],
+                targets: [5,6,7,9],
             },
         ],
         lengthMenu: [
@@ -176,7 +177,7 @@ $("#show_data").on("click", ".btn-edit", function () {
 
 function showModalEdit(p) {
     let id = $(p).data("id");
-    let action = window.Laravel.revisi.replace(":id", id);
+    let action = window.Laravel.updateData.replace(":id", id);
     let url = window.Laravel.getData.replace(":id", id);
 
     $.ajax({
@@ -188,10 +189,13 @@ function showModalEdit(p) {
         success: function (res) {
             if (res.status) {
                 $("form#form-edit").attr("action", action);
-                $("#form-edit textarea[name='permohonan']").val(res.data.permohonan || '');
-                $("#form-edit input[name='tanggal_lulus']").val(res.data.tanggal_lulus || '');
-                $("#form-edit input[name='nomor_ijazah']").val(res.data.nomor_ijazah || '');
+
+                // Untuk Staff: Isi form status
+                $("#form-edit select[name='status_id']").val(res.data.status_id || '');
+                $("#form-edit input[name='no_surat']").val(res.data.no_surat || '');
+                $("#form-edit textarea[name='catatan']").val(res.data.catatan || '');
                 $("#form-edit input[type='file']").val('');
+
                 $("#modalEdit").modal("show");
             } else {
                 Swal.fire({
@@ -330,8 +334,10 @@ $("#form-edit").submit(function (e) {
     }).then(function(result){
         if (!result.isConfirmed) return;
 
-        let formData = new FormData(e.target);
+        // Untuk staff, hanya kirim status_id
+        let formData = new FormData();
         formData.append('_method', 'PUT');
+        formData.append('status_id', $('#status_id-revisi').val());
 
         $.ajax({
             url: $(e.target).attr("action"),

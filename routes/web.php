@@ -493,8 +493,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/', [SuratKeteranganAlumniController::class, 'store'])->name('store')->middleware('role:mahasiswa,staff');
         Route::get('/show/{id}', [SuratKeteranganAlumniController::class, 'show'])->name('show')->middleware('role:mahasiswa,staff,dekanat,subkoor,fo,adminprodi');
         Route::post('/proses/{id}', [SuratKeteranganAlumniController::class, 'proses'])->name('proses')->middleware('role:staff,dekanat,subkoor,fo,adminprodi');
-        Route::put('/revisi/{id}', [SuratKeteranganAlumniController::class, 'revisi'])->name('revisi')->middleware('role:staff,dekanat,subkoor,fo,adminprodi');
-        Route::post('/update/{id}', [SuratKeteranganAlumniController::class, 'update'])->name('update')->middleware('role:staff');
+        Route::put('/update/{id}', [SuratKeteranganAlumniController::class, 'update'])->name('update')->middleware('role:mahasiswa,staff,dekanat,subkoor,fo,adminprodi');
         Route::delete('/{id}', [SuratKeteranganAlumniController::class, 'destroy'])->name('destroy')->middleware('role:mahasiswa,staff');
     });
 
@@ -506,8 +505,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/', [SuratRekomendasiController::class, 'store'])->name('store')->middleware('role:mahasiswa,staff');
         Route::get('/show/{id}', [SuratRekomendasiController::class, 'show'])->name('show')->middleware('role:mahasiswa,staff,dekanat,subkoor,fo,adminprodi');
         Route::post('/proses/{id}', [SuratRekomendasiController::class, 'proses'])->name('proses')->middleware('role:staff,dekanat,subkoor,fo,adminprodi');
-        Route::put('/revisi/{id}', [SuratRekomendasiController::class, 'revisi'])->name('revisi')->middleware('role:staff,dekanat,subkoor,fo,adminprodi');
-        Route::post('/update/{id}', [SuratRekomendasiController::class, 'update'])->name('update')->middleware('role:staff');
+        Route::put('/update/{id}', [SuratRekomendasiController::class, 'update'])->name('update')->middleware('role:mahasiswa,staff,dekanat,subkoor,fo,adminprodi');
         Route::delete('/{id}', [SuratRekomendasiController::class, 'destroy'])->name('destroy')->middleware('role:mahasiswa,staff');
     });
 

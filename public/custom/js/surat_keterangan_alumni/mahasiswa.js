@@ -36,13 +36,14 @@
             { data: 'program_studi' },
             { data: 'tanggal_lulus' },
             { data: 'nomor_ijazah' },
+            { data: 'status' },
             { data: 'tanggal_submit', name: 'created_at' },
             { data: 'file' },
             { data: 'action' }
         ],
         columnDefs: [
             { className: 'text-center', width: '3%', targets: [1] },
-            { className: 'text-center', targets: [3,6,7,8] }
+            { className: 'text-center', targets: [3,6,7,8,9] }
         ],
         order: [[0, 'desc']]
     });
