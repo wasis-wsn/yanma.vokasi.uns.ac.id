@@ -30,6 +30,8 @@ use App\Http\Controllers\TranskripNilaiController;
 use App\Http\Controllers\UndurDiriController;
 use App\Http\Controllers\VerifikasiWisudaController;
 use App\Http\Controllers\PeriodeWisudaController;
+use App\Http\Controllers\SuratKeteranganAlumniController;
+use App\Http\Controllers\SuratRekomendasiController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\GoogleAuthController;
 
@@ -482,6 +484,27 @@ Route::middleware('auth')->group(function () {
         Route::delete('/destroy/{id}', [LegalisirController::class, 'destroy'])->name('destroy')->middleware('role:fo');
         Route::post('/proses/{id}', [LegalisirController::class, 'proses'])->name('proses')->middleware('role:fo');
     });
+
+    // Routes for Surat Keterangan Alumni (CRUD)
+    Route::name('suratKeteranganAlumni.')->prefix('suratKeteranganAlumni')->group(function () {
+        Route::get('/', [SuratKeteranganAlumniController::class, 'index'])->name('index')->middleware('role:staff,mahasiswa');
+        Route::post('/store', [SuratKeteranganAlumniController::class, 'store'])->name('store')->middleware('role:mahasiswa,staff');
+        Route::get('/{id}', [SuratKeteranganAlumniController::class, 'show'])->name('show')->middleware('role:staff,mahasiswa');
+        Route::post('/{id}', [SuratKeteranganAlumniController::class, 'update'])->name('update')->middleware('role:mahasiswa,staff');
+        Route::delete('/{id}', [SuratKeteranganAlumniController::class, 'destroy'])->name('destroy')->middleware('role:mahasiswa,staff');
+        Route::get('/{id}/download', [SuratKeteranganAlumniController::class, 'downloadFile'])->name('download')->middleware('role:staff,mahasiswa');
+    });
+
+    // Routes for Surat Rekomendasi (CRUD)
+    Route::name('suratRekomendasi.')->prefix('suratRekomendasi')->group(function () {
+        Route::get('/', [SuratRekomendasiController::class, 'index'])->name('index')->middleware('role:staff,mahasiswa');
+        Route::post('/store', [SuratRekomendasiController::class, 'store'])->name('store')->middleware('role:mahasiswa,staff');
+        Route::get('/{id}', [SuratRekomendasiController::class, 'show'])->name('show')->middleware('role:staff,mahasiswa');
+        Route::post('/{id}', [SuratRekomendasiController::class, 'update'])->name('update')->middleware('role:mahasiswa,staff');
+        Route::delete('/{id}', [SuratRekomendasiController::class, 'destroy'])->name('destroy')->middleware('role:mahasiswa,staff');
+        Route::get('/{id}/download', [SuratRekomendasiController::class, 'downloadFile'])->name('download')->middleware('role:staff,mahasiswa');
+    });
+
 });
 
 use App\Services\GoogleDriveService;
