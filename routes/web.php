@@ -54,9 +54,7 @@ Route::get('/', function (HttpRequest $request) {
         ->where('id', '!=', 1)
         ->whereHas('akreditasi')
         ->orderBy('name')
-        ->paginate(10)
-        ->onEachSide(1)
-        ->withQueryString();
+        ->get();
 
     return view('landingpage.index', compact('berita', 'prodisAkreditasi'));
 })->name('home');

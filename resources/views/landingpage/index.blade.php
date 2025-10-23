@@ -276,122 +276,77 @@
 
     /* Akreditasi Section */
     .akreditasi-section {
-        background: linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);
+        background: #f8fafc;
         padding: 90px 0;
-        position: relative;
     }
 
-    .akreditasi-section::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 4px;
-        background: linear-gradient(90deg, #6366f1 0%, #38bdf8 100%);
+    .akreditasi-programs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 48px;
     }
 
-    .akreditasi-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-        gap: 24px;
+    .akreditasi-column {
+        flex: 1 1 220px;
+        min-width: 220px;
     }
 
-    .akreditasi-card {
-        background: rgba(255, 255, 255, 0.9);
-        border-radius: 20px;
-        padding: 28px;
-        border: 1px solid rgba(99, 102, 241, 0.15);
-        box-shadow: 0 15px 35px rgba(99, 102, 241, 0.12);
-        text-decoration: none;
-        color: #1e293b;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-        position: relative;
-        overflow: hidden;
-    }
-
-    .akreditasi-card::after {
-        content: '';
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(56, 189, 248, 0.12));
-        opacity: 0;
-        transition: opacity 0.3s ease;
-    }
-
-    .akreditasi-card:hover {
-        transform: translateY(-8px);
-        box-shadow: 0 25px 45px rgba(99, 102, 241, 0.18);
-    }
-
-    .akreditasi-card:hover::after {
-        opacity: 1;
-    }
-
-    .akreditasi-card-body {
-        position: relative;
-        z-index: 1;
-    }
-
-    .akreditasi-card h3 {
-        font-size: 1.25rem;
+    .akreditasi-column h3 {
+        font-size: 1.35rem;
         font-weight: 700;
+        color: #0f172a;
+        margin-bottom: 18px;
+    }
+
+    .akreditasi-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .akreditasi-list li {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
         margin-bottom: 12px;
+        color: #1f2937;
+        font-weight: 500;
     }
 
-    .akreditasi-count {
-        display: inline-block;
-        font-size: 0.9rem;
-        padding: 6px 12px;
-        border-radius: 999px;
-        background: rgba(99, 102, 241, 0.15);
-        color: #4338ca;
-        font-weight: 600;
-        margin-bottom: 16px;
+    .akreditasi-list li::before {
+        content: '\203A';
+        color: #0ea5e9;
+        font-size: 1.25rem;
+        line-height: 1;
+        transform: translateY(2px);
     }
 
-    .akreditasi-link {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        font-weight: 600;
+    .akreditasi-list a {
+        color: inherit;
+        text-decoration: none;
+        transition: color 0.2s ease;
+    }
+
+    .akreditasi-list a:hover {
         color: #2563eb;
     }
 
-    .akreditasi-link i {
-        transition: transform 0.3s ease;
+    .akreditasi-empty {
+        color: #94a3b8;
+        font-size: 0.95rem;
+        font-style: italic;
     }
 
-    .akreditasi-card:hover .akreditasi-link i {
-        transform: translateX(4px);
+    @media (max-width: 991px) {
+        .akreditasi-programs {
+            gap: 32px;
+        }
     }
 
-    .akreditasi-pagination {
-        margin-top: 36px;
-    }
-
-    .akreditasi-pagination .pagination {
-        justify-content: center;
-        gap: 6px;
-    }
-
-    .akreditasi-pagination .page-item .page-link {
-        border-radius: 999px;
-        padding: 8px 14px;
-        border: none;
-        color: #334155;
-        box-shadow: 0 6px 16px rgba(148, 163, 184, 0.15);
-    }
-
-    .akreditasi-pagination .page-item.active .page-link {
-        background: linear-gradient(135deg, #6366f1 0%, #2563eb 100%);
-        color: #fff;
-        box-shadow: 0 10px 24px rgba(99, 102, 241, 0.25);
-    }
-
-    .akreditasi-pagination .page-item .page-link:hover {
-        background: rgba(99, 102, 241, 0.12);
-        color: #2563eb;
+    @media (max-width: 575px) {
+        .akreditasi-column {
+            min-width: 100%;
+        }
     }
 
     /* Berita Section Redesign */
@@ -1015,30 +970,50 @@
                     <p data-aos="fade-up" data-aos-delay="120">Telusuri dokumen akreditasi resmi untuk setiap program studi di Sekolah Vokasi UNS.</p>
                 </div>
 
-                <div class="akreditasi-grid">
-                    @foreach($prodisAkreditasi as $index => $prodi)
-                        <a href="{{ route('akreditasi.prodi', encodeId($prodi->id)) }}"
-                           class="akreditasi-card fade-in-up"
-                           data-aos="fade-up"
-                           data-aos-delay="{{ ($index % 6) * 60 }}"
-                           data-aos-duration="500">
-                            <div class="akreditasi-card-body">
-                                <h3>{{ $prodi->name }}</h3>
-                                <span class="akreditasi-count">{{ $prodi->akreditasi_count }} dokumen</span>
-                                <span class="akreditasi-link">
-                                    Lihat Akreditasi
-                                    <i class="fa-solid fa-arrow-right"></i>
-                                </span>
-                            </div>
-                        </a>
+                @php
+                    $akreditasiItems = $prodisAkreditasi instanceof \Illuminate\Contracts\Pagination\Paginator
+                        ? collect($prodisAkreditasi->items())
+                        : collect($prodisAkreditasi);
+
+                    $akreditasiGroups = [
+                        'sarjana' => ['title' => 'Sarjana (S1)', 'items' => []],
+                        'diploma' => ['title' => 'Diploma (D3)', 'items' => []],
+                    ];
+
+                    foreach ($akreditasiItems as $prodi) {
+                        $name = $prodi->name ?? '';
+                        $lower = \Illuminate\Support\Str::lower($name);
+
+                        if (\Illuminate\Support\Str::contains($lower, 'diploma')) {
+                            $akreditasiGroups['diploma']['items'][] = $prodi;
+                        } elseif (\Illuminate\Support\Str::contains($lower, 'sarjana')) {
+                            $akreditasiGroups['sarjana']['items'][] = $prodi;
+                        } else {
+                            $akreditasiGroups['sarjana']['items'][] = $prodi;
+                        }
+                    }
+                @endphp
+
+                <div class="akreditasi-programs">
+                    @foreach($akreditasiGroups as $key => $group)
+                        <div class="akreditasi-column" data-aos="fade-up" data-aos-delay="{{ $loop->index * 120 }}">
+                            <h3>{{ $group['title'] }}</h3>
+                            @if(count($group['items']))
+                                <ul class="akreditasi-list">
+                                    @foreach($group['items'] as $prodi)
+                                        <li>
+                                            <a href="{{ route('akreditasi.prodi', encodeId($prodi->id)) }}">
+                                                {{ $prodi->name }}
+                                            </a>
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            @else
+                                <p class="akreditasi-empty">Belum ada data.</p>
+                            @endif
+                        </div>
                     @endforeach
                 </div>
-
-                @if($prodisAkreditasi instanceof \Illuminate\Contracts\Pagination\Paginator && $prodisAkreditasi->hasPages())
-                    <div class="akreditasi-pagination">
-                        {{ $prodisAkreditasi->links('pagination::bootstrap-5') }}
-                    </div>
-                @endif
             </div>
         </section>
         @endif

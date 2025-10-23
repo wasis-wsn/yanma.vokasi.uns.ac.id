@@ -72,10 +72,11 @@
                         <li><a class="nav-link scrollto" href="#Akademik-services">Akademik</a></li>
                         <li><a class="nav-link scrollto" href="#Kemahasiswaan-services">Kemahasiswaan</a></li>
                         <li><a class="nav-link scrollto" href="#Alumni-services">Alumni</a></li>
+                        <li><a class="nav-link scrollto" href="#akreditasi-overview">Akreditasi</a></li>
                     @else
-                        <li><a class="nav-link scrollto {{ Request::is('/') ? 'active' : '' }}" href="{{route('home')}}">Beranda</a></li>
+                        <li><a class="nav-link {{ Request::is('/') ? 'active' : '' }}" href="{{ route('home') }}">Beranda</a></li>
+                        <li><a class="nav-link {{ Request::is('akreditasi/lp') ? 'active' : '' }}" href="{{ route('home') }}#akreditasi-overview">Akreditasi</a></li>
                     @endif
-                    <li><a class="nav-link scrollto {{ Request::is('akreditasi/lp') ? 'active' : '' }}" href="{{route('akreditasi.landingPage')}}">Akreditasi</a></li>
                     <!--<li><a class="nav-link scrollto" href="https://peminjaman.vokasi.uns.ac.id">Peminjaman Tempat</a></li>-->
                     <li><a class="nav-link scrollto {{ Request::is('contact/lp') ? 'active' : '' }}" href="{{route('contact.landingPage')}}">Kontak</a></li>
                 </ul>
