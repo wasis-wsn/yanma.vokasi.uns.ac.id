@@ -51,14 +51,10 @@
                                         @can('mahasiswa')
                                             <th style="display:none;">Created At</th>
                                             <th>No</th>
-                                            <th>Nama</th>
-                                            <th>NIM</th>
-                                            <th>Program Studi</th>
                                             <th>Tanggal Lulus</th>
                                             <th>Nomor Ijazah</th>
                                             <th>Status</th>
                                             <th>Tanggal Submit</th>
-                                            <th>File</th>
                                             <th>Aksi</th>
                                         @endcan
                                         @canany(['staff','dekanat','subkoor','adminprodi','fo'])
@@ -71,7 +67,6 @@
                                             <th>Nomor Ijazah</th>
                                             <th>Status</th>
                                             <th>Tanggal Submit</th>
-                                            <th>File</th>
                                             <th>Aksi</th>
                                         @endcanany
                                     </tr>
@@ -101,6 +96,7 @@
                 'revisi' => route('suratRekomendasi.update', ':id'),
                 'getData' => route('suratRekomendasi.show', ':id'),
                 'deleteData' => route('suratRekomendasi.destroy', ':id'),
+                'generate' => route('suratRekomendasi.generate', ':id'),
             ]) !!};
         @endcan
         @canany(['staff','dekanat','subkoor','adminprodi','fo'])
@@ -112,6 +108,7 @@
                 'getData' => route('suratRekomendasi.show', ':id'),
                 'deleteData' => route('suratRekomendasi.destroy', ':id'),
                 'routeProses' => route('suratRekomendasi.proses', ':id'),
+                'generate' => route('suratRekomendasi.generate', ':id'),
             ]) !!};
         @endcanany
     </script>

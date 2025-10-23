@@ -34,8 +34,7 @@
             { data: "tanggal_lulus" },
             { data: "nomor_ijazah" },
             { data: "status" },
-            { data: "tanggal_submit" },
-            { data: "file" },
+            { data: "tanggal_submit", name: "created_at" },
             { data: "action" },
         ],
         columnDefs: [
@@ -50,7 +49,7 @@
             },
             {
                 className: "btn-group-vertical",
-                targets: [10],
+                targets: [9],
             },
             {
                 className: "text-wrap",
@@ -58,7 +57,7 @@
             },
             {
                 className: "text-center",
-                targets: [5,6,7,9],
+                targets: [5,6,7,8,9],
             },
         ],
         lengthMenu: [
@@ -114,15 +113,28 @@ $("#show_data").on("click", ".btn-detail", function () {
             if (res.status) {
                 $("#detail-nama").html(": " + (res.data.user ? res.data.user.name : '-'));
                 $("#detail-nim").html(": " + (res.data.user ? res.data.user.nim : '-'));
-                $("#detail-prodi").html(": " + (res.data.user && res.data.user.prodis ? res.data.user.prodis.nama : '-'));
+                $("#detail-prodi").html(": " + (res.data.user && res.data.user.prodis ? res.data.user.prodis.name : '-'));
                 $("#detail-permohonan").html(": " + (res.data.permohonan || '-'));
                 $("#detail-tanggal_lulus").html(": " + (res.data.tanggal_lulus || '-'));
                 $("#detail-nomor_ijazah").html(": " + (res.data.nomor_ijazah || '-'));
 
-                if (res.data.file_url) {
-                    $("#detail-file").attr("href", res.data.file_url).removeClass('disabled').removeAttr('aria-disabled');
+                const suratUrl = res.data.surat_hasil_url || res.data.file_url;
+                if (suratUrl) {
+                    $("#detail-file").attr("href", suratUrl).removeClass('disabled').removeAttr('aria-disabled');
                 } else {
                     $("#detail-file").attr("href", '#').addClass('disabled').attr('aria-disabled', 'true');
+                }
+
+                if (res.data.file_ijazah_url) {
+                    $("#detail-file-ijazah").attr("href", res.data.file_ijazah_url).removeClass('disabled').removeAttr('aria-disabled');
+                } else {
+                    $("#detail-file-ijazah").attr("href", '#').addClass('disabled').attr('aria-disabled', 'true');
+                }
+
+                if (res.data.file_transkrip_url) {
+                    $("#detail-file-transkrip").attr("href", res.data.file_transkrip_url).removeClass('disabled').removeAttr('aria-disabled');
+                } else {
+                    $("#detail-file-transkrip").attr("href", '#').addClass('disabled').attr('aria-disabled', 'true');
                 }
 
                 $("#detail-no").html(res.data.no_surat ? ': ' + res.data.no_surat : ': -');
@@ -195,7 +207,28 @@ function showModalEdit(p) {
                 $("#form-edit input[name='no_surat']").val(res.data.no_surat || '');
                 $("#form-edit textarea[name='catatan']").val(res.data.catatan || '');
 
+                const requireNoSurat = ["6"];
+                const requireFile = ["9"];
+
+                if (requireNoSurat.includes(res.data.status_id)) {
+                    $('#form-no-surat-edit').removeAttr('hidden');
+                    $('#no_surat-revisi').attr('required', true);
+                } else {
+                    $('#form-no-surat-edit').attr('hidden', true);
+                    $('#no_surat-revisi').removeAttr('required');
+                }
+
+                if (requireFile.includes(res.data.status_id)) {
+                    $('#form-file-edit').removeAttr('hidden');
+                    $('#file-revisi').attr('required', true);
+                } else {
+                    $('#form-file-edit').attr('hidden', true);
+                    $('#file-revisi').removeAttr('required');
+                    $('#file-revisi').val('');
+                }
+
                 $("#modalEdit").modal("show");
+                $('#status_id-revisi').trigger('change');
             } else {
                 Swal.fire({
                     title: "Error!",
@@ -218,6 +251,47 @@ function showModalEdit(p) {
 $("#tombol-proses").on("click", function () {
     $("#modalDetail").modal("hide");
     showModalProses(this);
+});
+
+$("#show_data").on("click", ".btn-generate", function () {
+    let id = $(this).data("id");
+    let url = window.Laravel.generate.replace(":id", id);
+
+    Swal.fire({
+        title: "Menghasilkan dokumen...",
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading(),
+    });
+
+    $.ajax({
+        url: url,
+        type: "POST",
+        headers: {
+            "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content"),
+        },
+        success: function (res) {
+            Swal.close();
+            if (res.status && res.url) {
+                window.open(res.url, '_blank');
+            } else {
+                Swal.fire({
+                    title: "Gagal!",
+                    text: res.message || 'Dokumen tidak tersedia',
+                    icon: "error",
+                });
+            }
+        },
+        error: function (xhr) {
+            Swal.close();
+            var msg = 'Terjadi kesalahan saat menghasilkan dokumen';
+            try { var e = JSON.parse(xhr.responseText); if (e.message) msg = e.message; } catch (e) {}
+            Swal.fire({
+                title: "Gagal!",
+                text: msg,
+                icon: "error",
+            });
+        },
+    });
 });
 
 function showModalProses(p) {
@@ -265,6 +339,33 @@ $('#status_id').change(function () {
         $('#form-no-surat').removeAttr('hidden');
     } else {
         $('#form-no-surat').attr('hidden', true);
+    }
+    if ($(this).val() === '6') {
+        $('#form-no-surat-edit').removeAttr('hidden');
+        $('#no_surat-revisi').attr('required', true);
+    } else {
+        $('#form-no-surat-edit').attr('hidden', true);
+        $('#no_surat-revisi').removeAttr('required');
+    }
+});
+
+$('#status_id-revisi').on('change', function () {
+    const value = $(this).val();
+    if (value === '6') {
+        $('#form-no-surat-edit').removeAttr('hidden');
+        $('#no_surat-revisi').attr('required', true);
+    } else {
+        $('#form-no-surat-edit').attr('hidden', true);
+        $('#no_surat-revisi').removeAttr('required');
+    }
+
+    if (value === '9') {
+        $('#form-file-edit').removeAttr('hidden');
+        $('#file-revisi').attr('required', true);
+    } else {
+        $('#form-file-edit').attr('hidden', true);
+        $('#file-revisi').removeAttr('required');
+        $('#file-revisi').val('');
     }
 });
 
@@ -330,7 +431,17 @@ $("#form-edit").submit(function (e) {
         // Untuk staff, hanya kirim status_id
         let formData = new FormData();
         formData.append('_method', 'PUT');
-        formData.append('status_id', $('#status_id-revisi').val());
+        const statusVal = $('#status_id-revisi').val();
+        formData.append('status_id', statusVal);
+        if (statusVal === '6') {
+            formData.append('no_surat', $('#no_surat-revisi').val());
+        }
+        if (statusVal === '9') {
+            const file = $('#file-revisi')[0].files[0];
+            if (file) {
+                formData.append('file', file);
+            }
+        }
 
         $.ajax({
             url: $(e.target).attr("action"),

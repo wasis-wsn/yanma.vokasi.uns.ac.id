@@ -5,7 +5,7 @@
                 <h5 class="modal-title" id="exampleModalLabel">Edit Ajuan Surat Rekomendasi</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form action="" method="POST" id="form-edit">
+            <form action="" method="POST" id="form-edit" enctype="multipart/form-data">
                 <div class="modal-body text-dark">
                     @can('mahasiswa')
                     <!-- Form untuk Mahasiswa -->
@@ -21,6 +21,16 @@
                         <label class="form-label" for="tanggal_lulus-revisi">Tanggal Lulus <span class="text-danger">*</span></label>
                         <input class="form-control" id="tanggal_lulus-revisi" type="date" name="tanggal_lulus" required>
                     </div>
+                    <div class="form-group">
+                        <label class="form-label" for="file_ijazah-revisi">File Ijazah</label>
+                        <input class="form-control" id="file_ijazah-revisi" type="file" name="file_ijazah" accept="application/pdf,image/*,.doc,.docx">
+                        <small class="text-muted">Kosongkan jika tidak ingin mengganti berkas ijazah.</small>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="file_transkrip-revisi">File Transkrip Nilai</label>
+                        <input class="form-control" id="file_transkrip-revisi" type="file" name="file_transkrip" accept="application/pdf,image/*,.doc,.docx">
+                        <small class="text-muted">Kosongkan jika tidak ingin mengganti berkas transkrip.</small>
+                    </div>
                     @endcan
 
                     @canany(['staff','dekanat','subkoor','adminprodi','fo'])
@@ -33,6 +43,15 @@
                                 <option value="{{ $s->id }}">{{ $s->name }}</option>
                             @endforeach
                         </select>
+                    </div>
+                    <div class="form-group" id="form-no-surat-edit" hidden>
+                        <label class="form-label" for="no_surat-revisi">Nomor Surat <span class="text-danger">*</span></label>
+                        <input class="form-control" id="no_surat-revisi" type="text" name="no_surat">
+                    </div>
+                    <div class="form-group" id="form-file-edit" hidden>
+                        <label class="form-label" for="file-revisi">Upload File Final <span class="text-danger">*</span></label>
+                        <input class="form-control" type="file" id="file-revisi" name="file" accept="application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+                        <small class="text-muted">Unggah dokumen final ketika status diselesaikan.</small>
                     </div>
                     @endcanany
                 </div>

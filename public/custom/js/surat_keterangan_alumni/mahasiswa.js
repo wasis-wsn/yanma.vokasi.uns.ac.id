@@ -31,19 +31,16 @@
         columns: [
             { data: 'created_at', visible: false },
             { data: 'DT_RowIndex' },
-            { data: 'nama' },
-            { data: 'nim' },
-            { data: 'program_studi' },
             { data: 'tanggal_lulus' },
             { data: 'nomor_ijazah' },
             { data: 'status' },
             { data: 'tanggal_submit', name: 'created_at' },
-            { data: 'file' },
             { data: 'action' }
         ],
         columnDefs: [
             { className: 'text-center', width: '3%', targets: [1] },
-            { className: 'text-center', targets: [3,6,7,8,9] }
+            { className: 'text-center', targets: [2,3,4,5,6] },
+            { className: 'btn-group-vertical', targets: [6] }
         ],
         order: [[0, 'desc']]
     });
@@ -72,15 +69,30 @@ $('#show_data').on('click', '.btn-detail', function() {
                 if (res.status) {
                     $('#detail-nama').html(': ' + (res.data.user ? res.data.user.name : '-'));
                     $('#detail-nim').html(': ' + (res.data.user ? res.data.user.nim : '-'));
-                    $('#detail-prodi').html(': ' + (res.data.user && res.data.user.prodis ? res.data.user.prodis.nama : '-'));
+                    $('#detail-prodi').html(': ' + (res.data.user && res.data.user.prodis ? res.data.user.prodis.name : '-'));
                     $('#detail-permohonan').html(': ' + (res.data.permohonan || '-'));
                     $('#detail-tanggal_lulus').html(': ' + (res.data.tanggal_lulus || '-'));
                     $('#detail-nomor_ijazah').html(': ' + (res.data.nomor_ijazah || '-'));
 
-                    if (res.data.file_url) {
-                        $('#detail-file').attr('href', res.data.file_url).removeClass('disabled').removeAttr('aria-disabled');
+                    const suratUrl = res.data.surat_hasil_url || res.data.file_url;
+                    if (suratUrl) {
+                        $('#detail-file').attr('href', suratUrl).removeClass('disabled').removeAttr('aria-disabled');
                     } else {
                         $('#detail-file').attr('href', '#').addClass('disabled').attr('aria-disabled', 'true');
+                    }
+
+                    const ijazahUrl = res.data.file_ijazah_url;
+                    if (ijazahUrl) {
+                        $('#detail-file-ijazah').attr('href', ijazahUrl).removeClass('disabled').removeAttr('aria-disabled');
+                    } else {
+                        $('#detail-file-ijazah').attr('href', '#').addClass('disabled').attr('aria-disabled', 'true');
+                    }
+
+                    const transkripUrl = res.data.file_transkrip_url;
+                    if (transkripUrl) {
+                        $('#detail-file-transkrip').attr('href', transkripUrl).removeClass('disabled').removeAttr('aria-disabled');
+                    } else {
+                        $('#detail-file-transkrip').attr('href', '#').addClass('disabled').attr('aria-disabled', 'true');
                     }
 
                     $('#modalDetail').modal('show');
@@ -306,6 +318,40 @@ $('#form-edit').submit(function(e){
                 }
             }
         });
+    });
+});
+
+$('#show_data').on('click', '.btn-generate', function() {
+    var id = $(this).data('id');
+    var url = window.Laravel.generate.replace(':id', id);
+
+    Swal.fire({
+        title: 'Menghasilkan dokumen...',
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading()
+    });
+
+    $.ajax({
+        url: url,
+        type: 'POST',
+        dataType: 'json',
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        },
+        success: function(res) {
+            Swal.close();
+            if (res.status && res.url) {
+                window.open(res.url, '_blank');
+            } else {
+                Swal.fire({ title: 'Gagal', text: res.message || 'Dokumen tidak tersedia', icon: 'error' });
+            }
+        },
+        error: function(xhr) {
+            Swal.close();
+            let msg = 'Terjadi kesalahan saat menghasilkan dokumen';
+            try { var err = JSON.parse(xhr.responseText); if (err.message) msg = err.message; } catch(e){}
+            Swal.fire({ title: 'Gagal', text: msg, icon: 'error' });
+        }
     });
 });
 

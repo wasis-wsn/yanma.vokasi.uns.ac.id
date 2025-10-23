@@ -28,19 +28,16 @@
         columns: [
             { data: 'created_at', visible: false },
             { data: 'DT_RowIndex' },
-            { data: 'nama' },
-            { data: 'nim' },
-            { data: 'program_studi' },
             { data: 'tanggal_lulus' },
             { data: 'nomor_ijazah' },
             { data: 'status' },
-            { data: 'tanggal_submit' },
-            { data: 'file' },
+            { data: 'tanggal_submit', name: 'created_at' },
             { data: 'action' },
         ],
         columnDefs: [
             { className: 'text-center', width: '3%', targets: [1] },
-            { className: 'text-center', targets: [3,6,7,8,9] }
+            { className: 'text-center', targets: [2,3,4,5,6] },
+            { className: 'btn-group-vertical', targets: [6] }
         ],
         order: [[0, 'desc']]
     });
@@ -109,18 +106,45 @@ $("#show_data").on("click", ".btn-detail", function () {
             if (res.status) {
                 $("#detail-nama").html(": " + (res.data.user ? res.data.user.name : '-'));
                 $("#detail-nim").html(": " + (res.data.user ? res.data.user.nim : '-'));
-                $("#detail-prodi").html(": " + (res.data.user && res.data.user.prodis ? res.data.user.prodis.nama : '-'));
+                $("#detail-prodi").html(": " + (res.data.user && res.data.user.prodis ? res.data.user.prodis.name : '-'));
                 $("#detail-permohonan").html(": " + (res.data.permohonan || '-'));
                 $("#detail-tanggal_lulus").html(": " + (res.data.tanggal_lulus || "-"));
                 $("#detail-nomor_ijazah").html(": " + (res.data.nomor_ijazah || "-"));
 
-                if (res.data.file_url) {
+                const suratUrl = res.data.surat_hasil_url || res.data.file_url;
+                if (suratUrl) {
                     $("#detail-file")
-                        .attr("href", res.data.file_url)
+                        .attr("href", suratUrl)
                         .removeClass("disabled")
                         .removeAttr("aria-disabled");
                 } else {
                     $("#detail-file")
+                        .attr("href", "#")
+                        .addClass("disabled")
+                        .attr("aria-disabled", "true");
+                }
+
+                const ijazahUrl = res.data.file_ijazah_url;
+                if (ijazahUrl) {
+                    $("#detail-file-ijazah")
+                        .attr("href", ijazahUrl)
+                        .removeClass("disabled")
+                        .removeAttr("aria-disabled");
+                } else {
+                    $("#detail-file-ijazah")
+                        .attr("href", "#")
+                        .addClass("disabled")
+                        .attr("aria-disabled", "true");
+                }
+
+                const transkripUrl = res.data.file_transkrip_url;
+                if (transkripUrl) {
+                    $("#detail-file-transkrip")
+                        .attr("href", transkripUrl)
+                        .removeClass("disabled")
+                        .removeAttr("aria-disabled");
+                } else {
+                    $("#detail-file-transkrip")
                         .attr("href", "#")
                         .addClass("disabled")
                         .attr("aria-disabled", "true");
@@ -209,20 +233,72 @@ $("#show_data").on("click", ".btn-delete", function () {
     });
 });
 
+$("#show_data").on("click", ".btn-generate", function () {
+    let id = $(this).data("id");
+    let url = window.Laravel.generate.replace(":id", id);
+
+    Swal.fire({
+        title: "Menghasilkan dokumen...",
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading(),
+    });
+
+    $.ajax({
+        url: url,
+        type: "POST",
+        dataType: 'json',
+        headers: {
+            "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content"),
+        },
+        success: function (res) {
+            Swal.close();
+            if (res.status && res.url) {
+                window.open(res.url, '_blank');
+            } else {
+                Swal.fire({ title: "Gagal", text: res.message || 'Dokumen tidak tersedia', icon: "error" });
+            }
+        },
+        error: function (xhr) {
+            Swal.close();
+            var msg = 'Terjadi kesalahan saat menghasilkan dokumen';
+            try { var err = JSON.parse(xhr.responseText); if (err.message) msg = err.message; } catch(e){}
+            Swal.fire({ title: "Gagal", text: msg, icon: "error" });
+        },
+    });
+});
+
 $("#form-tambah").submit(function (e) {
     e.preventDefault();
     var form = this;
     // basic client-side validation to avoid sending empty payload
     var missing = [];
+    var requiredFields = [
+        { name: 'permohonan', label: 'Permohonan' },
+        { name: 'nomor_ijazah', label: 'Nomor Ijazah' },
+        { name: 'tanggal_lulus', label: 'Tanggal Lulus' },
+        { name: 'file_ijazah', label: 'File Ijazah' },
+        { name: 'file_transkrip', label: 'File Transkrip Nilai' },
+    ];
 
-    // gather missing using form context
-    ['permohonan','nomor_ijazah','tanggal_lulus'].forEach(function(name){
-        var $el = $(form).find('[name="' + name + '"]');
-        if (!$el.val() || $el.val().toString().trim() === '') missing.push(name);
+    requiredFields.forEach(function(field){
+        var $el = $(form).find('[name="' + field.name + '"]');
+        var isFile = field.name.indexOf('file_') === 0;
+        var hasValue;
+
+        if (isFile) {
+            hasValue = $el.length && $el[0].files && $el[0].files.length > 0;
+        } else {
+            var value = $el.val();
+            hasValue = value && value.toString().trim() !== '';
+        }
+
+        if (!hasValue) {
+            missing.push(field.label);
+        }
     });
 
     if (missing.length) {
-        Swal.fire({ title: 'Field required', text: 'Mohon isi: ' + missing.join(', '), icon: 'warning' });
+        Swal.fire({ title: 'Field required', text: 'Mohon lengkapi: ' + missing.join(', '), icon: 'warning' });
         return;
     }
 
@@ -258,8 +334,7 @@ $("#form-tambah").submit(function (e) {
                 },
                 success: function (res) {
                     if (res.status) {
-                        $("#form-tambah input").val("");
-                        $("#form-tambah textarea").val("");
+                        form.reset();
                         $("#modalTambah").modal("hide");
                         Swal.fire({
                             title: "Berhasil!",
@@ -332,8 +407,13 @@ $("#form-edit").submit(function (e) {
                 success: function (res) {
                     Swal.close();
                     if (res.status) {
-                        $("#form-edit input").val("");
-                        $("#form-edit textarea#catatan-revisi").val("");
+                        var editForm = document.getElementById('form-edit');
+                        if (editForm) {
+                            editForm.reset();
+                        } else {
+                            $("#form-edit input").val("");
+                            $("#form-edit textarea#catatan-revisi").val("");
+                        }
                         $("#modalEdit").modal("hide");
                         Swal.fire({
                             title: "Berhasil!",

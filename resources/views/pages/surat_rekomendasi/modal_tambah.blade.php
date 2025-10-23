@@ -5,7 +5,7 @@
                 <h5 class="modal-title" id="exampleModalLabel">Tambah Ajuan Surat Rekomendasi</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form action="{{route('suratRekomendasi.store')}}" method="POST" id="form-tambah">
+            <form action="{{route('suratRekomendasi.store')}}" method="POST" id="form-tambah" enctype="multipart/form-data">
                 @csrf
                 <div class="modal-body text-dark">
                     <div class="form-group">
@@ -19,6 +19,16 @@
                     <div class="form-group">
                         <label class="form-label" for="tanggal_lulus">Tanggal Lulus <span class="text-danger">*</span></label>
                         <input class="form-control" id="tanggal_lulus" type="date" name="tanggal_lulus" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="file_ijazah">File Ijazah <span class="text-danger">*</span></label>
+                        <input class="form-control" id="file_ijazah" type="file" name="file_ijazah" accept="application/pdf,image/*,.doc,.docx" required>
+                        <small class="text-muted">Unggah salinan ijazah (PDF/Word/Gambar).</small>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="file_transkrip">File Transkrip Nilai <span class="text-danger">*</span></label>
+                        <input class="form-control" id="file_transkrip" type="file" name="file_transkrip" accept="application/pdf,image/*,.doc,.docx" required>
+                        <small class="text-muted">Unggah transkrip nilai terakhir Anda.</small>
                     </div>
                 </div>
                 <div class="modal-footer">

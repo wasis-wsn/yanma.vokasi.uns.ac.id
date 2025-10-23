@@ -33,8 +33,16 @@
                             <td id="detail-nomor_ijazah"></td>
                         </tr>
                         <tr>
-                            <td>File</td>
-                            <td>: <a href="" target="_blank" class="btn btn-primary btn-small" id="detail-file"><i class="fa fa-eye"></i>Lihat File</a></td>
+                            <td>File Ijazah</td>
+                            <td>: <a href="#" target="_blank" class="btn btn-primary btn-small" id="detail-file-ijazah"><i class="fa fa-eye"></i>Lihat Ijazah</a></td>
+                        </tr>
+                        <tr>
+                            <td>File Transkrip</td>
+                            <td>: <a href="#" target="_blank" class="btn btn-primary btn-small" id="detail-file-transkrip"><i class="fa fa-eye"></i>Lihat Transkrip</a></td>
+                        </tr>
+                        <tr>
+                            <td>File Surat Otomatis</td>
+                            <td>: <a href="#" target="_blank" class="btn btn-primary btn-small" id="detail-file"><i class="fa fa-eye"></i>Lihat Surat</a></td>
                         </tr>
                         @canany(['staff','dekanat','subkoor','adminprodi','fo'])
                         <tr>

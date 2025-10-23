@@ -506,6 +506,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/proses/{id}', [SuratKeteranganAlumniController::class, 'proses'])->name('proses')->middleware('role:staff,dekanat,subkoor,fo,adminprodi');
         Route::put('/update/{id}', [SuratKeteranganAlumniController::class, 'update'])->name('update')->middleware('role:mahasiswa,staff,dekanat,subkoor,fo,adminprodi');
         Route::delete('/{id}', [SuratKeteranganAlumniController::class, 'destroy'])->name('destroy')->middleware('role:mahasiswa,staff');
+        Route::post('/{id}/generate', [SuratKeteranganAlumniController::class, 'generate'])->name('generate')->middleware('role:mahasiswa,staff,dekanat,subkoor,fo,adminprodi');
     });
 
     Route::name('suratRekomendasi.')->prefix('suratRekomendasi')->group(function () {
@@ -518,6 +519,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/proses/{id}', [SuratRekomendasiController::class, 'proses'])->name('proses')->middleware('role:staff,dekanat,subkoor,fo,adminprodi');
         Route::put('/update/{id}', [SuratRekomendasiController::class, 'update'])->name('update')->middleware('role:mahasiswa,staff,dekanat,subkoor,fo,adminprodi');
         Route::delete('/{id}', [SuratRekomendasiController::class, 'destroy'])->name('destroy')->middleware('role:mahasiswa,staff');
+        Route::post('/{id}/generate', [SuratRekomendasiController::class, 'generate'])->name('generate')->middleware('role:mahasiswa,staff,dekanat,subkoor,fo,adminprodi');
     });
 
 });
@@ -529,7 +531,7 @@ Route::get('/google/setup-token', function (GoogleDriveService $service) {
     return redirect()->to($service->getAuthUrl());
 });
 
-Route::get('/google/callback', function (Request $request, GoogleDriveService $service) {
+Route::get('/google/callback', function (HttpRequest $request, GoogleDriveService $service) {
     $code = $request->get('code');
     if ($code && $service->handleCallback($code)) {
         return '✅ Refresh token berhasil disimpan!';

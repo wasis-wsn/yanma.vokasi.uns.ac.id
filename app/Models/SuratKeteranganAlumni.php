@@ -18,6 +18,8 @@ class SuratKeteranganAlumni extends Model
         'nomor_ijazah',
         'tanggal_lulus',
         'file',
+        'file_ijazah',
+        'file_transkrip',
         'status_id',
         'no_surat',
         'catatan',

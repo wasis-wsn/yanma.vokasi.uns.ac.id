@@ -53,14 +53,10 @@
     @can('mahasiswa')
         <th style="display:none;">Created At</th>
         <th>No</th>
-        <th>Nama</th>
-        <th>NIM</th>
-        <th>Program Studi</th>
         <th>Tanggal Lulus</th>
         <th>Nomor Ijazah</th>
         <th>Status</th>
         <th>Tanggal Submit</th>
-        <th>File</th>
         <th>Aksi</th>
     @endcan
 
@@ -74,7 +70,6 @@
         <th>Nomor Ijazah</th>
         <th>Status</th>
         <th>Tanggal Submit</th>
-        <th>File</th>
         <th>Aksi</th>
     @endcanany
 </tr>
@@ -104,6 +99,7 @@
                 'updateData' => route('suketAlumni.update', ':id'),
                 'getData' => route('suketAlumni.show', ':id'),
                 'deleteData' => route('suketAlumni.destroy', ':id'),
+                'generate' => route('suketAlumni.generate', ':id'),
             ]) !!};
         @endcan
         @canany(['staff','dekanat','subkoor','adminprodi','fo'])
@@ -115,6 +111,7 @@
                 'getData' => route('suketAlumni.show', ':id'),
                 'deleteData' => route('suketAlumni.destroy', ':id'),
                 'routeProses' => route('suketAlumni.proses', ':id'),
+                'generate' => route('suketAlumni.generate', ':id'),
             ]) !!};
         @endcanany
     </script>
