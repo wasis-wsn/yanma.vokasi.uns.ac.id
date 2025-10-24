@@ -14,7 +14,6 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Illuminate\Validation\Rule;
 use PhpOffice\PhpWord\TemplateProcessor;
 use Yajra\DataTables\Facades\DataTables;
 use ZipArchive;
@@ -60,7 +59,7 @@ class SuratKeteranganAlumniController extends Controller
                 return $row->user ? $row->user->nim : '-';
             })
             ->addColumn('program_studi', function ($row) {
-                return $row->user && $row->user->prodis ? ($row->user->prodis->name ?? '-') : '-';
+                return $row->user && $row->user->prodis ? $row->user->prodis->nama : '-';
             })
             ->editColumn('nomor_ijazah', function ($row) {
                 return $row->nomor_ijazah ?? '-';
@@ -73,8 +72,7 @@ class SuratKeteranganAlumniController extends Controller
             })
             ->addColumn('action', function ($row) {
                 $aksi = '<button type="button" class="btn btn-primary btn-sm btn-detail" data-id="' . encodeId($row->id) . '"><i class="fas fa-eye"></i></button>';
-                $aksi .= ' <button type="button" class="btn btn-warning btn-sm btn-edit" data-id="' . encodeId($row->id) . '"><i class="fas fa-edit"></i></button>';
-                $aksi .= ' <button type="button" class="btn btn-success btn-sm btn-generate" data-id="' . encodeId($row->id) . '"><i class="fas fa-file-alt"></i></button>';
+                                $aksi .= ' <button type="button" class="btn btn-warning btn-sm btn-edit" data-id="' . encodeId($row->id) . '"><i class="fas fa-edit"></i></button>';
                 return $aksi;
             })
             ->editColumn('tanggal_submit', function ($row) {
@@ -83,7 +81,13 @@ class SuratKeteranganAlumniController extends Controller
             ->editColumn('tanggal_lulus', function ($row) {
                 return $row->tanggal_lulus ? Carbon::parse($row->tanggal_lulus)->translatedFormat('d F Y') : '';
             })
-            ->rawColumns(['action', 'tanggal_submit', 'tanggal_lulus', 'status'])
+            ->editColumn('file', function ($row) {
+                if ($row->file) {
+                    return '<a href="' . Storage::url($row->file) . '" target="_blank" class="btn btn-info btn-sm"><i class="fas fa-download"></i> Download</a>';
+                }
+                return '-';
+            })
+            ->rawColumns(['action', 'tanggal_submit', 'tanggal_lulus', 'file', 'status'])
             ->toJson();
     }
 
@@ -107,7 +111,7 @@ class SuratKeteranganAlumniController extends Controller
                 return $row->user ? $row->user->nim : '-';
             })
             ->addColumn('program_studi', function ($row) {
-                return $row->user && $row->user->prodis ? ($row->user->prodis->name ?? '-') : '-';
+                return $row->user && $row->user->prodis ? $row->user->prodis->nama : '-';
             })
             ->editColumn('nomor_ijazah', function ($row) {
                 return $row->nomor_ijazah ?? '-';
@@ -121,7 +125,6 @@ class SuratKeteranganAlumniController extends Controller
             ->addColumn('action', function ($row) {
                 $aksi = '<button type="button" class="btn btn-primary btn-sm btn-detail" data-id="' . encodeId($row->id) . '"><i class="fas fa-eye"></i></button>';
                 $aksi .= ' <button type="button" class="btn btn-warning btn-sm btn-edit" data-id="' . encodeId($row->id) . '"><i class="fas fa-edit"></i></button>';
-                $aksi .= ' <button type="button" class="btn btn-success btn-sm btn-generate" data-id="' . encodeId($row->id) . '"><i class="fas fa-file-alt"></i></button>';
                 return $aksi;
             })
             ->editColumn('tanggal_submit', function ($row) {
@@ -130,7 +133,13 @@ class SuratKeteranganAlumniController extends Controller
             ->editColumn('tanggal_lulus', function ($row) {
                 return $row->tanggal_lulus ? Carbon::parse($row->tanggal_lulus)->translatedFormat('d F Y') : '';
             })
-            ->rawColumns(['action', 'tanggal_submit', 'tanggal_lulus', 'status'])
+            ->editColumn('file', function ($row) {
+                if ($row->file) {
+                    return '<a href="' . Storage::url($row->file) . '" target="_blank" class="btn btn-info btn-sm"><i class="fas fa-download"></i> Download</a>';
+                }
+                return '-';
+            })
+            ->rawColumns(['action', 'tanggal_submit', 'tanggal_lulus', 'file', 'status'])
             ->toJson();
     }
 
@@ -158,7 +167,7 @@ class SuratKeteranganAlumniController extends Controller
                 return $row->user ? $row->user->nim : '-';
             })
             ->addColumn('program_studi', function ($row) {
-                return $row->user && $row->user->prodis ? ($row->user->prodis->name ?? '-') : '-';
+                return $row->user && $row->user->prodis ? $row->user->prodis->nama : '-';
             })
             ->editColumn('nomor_ijazah', function ($row) {
                 return $row->nomor_ijazah ?? '-';
@@ -171,7 +180,6 @@ class SuratKeteranganAlumniController extends Controller
             })
             ->addColumn('action', function ($row) {
                 $aksi = '<button type="button" class="btn btn-primary btn-sm btn-detail" data-id="' . encodeId($row->id) . '"><i class="fas fa-eye"></i></button>';
-                $aksi .= ' <button type="button" class="btn btn-success btn-sm btn-generate" data-id="' . encodeId($row->id) . '"><i class="fas fa-file-alt"></i></button>';
                 return $aksi;
             })
             ->editColumn('tanggal_submit', function ($row) {
@@ -180,7 +188,13 @@ class SuratKeteranganAlumniController extends Controller
             ->editColumn('tanggal_lulus', function ($row) {
                 return $row->tanggal_lulus ? Carbon::parse($row->tanggal_lulus)->translatedFormat('d F Y') : '';
             })
-            ->rawColumns(['action', 'tanggal_submit', 'tanggal_lulus', 'status'])
+            ->editColumn('file', function ($row) {
+                if ($row->file) {
+                    return '<a href="' . Storage::url($row->file) . '" target="_blank" class="btn btn-info btn-sm"><i class="fas fa-download"></i> Download</a>';
+                }
+                return '-';
+            })
+            ->rawColumns(['action', 'tanggal_submit', 'tanggal_lulus', 'file', 'status'])
             ->toJson();
     }
 
@@ -190,38 +204,20 @@ class SuratKeteranganAlumniController extends Controller
             'permohonan' => ['required', 'string'],
             'nomor_ijazah' => ['required', 'string', 'max:100'],
             'tanggal_lulus' => ['required', 'date'],
-            'file_ijazah' => ['required', 'file', 'mimes:pdf,doc,docx,jpg,jpeg,png'],
-            'file_transkrip' => ['required', 'file', 'mimes:pdf,doc,docx,jpg,jpeg,png'],
         ], [
             'required' => ':attribute wajib diisi!',
             'string' => ':attribute harus berupa teks!',
             'max' => ':attribute maksimal :max karakter!',
             'date' => ':attribute harus berupa tanggal yang valid!',
-            'file' => ':attribute tidak valid!',
-            'mimes' => ':attribute harus berformat PDF, Word, atau gambar',
         ], [
             'permohonan' => 'Permohonan',
             'nomor_ijazah' => 'Nomor Ijazah',
             'tanggal_lulus' => 'Tanggal Lulus',
-            'file_ijazah' => 'File Ijazah',
-            'file_transkrip' => 'File Transkrip Nilai',
         ]);
 
         try {
             $data = $request->only(['permohonan', 'nomor_ijazah', 'tanggal_lulus']);
             $data['user_id'] = Auth::id();
-
-            if ($request->hasFile('file_ijazah')) {
-                $ijazah = $request->file('file_ijazah');
-                $ijazahName = 'ijazah-' . time() . '-' . Str::uuid() . '.' . $ijazah->getClientOriginalExtension();
-                $data['file_ijazah'] = $ijazah->storeAs('surat_keterangan_alumni/ijazah', $ijazahName, 'public');
-            }
-
-            if ($request->hasFile('file_transkrip')) {
-                $transkrip = $request->file('file_transkrip');
-                $transkripName = 'transkrip-' . time() . '-' . Str::uuid() . '.' . $transkrip->getClientOriginalExtension();
-                $data['file_transkrip'] = $transkrip->storeAs('surat_keterangan_alumni/transkrip', $transkripName, 'public');
-            }
 
             $surat = SuratKeteranganAlumni::create($data);
 
@@ -255,8 +251,6 @@ class SuratKeteranganAlumniController extends Controller
 
             $data->file_url = $data->file ? Storage::url($data->file) : null;
             $data->surat_hasil_url = $data->surat_hasil ? Storage::url($data->surat_hasil) : null;
-            $data->file_ijazah_url = $data->file_ijazah ? Storage::url($data->file_ijazah) : null;
-            $data->file_transkrip_url = $data->file_transkrip ? Storage::url($data->file_transkrip) : null;
 
             return response()->json([
                 'status' => true,
@@ -281,29 +275,11 @@ class SuratKeteranganAlumniController extends Controller
             // Validasi untuk Staff - hanya edit status
             $request->validate([
                 'status_id' => ['required', 'exists:status_alumni,id'],
-                'no_surat' => [Rule::requiredIf(function () use ($request) {
-                    return $request->status_id == '6';
-                })],
-                'file' => [
-                    Rule::requiredIf(function () use ($request) {
-                        return $request->status_id == '9';
-                    }),
-                    'file',
-                    'mimes:pdf,doc,docx'
-                ],
-                'file_ijazah' => ['nullable', 'file', 'mimes:pdf,doc,docx,jpg,jpeg,png'],
-                'file_transkrip' => ['nullable', 'file', 'mimes:pdf,doc,docx,jpg,jpeg,png'],
             ], [
                 'required' => ':attribute wajib diisi!',
                 'exists' => ':attribute tidak valid!',
-                'file' => ':attribute tidak valid!',
-                'mimes' => ':attribute harus berformat PDF, Word, atau gambar',
             ], [
                 'status_id' => 'Status',
-                'no_surat' => 'Nomor Surat',
-                'file' => 'File Final',
-                'file_ijazah' => 'File Ijazah',
-                'file_transkrip' => 'File Transkrip Nilai',
             ]);
         } else {
             // Validasi untuk Mahasiswa - edit data pengajuan
@@ -311,20 +287,14 @@ class SuratKeteranganAlumniController extends Controller
                 'permohonan' => ['nullable', 'string'],
                 'nomor_ijazah' => ['nullable', 'string', 'max:100'],
                 'tanggal_lulus' => ['nullable', 'date'],
-                'file_ijazah' => ['nullable', 'file', 'mimes:pdf,doc,docx,jpg,jpeg,png'],
-                'file_transkrip' => ['nullable', 'file', 'mimes:pdf,doc,docx,jpg,jpeg,png'],
             ], [
                 'string' => ':attribute harus berupa teks!',
                 'max' => ':attribute maksimal :max karakter!',
                 'date' => ':attribute harus berupa tanggal yang valid!',
-                'file' => ':attribute tidak valid!',
-                'mimes' => ':attribute harus berformat PDF, Word, atau gambar',
             ], [
                 'permohonan' => 'Permohonan',
                 'nomor_ijazah' => 'Nomor Ijazah',
                 'tanggal_lulus' => 'Tanggal Lulus',
-                'file_ijazah' => 'File Ijazah',
-                'file_transkrip' => 'File Transkrip Nilai',
             ]);
         }
 
@@ -346,36 +316,6 @@ class SuratKeteranganAlumniController extends Controller
 
                 $data_update['status_id'] = $request->status_id;
                 $data_update['tanggal_proses'] = now();
-                if ($request->status_id == '6' && $request->filled('no_surat')) {
-                    $data_update['no_surat'] = $request->no_surat;
-                }
-                if ($request->status_id == '9' && $request->hasFile('file')) {
-                    $file = $request->file('file');
-                    $filename = Str::slug(optional($surat->user)->nim ?? 'ska', '_') . '-final-' . time() . '.' . $file->getClientOriginalExtension();
-                    $path = $file->storeAs('surat_keterangan_alumni/uploaded', $filename, 'public');
-                    if ($surat->file && Storage::disk('public')->exists($surat->file)) {
-                        Storage::disk('public')->delete($surat->file);
-                    }
-                    $data_update['file'] = $path;
-                }
-
-                if ($request->hasFile('file_ijazah')) {
-                    $file = $request->file('file_ijazah');
-                    $stored = $file->storeAs('surat_keterangan_alumni/ijazah', 'ijazah-' . time() . '-' . Str::uuid() . '.' . $file->getClientOriginalExtension(), 'public');
-                    if ($surat->file_ijazah && Storage::disk('public')->exists($surat->file_ijazah)) {
-                        Storage::disk('public')->delete($surat->file_ijazah);
-                    }
-                    $data_update['file_ijazah'] = $stored;
-                }
-
-                if ($request->hasFile('file_transkrip')) {
-                    $file = $request->file('file_transkrip');
-                    $stored = $file->storeAs('surat_keterangan_alumni/transkrip', 'transkrip-' . time() . '-' . Str::uuid() . '.' . $file->getClientOriginalExtension(), 'public');
-                    if ($surat->file_transkrip && Storage::disk('public')->exists($surat->file_transkrip)) {
-                        Storage::disk('public')->delete($surat->file_transkrip);
-                    }
-                    $data_update['file_transkrip'] = $stored;
-                }
 
                 // Log data prepared for update
                 Log::debug('SuratKeteranganAlumni prepared update data (staff)', [
@@ -392,26 +332,6 @@ class SuratKeteranganAlumniController extends Controller
                 if ($request->filled('tanggal_lulus')) {
                     $data_update['tanggal_lulus'] = $request->tanggal_lulus;
                 }
-
-                if ($request->hasFile('file_ijazah')) {
-                    $ijazah = $request->file('file_ijazah');
-                    $ijazahName = 'ijazah-' . time() . '-' . Str::uuid() . '.' . $ijazah->getClientOriginalExtension();
-                    $path = $ijazah->storeAs('surat_keterangan_alumni/ijazah', $ijazahName, 'public');
-                    if ($surat->file_ijazah && Storage::disk('public')->exists($surat->file_ijazah)) {
-                        Storage::disk('public')->delete($surat->file_ijazah);
-                    }
-                    $data_update['file_ijazah'] = $path;
-                }
-
-                if ($request->hasFile('file_transkrip')) {
-                    $transkrip = $request->file('file_transkrip');
-                    $transkripName = 'transkrip-' . time() . '-' . Str::uuid() . '.' . $transkrip->getClientOriginalExtension();
-                    $path = $transkrip->storeAs('surat_keterangan_alumni/transkrip', $transkripName, 'public');
-                    if ($surat->file_transkrip && Storage::disk('public')->exists($surat->file_transkrip)) {
-                        Storage::disk('public')->delete($surat->file_transkrip);
-                    }
-                    $data_update['file_transkrip'] = $path;
-                }
             }
 
             $surat->update($data_update);
@@ -425,9 +345,7 @@ class SuratKeteranganAlumniController extends Controller
             ]);
 
             // Regenerate letter when data changed or status updated
-            if (!($isStaff && $surat->status_id == '9' && $request->hasFile('file'))) {
-                $this->generateLetterDocument($surat);
-            }
+            $this->generateLetterDocument($surat);
 
             return response()->json([
                 'status' => true,
@@ -476,10 +394,10 @@ class SuratKeteranganAlumniController extends Controller
     {
         $request->validate([
             'status_id' => ['required'],
-            'no_surat' => Rule::requiredIf(function () use ($request) {
+            'no_surat' => \Illuminate\Validation\Rule::requiredIf(function () use ($request) {
                 return in_array($request->status_id, ['5', '6']);
             }),
-            'catatan' => Rule::requiredIf(function () use ($request) {
+            'catatan' => \Illuminate\Validation\Rule::requiredIf(function () use ($request) {
                 return in_array($request->status_id, ['3', '7', '8']);
             })
         ], [
@@ -555,7 +473,7 @@ class SuratKeteranganAlumniController extends Controller
 
         $surat->loadMissing('user.prodis');
         $user = $surat->user;
-        $prodi = optional($user)->prodis;   
+        $prodi = optional($user)->prodis;
 
         $createdDate = $surat->created_at ?? Carbon::now();
 
@@ -563,7 +481,7 @@ class SuratKeteranganAlumniController extends Controller
             'nomor_surat' => $surat->no_surat ?: '-',
             'nama_alumni' => optional($user)->name ?: '-',
             'nim_alumni' => optional($user)->nim ?: '-',
-            'program_studi' => optional($prodi)->name ?: '-',
+            'program_studi' => optional($prodi)->nama ?: '-',
             'nomor_ijazah' => $surat->nomor_ijazah ?: '-',
             'tanggal_lulus' => $surat->tanggal_lulus
                 ? Carbon::parse($surat->tanggal_lulus)->translatedFormat('d F Y')
@@ -732,38 +650,5 @@ class SuratKeteranganAlumniController extends Controller
         }
 
         return $doc->saveXML();
-    }
-
-    public function generate(string $encodedId)
-    {
-        try {
-            $id = decodeId($encodedId);
-        } catch (\Throwable $th) {
-            abort(404);
-        }
-
-        $surat = SuratKeteranganAlumni::with('user.prodis')->findOrFail($id);
-
-        if ($surat->status_id == '9' && $surat->file && Storage::disk('public')->exists($surat->file)) {
-            return response()->json([
-                'status' => true,
-                'url' => Storage::url($surat->file),
-            ]);
-        }
-
-        $this->generateLetterDocument($surat);
-        $surat->refresh();
-
-        if ($surat->file && Storage::disk('public')->exists($surat->file)) {
-            return response()->json([
-                'status' => true,
-                'url' => Storage::url($surat->file),
-            ]);
-        }
-
-        return response()->json([
-            'status' => false,
-            'message' => 'Dokumen tidak tersedia',
-        ], 500);
     }
 }
