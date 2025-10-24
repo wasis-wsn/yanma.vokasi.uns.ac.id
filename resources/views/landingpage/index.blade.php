@@ -976,8 +976,8 @@
                         : collect($prodisAkreditasi);
 
                     $akreditasiGroups = [
-                        'sarjana' => ['title' => 'Sarjana (S1)', 'items' => []],
-                        'diploma' => ['title' => 'Diploma (D3)', 'items' => []],
+                        'sarjana' => ['title' => 'Sarjana Terapan', 'items' => []],
+                        'diploma' => ['title' => 'Diploma', 'items' => []],
                     ];
 
                     foreach ($akreditasiItems as $prodi) {
