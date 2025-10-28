@@ -320,7 +320,6 @@
                                         @endcan
                                         <th>No</th>
                                         <th>Tanggal Update</th>
-                                        <th>Tanggal Konfirmasi</th>
                                         <th>Nama</th>
                                         <th>NIM</th>
                                         <th>No Seri Ijazah</th>
@@ -392,7 +391,6 @@
                                 @endcan
                                 <th>No</th>
                                 <th>Tanggal Update</th>
-                                <th>Tanggal Konfirmasi</th>
                                 <th>Nama</th>
                                 <th>NIM</th>
                                 <th>No Seri Ijazah</th>
@@ -433,6 +431,7 @@
                             <option value="1">Belum Diproses</option>
                             <option value="2">Sudah Terverifikasi</option>
                             <option value="3">Tidak Terverifikasi</option>
+                            <option value="8">Tunda</option>
                         </select>
                     </div>
                     <div class="form-group mb-3">
