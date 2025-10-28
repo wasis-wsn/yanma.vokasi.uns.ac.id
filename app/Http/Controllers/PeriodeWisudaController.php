@@ -11,6 +11,8 @@ use Carbon\Carbon;
 
 class PeriodeWisudaController extends Controller
 {
+    private const STATUS_TUNDA = "8";
+
     public function index()
     {
         $tahuns = Tahun::select('tahun')->orderBy('tahun', 'desc')->get();
@@ -90,10 +92,10 @@ class PeriodeWisudaController extends Controller
 
             // Reset when there's a new date and reset_status is requested
             if ($newDate && $request->reset_status) {
-                \Log::info("Starting reset - targeting ALL students to status 6 (except status 2)");
+                \Log::info("Starting reset - targeting ALL students to status 6 (kecuali status terverifikasi dan tunda)");
 
-                // Reset all students to status 6, except those with status 2
-                $resetQuery = VerifikasiWisuda::whereNotIn('status_id', ['2']); // Only exclude status 2 (tidak berubah)
+                // Reset all students to status 6, kecuali yang berstatus terverifikasi (2) dan tunda
+                $resetQuery = VerifikasiWisuda::whereNotIn('status_id', ['2', self::STATUS_TUNDA]); // Exclude status 2 (tidak berubah) dan status tunda
 
                 $beforeResetCount = $resetQuery->count();
                 \Log::info("Found {$beforeResetCount} students to reset to status 6");
@@ -105,7 +107,7 @@ class PeriodeWisudaController extends Controller
                     }
 
                     // Reset all statuses except 2 to status 6
-                    $resetCount = VerifikasiWisuda::whereNotIn('status_id', ['1','2'])
+                    $resetCount = VerifikasiWisuda::whereNotIn('status_id', ['1','2', self::STATUS_TUNDA])
                         ->update([
                             'status_id' => '6', // Default reset to status 6
                             'catatan' => 'Status direset ke tidak lulus karena perubahan periode wisuda pada ' . now()->format('d F Y H:i:s'),
