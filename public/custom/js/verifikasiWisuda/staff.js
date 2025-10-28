@@ -27,7 +27,6 @@
                 },
                 { data: "DT_RowIndex" },
                 { data: "tanggal_update" },
-                { data: "tanggal_proses" },
                 { data: "user.name" },
                 { data: "user.nim" },
                 { data: "no_seri_ijazah" },
@@ -40,14 +39,14 @@
             ],
             columnDefs: [
                 { className: "text-center", width: "3%", targets: [1, 2] },
-                { className: "text-center", width: "8%", targets: [3, 4] }, // tanggal_update, tanggal_proses
-                { className: "text-wrap", width: "15%", targets: [5] }, // user.name
-                { className: "text-center", width: "8%", targets: [6] }, // user.nim
-                { className: "text-center", width: "10%", targets: [7, 8, 9] }, // no_seri_ijazah, pin, tanggal_terbit
-                { className: "text-center", width: "10%", targets: [10] }, // periode_wisuda
-                { className: "text-center", width: "8%", targets: [11] }, // status_id
-                { className: "text-center align-middle", width: "8%", targets: [12] }, // action
-                { className: "text-wrap", width: "15%", targets: [13] }, // catatan
+                { className: "text-center", width: "8%", targets: [3] }, // tanggal_update
+                { className: "text-wrap", width: "15%", targets: [4] }, // user.name
+                { className: "text-center", width: "8%", targets: [5] }, // user.nim
+                { className: "text-center", width: "10%", targets: [6, 7, 8] }, // no_seri_ijazah, pin, tanggal_terbit
+                { className: "text-center", width: "10%", targets: [9] }, // periode_wisuda
+                { className: "text-center", width: "8%", targets: [10] }, // status_id
+                { className: "text-center align-middle", width: "8%", targets: [11] }, // action
+                { className: "text-wrap", width: "15%", targets: [12] }, // catatan
             ],
             order: [[0, "desc"]],
         });
@@ -72,7 +71,6 @@
                 },
                 { data: "DT_RowIndex" },
                 { data: "tanggal_update" },
-                { data: "tanggal_proses" },
                 { data: "user.name" },
                 { data: "user.nim" },
                 { data: "no_seri_ijazah" },
@@ -85,14 +83,14 @@
             ],
             columnDefs: [
                 { className: "text-center", width: "3%", targets: [1, 2] },
-                { className: "text-center", width: "8%", targets: [3, 4] }, // tanggal_update, tanggal_proses
-                { className: "text-wrap", width: "15%", targets: [5] }, // user.name
-                { className: "text-center", width: "8%", targets: [6] }, // user.nim
-                { className: "text-center", width: "10%", targets: [7, 8, 9] }, // no_seri_ijazah, pin, tanggal_terbit
-                { className: "text-center", width: "10%", targets: [10] }, // periode_wisuda
-                { className: "text-center", width: "8%", targets: [11] }, // status_id
-                { className: "text-center align-middle", width: "8%", targets: [12] }, // action
-                { className: "text-wrap", width: "15%", targets: [13] }, // catatan
+                { className: "text-center", width: "8%", targets: [3] }, // tanggal_update
+                { className: "text-wrap", width: "15%", targets: [4] }, // user.name
+                { className: "text-center", width: "8%", targets: [5] }, // user.nim
+                { className: "text-center", width: "10%", targets: [6, 7, 8] }, // no_seri_ijazah, pin, tanggal_terbit
+                { className: "text-center", width: "10%", targets: [9] }, // periode_wisuda
+                { className: "text-center", width: "8%", targets: [10] }, // status_id
+                { className: "text-center align-middle", width: "8%", targets: [11] }, // action
+                { className: "text-wrap", width: "15%", targets: [12] }, // catatan
             ],
             order: [[0, "desc"]],
         });
@@ -503,7 +501,7 @@
                     if (response.reset_count > 0) {
                         message += ` ${response.reset_count} mahasiswa telah direset statusnya.`;
                     } else if (response.reset_count === 0 && formData.get('reset_status')) {
-                        message += ' Tidak ada mahasiswa yang perlu direset atau mahasiswa sudah dalam status "Belum Diproses".';
+                        message += ' Tidak ada mahasiswa yang perlu direset atau mahasiswa sudah dalam status "Belum Diproses/Tunda".';
                     }
 
                     Swal.fire({
@@ -606,6 +604,7 @@
                         <option value="1">Belum Diproses</option>
                         <option value="2">Sudah Terverifikasi</option>
                         <option value="3">Tidak Terverifikasi</option>
+                        <option value="8">Tunda</option>
                     `;
 
                     $('#status_id').html(statusOptions);
@@ -620,7 +619,8 @@
                         const defaultNotes = {
                             '1': 'Data sedang menunggu verifikasi dari staff akademik.',
                             '2': 'Selamat! Data Anda telah terverifikasi sebagai peserta wisuda.',
-                            '3': 'Data tidak dapat diverifikasi. Silakan lengkapi kembali persyaratan yang diminta.'
+                            '3': 'Data tidak dapat diverifikasi. Silakan lengkapi kembali persyaratan yang diminta.',
+                            '8': 'Status ajuan ditunda. Silakan menunggu informasi lebih lanjut dari staff akademik.'
                         };
 
                         const currentStatusNote = defaultNotes[data.status_id];
@@ -722,7 +722,8 @@
             const defaultNotes = {
                 '1': 'Data sedang menunggu verifikasi dari staff akademik.',
                 '2': 'Selamat! Data Anda telah terverifikasi sebagai peserta wisuda.',
-                '3': 'Data tidak dapat diverifikasi. Silakan lengkapi kembali persyaratan yang diminta.'
+                '3': 'Data tidak dapat diverifikasi. Silakan lengkapi kembali persyaratan yang diminta.',
+                '8': 'Status ajuan ditunda. Silakan menunggu informasi lebih lanjut dari staff akademik.'
             };
 
             // Set default note if available

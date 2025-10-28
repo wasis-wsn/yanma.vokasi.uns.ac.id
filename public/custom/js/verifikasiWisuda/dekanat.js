@@ -8,7 +8,6 @@ const initializeDataTable = (status, year) => {
             { data: "created_at", visible: false },
             { data: "DT_RowIndex" },
             { data: "tanggal_update" },
-            { data: "tanggal_proses" },
             { data: "tanggal_submit" },
             { data: "user.name" },
             { data: "user.nim" },
@@ -20,13 +19,13 @@ const initializeDataTable = (status, year) => {
         ],
         columnDefs: [
             { className: "text-center", width: "3%", targets: [1] }, // DT_RowIndex
-            { className: "text-center", width: "8%", targets: [2, 3, 4] }, // tanggal_update, tanggal_proses, tanggal_submit
-            { className: "text-wrap", width: "15%", targets: [5] }, // user.name
-            { className: "text-center", width: "8%", targets: [6] }, // user.nim
-            { className: "text-center", width: "10%", targets: [7, 8] }, // no_seri_ijazah, tanggal_terbit
-            { className: "text-center", width: "10%", targets: [9] }, // periode_wisuda
-            { className: "text-center align-middle", width: "8%", targets: [10] }, // action
-            { className: "text-wrap", width: "15%", targets: [11] }, // catatan
+            { className: "text-center", width: "8%", targets: [2, 3] }, // tanggal_update, tanggal_submit
+            { className: "text-wrap", width: "15%", targets: [4] }, // user.name
+            { className: "text-center", width: "8%", targets: [5] }, // user.nim
+            { className: "text-center", width: "10%", targets: [6, 7] }, // no_seri_ijazah, tanggal_terbit
+            { className: "text-center", width: "10%", targets: [8] }, // periode_wisuda
+            { className: "text-center align-middle", width: "8%", targets: [9] }, // action
+            { className: "text-wrap", width: "15%", targets: [10] }, // catatan
         ],
         order: [[0, "desc"]],
     });
