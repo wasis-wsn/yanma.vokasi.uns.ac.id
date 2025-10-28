@@ -14,6 +14,7 @@ use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use Maatwebsite\Excel\Concerns\Exportable;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class SIKExport implements FromCollection, WithHeadings, WithStyles, WithMapping
 {
@@ -67,24 +68,40 @@ class SIKExport implements FromCollection, WithHeadings, WithStyles, WithMapping
     {
         $this->rowNumber++;
         $this->awal++;
+
+        // Log jika ada relasi penting yang null untuk diagnosa
+        if (!$row->ormawa || !$row->ketua || !$row->status) {
+            Log::error('SIKExport missing relation', [
+                'sik_id'     => $row->id,
+                'ormawa_id'  => $row->ormawa_id,
+                'ketua_id'   => $row->ketua_id,
+                'status_id'  => $row->status_id ?? null,
+                'ormawa'     => (bool) $row->ormawa,
+                'ormawa_pembina' => (bool) optional($row->ormawa)->pembina,
+                'ketua'      => (bool) $row->ketua,
+                'ketua_prodis'=> (bool) optional($row->ketua)->prodis,
+                'status'     => (bool) $row->status,
+            ]);
+        }
+
         return [
             $this->rowNumber,
-            Carbon::parse($row->created_at)->translatedFormat('d F Y H:i:s'),
-            $row->no_surat,
-            $row->nama_kegiatan,
-            $row->ormawa->name,
-            $row->ormawa->pembina->name,
-            $row->ketua->nim,
-            $row->ketua->name,
-            $row->ketua->prodis->name,
-            $row->no_surat_ormawa,
-            Carbon::parse($row->tanggal_surat)->translatedFormat('d F Y'),
-            Carbon::parse($row->tanggal_lpj)->translatedFormat('d F Y'),
-            Carbon::parse($row->mulai_kegiatan)->translatedFormat('d F Y H:i:s'),
-            Carbon::parse($row->selesai_kegiatan)->translatedFormat('d F Y H:i:s'),
-            $row->tempat,
-            $row->status->name,
-            $row->catatan,
+            $row->created_at ? Carbon::parse($row->created_at)->translatedFormat('d F Y H:i:s') : '-',
+            $row->no_surat ?? '-',
+            $row->nama_kegiatan ?? '-',
+            optional($row->ormawa)->name ?? '-',
+            optional(optional($row->ormawa)->pembina)->name ?? '-',
+            optional($row->ketua)->nim ?? '-',
+            optional($row->ketua)->name ?? '-',
+            optional(optional($row->ketua)->prodis)->name ?? '-',
+            $row->no_surat_ormawa ?? '-',
+            $row->tanggal_surat ? Carbon::parse($row->tanggal_surat)->translatedFormat('d F Y') : '-',
+            $row->tanggal_lpj ? Carbon::parse($row->tanggal_lpj)->translatedFormat('d F Y') : '-',
+            $row->mulai_kegiatan ? Carbon::parse($row->mulai_kegiatan)->translatedFormat('d F Y H:i:s') : '-',
+            $row->selesai_kegiatan ? Carbon::parse($row->selesai_kegiatan)->translatedFormat('d F Y H:i:s') : '-',
+            $row->tempat ?? '-',
+            optional($row->status)->name ?? '-',
+            $row->catatan ?? '-',
         ];
     }
 
