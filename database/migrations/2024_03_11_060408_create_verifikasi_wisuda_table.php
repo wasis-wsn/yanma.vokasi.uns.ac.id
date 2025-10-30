@@ -24,6 +24,7 @@ return new class extends Migration
             $table->string('pin')->nullable();
             $table->string('file')->nullable();
             $table->string('periode_wisuda')->nullable();
+            $table->dateTime('tanggal_update')->nullable();
             $table->timestamps();
 
             // $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
