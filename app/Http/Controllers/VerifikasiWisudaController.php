@@ -24,6 +24,7 @@ use Yajra\DataTables\Facades\DataTables;
 class VerifikasiWisudaController extends Controller
 {
     private const STATUS_TUNDA = '8';
+    private const STATUS_SELESAI = '9';
 
     public function landingPage(Request $request)
     {
@@ -36,6 +37,7 @@ class VerifikasiWisudaController extends Controller
         $year = $request->year ?? date('Y');
         $allData = VerifikasiWisuda::with('user', 'status')
                     ->whereYear('created_at', $year)
+                    ->where('status_id', '!=', self::STATUS_SELESAI)
                     ->orderBy('created_at', 'desc')
                     ->take(10)
                     ->get();
@@ -65,7 +67,7 @@ class VerifikasiWisudaController extends Controller
         $layanan = Layanan::where('url_mhs', $request->url())->orWhere('url_staff', $request->url())->first();
         $ajuan = false; // Mahasiswa tidak perlu mengajukan lagi
         $tahuns = Tahun::select('tahun')->orderBy('tahun', 'desc')->get();
-        $status = StatusWisuda::all();
+        $status = StatusWisuda::where('id', '!=', self::STATUS_SELESAI)->get();
         $templates = Template::where('layanan_id', $layanan->id)->get();
         return view('pages.verifikasi_wisuda.index', compact('ajuan', 'layanan', 'tahuns', 'status', 'templates'));
     }
@@ -80,7 +82,9 @@ class VerifikasiWisudaController extends Controller
 
     public function list(Request $request)
     {
-        $data = VerifikasiWisuda::with('user.prodis', 'status')->whereYear('created_at', $request->year);
+        $data = VerifikasiWisuda::with('user.prodis', 'status')
+            ->whereYear('created_at', $request->year)
+            ->where('status_id', '!=', self::STATUS_SELESAI);
         if ($request->status != 'all') $data = $data->where('status_id', $request->status);
 
         // Show all records that are not fully verified (status_id != 2)
@@ -147,7 +151,9 @@ class VerifikasiWisudaController extends Controller
 
     public function listDekanat(Request $request)
     {
-        $data = VerifikasiWisuda::with('user.prodis', 'status')->whereYear('created_at', $request->year);
+        $data = VerifikasiWisuda::with('user.prodis', 'status')
+            ->whereYear('created_at', $request->year)
+            ->where('status_id', '!=', self::STATUS_SELESAI);
         if ($request->status != 'all') $data = $data->where('status_id', $request->status);
 
         // Show all records that are not fully verified (status_id != 2)
@@ -210,10 +216,13 @@ class VerifikasiWisudaController extends Controller
 
     public function listAdminFo(Request $request)
     {
-        $data = VerifikasiWisuda::with('user.prodis', 'status')->whereYear('created_at', $request->year);
+        $data = VerifikasiWisuda::with('user.prodis', 'status')
+            ->whereYear('created_at', $request->year)
+            ->where('status_id', '!=', self::STATUS_SELESAI);
         if ($request->status != 'all') $data = $data->where('status_id', $request->status);
 
         // Show all data for admin and fo roles (including verified and confirmed students)
+        // But exclude status 9 (selesai)
         $data = $data->orderBy('created_at', 'desc')->get();
 
         return DataTables::of($data)
@@ -438,38 +447,58 @@ class VerifikasiWisudaController extends Controller
 
             $ajuan->update($updateData);
 
-            // Only create transkrip and skpi if status is 2 (Terverifikasi) and data is complete
+            // Only create/update transkrip and skpi if status is 2 (Terverifikasi) and data is complete
             if ($request->status_id == '2' && !empty($ajuan->periode_wisuda)) {
                 $mahasiswa_id = $ajuan->user_id;
 
-                // Check if records don't already exist
+                // Check if Transkrip already exists
                 $existingTranskrip = TranskripNilai::where('user_id', $mahasiswa_id)
                     ->where('periode_wisuda', $ajuan->periode_wisuda)
                     ->first();
 
-                $existingSKPI = SKPI::where('user_id', $mahasiswa_id)
-                    ->where('periode_wisuda', $ajuan->periode_wisuda)
-                    ->first();
-
-                if (!$existingTranskrip) {
+                if ($existingTranskrip) {
+                    // Update existing transkrip - reset to status 1 untuk diproses ulang
+                    $existingTranskrip->update([
+                        'status_id' => '1',
+                        'updated_at' => now(),
+                    ]);
+                    Log::info("Updated existing Transkrip for user_id: {$mahasiswa_id}, periode: {$ajuan->periode_wisuda}");
+                } else {
+                    // Create new transkrip
                     TranskripNilai::create([
                         'user_id' => $mahasiswa_id,
                         'status_id' => '1',
                         'periode_wisuda' => $ajuan->periode_wisuda,
                     ]);
+                    Log::info("Created new Transkrip for user_id: {$mahasiswa_id}, periode: {$ajuan->periode_wisuda}");
                 }
 
-                if (!$existingSKPI) {
+                // Check if SKPI already exists
+                $existingSKPI = SKPI::where('user_id', $mahasiswa_id)
+                    ->where('periode_wisuda', $ajuan->periode_wisuda)
+                    ->first();
+
+                if ($existingSKPI) {
+                    // Update existing SKPI - reset to status 1 untuk diproses ulang
+                    $existingSKPI->update([
+                        'status_id' => '1',
+                        'updated_at' => now(),
+                    ]);
+                    Log::info("Updated existing SKPI for user_id: {$mahasiswa_id}, periode: {$ajuan->periode_wisuda}");
+                } else {
+                    // Create new SKPI
                     SKPI::create([
                         'user_id' => $mahasiswa_id,
                         'status_id' => '1',
                         'periode_wisuda' => $ajuan->periode_wisuda,
                     ]);
+                    Log::info("Created new SKPI for user_id: {$mahasiswa_id}, periode: {$ajuan->periode_wisuda}");
                 }
             }
 
             return response()->json(['status' => true, 'message' => 'Status berhasil diperbarui!'], 200);
         } catch (\Throwable $th) {
+            Log::error('Error in proses: ' . $th->getMessage());
             return response()->json(['status' => false, 'message' => 'terjadi kesalahan'], 500);
         }
     }
@@ -480,6 +509,7 @@ class VerifikasiWisudaController extends Controller
         $data = VerifikasiWisuda::with(['user.prodis', 'status'])
             ->whereYear('created_at', $year)
             ->where('status_id', '2')
+            ->where('status_id', '!=', self::STATUS_SELESAI) // Exclude status 9
             ->whereNotNull('no_seri_ijazah')
             ->where('no_seri_ijazah', '<>', '')
             ->whereNotNull('pin')
@@ -584,40 +614,65 @@ public function bulkProcess(Request $request)
         // Update all selected records using raw IDs
         $updated = VerifikasiWisuda::whereIn('id', $validIds)->update($updateData);
 
-        // If status is verified (2), create related records
+        // If status is verified (2), create/update related records
         if ($request->status_id == '2') {
             $verifikasiData = VerifikasiWisuda::whereIn('id', $validIds)
                 ->where('status_id', '2')
                 ->whereNotNull('periode_wisuda')
                 ->get();
 
+            $transkripCreated = 0;
+            $transkripUpdated = 0;
+            $skpiCreated = 0;
+            $skpiUpdated = 0;
+
             foreach ($verifikasiData as $verifikasi) {
-                // Create transkrip if not exists
+                // Check and create/update transkrip
                 $existingTranskrip = TranskripNilai::where('user_id', $verifikasi->user_id)
                     ->where('periode_wisuda', $verifikasi->periode_wisuda)
                     ->first();
 
-                if (!$existingTranskrip) {
+                if ($existingTranskrip) {
+                    // Update existing transkrip - reset to status 1
+                    $existingTranskrip->update([
+                        'status_id' => '1',
+                        'updated_at' => now(),
+                    ]);
+                    $transkripUpdated++;
+                } else {
+                    // Create new transkrip
                     TranskripNilai::create([
                         'user_id' => $verifikasi->user_id,
                         'status_id' => '1',
                         'periode_wisuda' => $verifikasi->periode_wisuda,
                     ]);
+                    $transkripCreated++;
                 }
 
-                // Create SKPI if not exists
+                // Check and create/update SKPI
                 $existingSKPI = SKPI::where('user_id', $verifikasi->user_id)
                     ->where('periode_wisuda', $verifikasi->periode_wisuda)
                     ->first();
 
-                if (!$existingSKPI) {
+                if ($existingSKPI) {
+                    // Update existing SKPI - reset to status 1
+                    $existingSKPI->update([
+                        'status_id' => '1',
+                        'updated_at' => now(),
+                    ]);
+                    $skpiUpdated++;
+                } else {
+                    // Create new SKPI
                     SKPI::create([
                         'user_id' => $verifikasi->user_id,
                         'status_id' => '1',
                         'periode_wisuda' => $verifikasi->periode_wisuda,
                     ]);
+                    $skpiCreated++;
                 }
             }
+
+            Log::info("Bulk process completed: Transkrip (created: {$transkripCreated}, updated: {$transkripUpdated}), SKPI (created: {$skpiCreated}, updated: {$skpiUpdated})");
         }
 
         return response()->json([

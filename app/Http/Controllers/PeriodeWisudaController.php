@@ -88,33 +88,33 @@ class PeriodeWisudaController extends Controller
             ]);
 
             $resetCount = 0;
-            $changedToStatus6 = 0;
 
             // Reset when there's a new date and reset_status is requested
             if ($newDate && $request->reset_status) {
-                \Log::info("Starting reset - targeting ALL students to status 6 (kecuali status terverifikasi dan tunda)");
+                \Log::info("Starting reset - targeting ALL students to status 1 (kecuali status terverifikasi dan tunda)");
 
-                // Reset all students to status 6, kecuali yang berstatus terverifikasi (2) dan tunda
-                $resetQuery = VerifikasiWisuda::whereNotIn('status_id', ['2', self::STATUS_TUNDA]); // Exclude status 2 (tidak berubah) dan status tunda
+                // Reset all students to status 1, kecuali yang berstatus terverifikasi (2) dan tunda (8)
+                $resetQuery = VerifikasiWisuda::whereNotIn('status_id', ['2', self::STATUS_TUNDA]);
 
                 $beforeResetCount = $resetQuery->count();
-                \Log::info("Found {$beforeResetCount} students to reset to status 6");
+                \Log::info("Found {$beforeResetCount} students to reset to status 1");
 
                 if ($beforeResetCount > 0) {
                     $examplesReset = $resetQuery->with('user')->limit(5)->get();
                     foreach ($examplesReset as $example) {
-                        \Log::info("Will reset to status 6: {$example->user->name} (NIM: {$example->user->nim}), Current Status: {$example->status_id}, Periode: '{$example->periode_wisuda}'");
+                        \Log::info("Will reset to status 1: {$example->user->name} (NIM: {$example->user->nim}), Current Status: {$example->status_id}, Periode: '{$example->periode_wisuda}'");
                     }
 
-                    // Reset all statuses except 2 to status 6
-                    $resetCount = VerifikasiWisuda::whereNotIn('status_id', ['1','2', self::STATUS_TUNDA])
+                    // Reset all statuses except 2 and 8 to status 1
+                    $resetCount = VerifikasiWisuda::whereNotIn('status_id', ['2', self::STATUS_TUNDA])
                         ->update([
-                            'status_id' => '6', // Default reset to status 6
-                            'catatan' => 'Status direset ke tidak lulus karena perubahan periode wisuda pada ' . now()->format('d F Y H:i:s'),
-                            'tanggal_proses' => now()
+                            'status_id' => '1', // Reset to status 1 (Diajukan)
+                            'catatan' => 'Status direset ke diajukan karena perubahan periode wisuda pada ' . now()->format('d F Y H:i:s'),
+                            'tanggal_update' => now(),
+                            'updated_at' => now()
                         ]);
 
-                    \Log::info("Successfully reset {$resetCount} students to status 6");
+                    \Log::info("Successfully reset {$resetCount} students to status 1");
                 }
 
                 \Log::info("Total students affected: {$resetCount}");

@@ -7,6 +7,8 @@ use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithStyles;
+use Maatwebsite\Excel\Concerns\WithEvents;
+use Maatwebsite\Excel\Events\AfterSheet;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Color;
@@ -16,16 +18,18 @@ use Maatwebsite\Excel\Concerns\Exportable;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
-class VerifWisudaExport implements FromCollection, WithHeadings, WithStyles, WithMapping
+class VerifWisudaExport implements FromCollection, WithHeadings, WithStyles, WithMapping, WithEvents
 {
     use Exportable;
+
+    private const STATUS_SELESAI = '9';
 
     public $tahun;
     public $type;
     public $autoDelete;
     private $rowNumber = 0;
     public $awal = 3;
-    private $dataToDelete = []; // Simpan ID data yang akan dihapus
+    private $exportedRecordIds = []; // Simpan ID data yang diexport
 
     public function __construct($tahun, $type = 'verifikasi', $autoDelete = false)
     {
@@ -66,10 +70,8 @@ class VerifWisudaExport implements FromCollection, WithHeadings, WithStyles, Wit
 
         $data = $query->get();
 
-        // Simpan ID untuk dihapus nanti jika autoDelete aktif
-        if ($this->autoDelete) {
-            $this->dataToDelete = $data->pluck('id')->toArray();
-        }
+        // Simpan ID yang diexport agar dapat ditandai selesai setelah proses export
+        $this->exportedRecordIds = $data->pluck('id')->toArray();
 
         return $data;
     }
@@ -118,25 +120,41 @@ class VerifWisudaExport implements FromCollection, WithHeadings, WithStyles, Wit
         // Border semua cell dari A3 sampai baris terakhir (A to G)
         $sheet->getStyle('A3:G' . $this->awal)
             ->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
-
-        // Hapus data setelah styling selesai (artinya export sudah selesai)
-        if ($this->autoDelete && !empty($this->dataToDelete)) {
-            $this->deleteExportedData();
-        }
     }
 
     /**
-     * Hapus data yang sudah diexport
+     * Register events untuk update status setelah export selesai
      */
-    private function deleteExportedData()
+    public function registerEvents(): array
+    {
+        return [
+            AfterSheet::class => function(AfterSheet $event) {
+                // Update status setelah sheet selesai dibuat
+                if (!empty($this->exportedRecordIds)) {
+                    $this->finalizeExportedData();
+                }
+            },
+        ];
+    }
+
+    /**
+     * Tandai data yang sudah diexport sebagai selesai
+     */
+    private function finalizeExportedData()
     {
         try {
             DB::transaction(function () {
-                VerifikasiWisuda::whereIn('id', $this->dataToDelete)->delete();
+                $updated = VerifikasiWisuda::whereIn('id', $this->exportedRecordIds)
+                    ->where('status_id', '2')
+                    ->update([
+                        'status_id' => self::STATUS_SELESAI,
+                        'updated_at' => now(),
+                    ]);
+                
+                \Log::info("Export completed: {$updated} records updated to status " . self::STATUS_SELESAI);
             });
         } catch (\Exception $e) {
-            // Log error jika diperlukan
-            \Log::error('Gagal menghapus data setelah export: ' . $e->getMessage());
+            \Log::error('Gagal menandai data selesai setelah export: ' . $e->getMessage());
         }
     }
 }
