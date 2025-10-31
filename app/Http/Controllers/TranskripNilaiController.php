@@ -8,9 +8,11 @@ use App\Models\StatusTranskrip;
 use App\Models\Tahun;
 use App\Models\Template;
 use App\Models\TranskripNilai;
+use App\Models\PeriodeWisuda; // added
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log; // added
 use Maatwebsite\Excel\Facades\Excel;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -31,11 +33,11 @@ class TranskripNilaiController extends Controller
         // Filter berdasarkan tahun dari periode_wisuda dan status transkrip itu sendiri
         $list = TranskripNilai::with('user.prodis', 'status')
             ->whereRaw("SUBSTRING(periode_wisuda, 1, 4) = ?", [$request->year]);
-        
+
         if ($request->status != 'all') {
             $list = $list->where('status_id', $request->status);
         }
-        
+
         $list = $list->orderBy('created_at', 'desc')->get();
 
         return DataTables::of($list)
@@ -63,11 +65,7 @@ class TranskripNilaiController extends Controller
                 return $tanggal_ambil;
             })
             ->editColumn('periode_wisuda', function ($row) {
-                $periode_wisuda = $row->periode_wisuda;
-                if ($periode_wisuda) {
-                    $periode_wisuda = Carbon::createFromFormat('Y-m', $row->periode_wisuda)->translatedFormat('F Y');
-                }
-                return $periode_wisuda;
+                return $this->formatPeriodeDisplay($row->periode_wisuda);
             })
             ->rawColumns(['id', 'action', 'status_id', 'tanggal_ambil', 'periode_wisuda'])
             ->toJson();
@@ -78,11 +76,11 @@ class TranskripNilaiController extends Controller
         // Filter berdasarkan tahun dari periode_wisuda dan status transkrip itu sendiri
         $list = TranskripNilai::with('user.prodis', 'status')
             ->whereRaw("SUBSTRING(periode_wisuda, 1, 4) = ?", [$request->year]);
-        
+
         if ($request->status != 'all') {
             $list = $list->where('status_id', $request->status);
         }
-        
+
         $list = $list->orderBy('created_at', 'desc')->get();
 
         return DataTables::of($list)
@@ -107,11 +105,7 @@ class TranskripNilaiController extends Controller
                 return $tanggal_ambil;
             })
             ->editColumn('periode_wisuda', function ($row) {
-                $periode_wisuda = $row->periode_wisuda;
-                if ($periode_wisuda) {
-                    $periode_wisuda = Carbon::createFromFormat('Y-m', $row->periode_wisuda)->translatedFormat('F Y');
-                }
-                return $periode_wisuda;
+                return $this->formatPeriodeDisplay($row->periode_wisuda);
             })
             ->rawColumns(['action', 'status_id', 'tanggal_ambil', 'periode_wisuda'])
             ->toJson();
@@ -122,11 +116,11 @@ class TranskripNilaiController extends Controller
         // Filter berdasarkan tahun dari periode_wisuda dan status transkrip itu sendiri
         $list = TranskripNilai::with('user.prodis', 'status')
             ->whereRaw("SUBSTRING(periode_wisuda, 1, 4) = ?", [$request->year]);
-        
+
         if ($request->status != 'all') {
             $list = $list->where('status_id', $request->status);
         }
-        
+
         $list = $list->orderBy('created_at', 'desc')->get();
 
         return DataTables::of($list)
@@ -148,11 +142,7 @@ class TranskripNilaiController extends Controller
                 return $tanggal_ambil;
             })
             ->editColumn('periode_wisuda', function ($row) {
-                $periode_wisuda = $row->periode_wisuda;
-                if ($periode_wisuda) {
-                    $periode_wisuda = Carbon::createFromFormat('Y-m', $row->periode_wisuda)->translatedFormat('F Y');
-                }
-                return $periode_wisuda;
+                return $this->formatPeriodeDisplay($row->periode_wisuda);
             })
             ->rawColumns(['id', 'action', 'status_id', 'tanggal_ambil', 'periode_wisuda'])
             ->toJson();
@@ -234,6 +224,54 @@ class TranskripNilaiController extends Controller
             return response()->json(['status' => true, 'message' => 'Status ajuan berhasil diupdate!'], 200);
         } catch (\Throwable $th) {
             return response()->json(['status' => false, 'message' => 'Terjadi kesalahan'], 500);
+        }
+    }
+
+    // Add format helper similar to VerifikasiWisudaController
+    private function formatPeriodeDisplay($periode_wisuda)
+    {
+        if (!$periode_wisuda) return '';
+
+        try {
+            // ekspektasi format "YYYY-MM"
+            $parts = explode('-', $periode_wisuda);
+            $year = intval($parts[0] ?? 0);
+            $monthParsed = intval($parts[1] ?? 0);
+
+            // Tentukan bulan yang akan ditampilkan (1..12) berdasarkan nilai pada kolom mahasiswa
+            if ($monthParsed >= 0 && $monthParsed <= 11) {
+                // kemungkinan disimpan 0-based di record mahasiswa
+                $displayMonth = $monthParsed + 1;
+            } else {
+                // asumsi sudah 1..12
+                $displayMonth = $monthParsed;
+            }
+            if ($displayMonth < 1 || $displayMonth > 12) $displayMonth = 1;
+
+            // Prioritaskan pencocokan yang sesuai dengan data mahasiswa (exact/fallback)
+            $periodeData = null;
+            if ($monthParsed >= 1 && $monthParsed <= 12) {
+                $periodeData = PeriodeWisuda::where('tahun', $year)->where('bulan', $monthParsed)->first();
+                if (!$periodeData && $monthParsed - 1 >= 0) {
+                    $periodeData = PeriodeWisuda::where('tahun', $year)->where('bulan', $monthParsed - 1)->first();
+                }
+            } else {
+                $periodeData = PeriodeWisuda::where('tahun', $year)->where('bulan', $monthParsed)->first();
+                if (!$periodeData) {
+                    $periodeData = PeriodeWisuda::where('tahun', $year)->where('bulan', $displayMonth)->first();
+                }
+            }
+
+            // Jika ditemukan periode dengan tanggal_wisuda: tampilkan hanya keterangan bawah (tanggal wisuda)
+            if ($periodeData && $periodeData->tanggal_wisuda) {
+                return '<small class="text-muted">' . Carbon::parse($periodeData->tanggal_wisuda)->translatedFormat('d F Y') . '</small>';
+            }
+
+            // Fallback: tampilkan nama bulan/tahun berdasarkan nilai mahasiswa
+            return Carbon::createFromDate($year ?: now()->year, $displayMonth, 1)->translatedFormat('F Y');
+        } catch (\Throwable $e) {
+            Log::warning('formatPeriodeDisplay error (TranskripNilaiController): ' . $e->getMessage());
+            return $periode_wisuda;
         }
     }
 }
