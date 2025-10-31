@@ -31,11 +31,25 @@ class PeriodeWisudaController extends Controller
         return DataTables::of($data)
             ->addIndexColumn()
             ->addColumn('action', function ($row) {
+                // Normalize month number: handle cases where bulan might be stored 0-11 or 1-12
+                $rawBulan = (int) $row->bulan;
+                if ($rawBulan >= 0 && $rawBulan <= 11) {
+                    $bulanNumber = $rawBulan + 1;
+                } else {
+                    $bulanNumber = $rawBulan;
+                }
+                // Ensure valid 1-12
+                if ($bulanNumber < 1 || $bulanNumber > 12) {
+                    $bulanNumber = 1;
+                }
+
+                $namaBulan = \Carbon\Carbon::createFromDate($row->tahun, $bulanNumber, 1)->translatedFormat('F');
+
                 return '<button type="button" class="btn btn-primary btn-sm btn-edit"
                             data-id="' . $row->id . '"
                             data-bulan="' . $row->bulan . '"
                             data-tahun="' . $row->tahun . '"
-                            data-nama="' . $row->nama_bulan . '"
+                            data-nama="' . $namaBulan . '"
                             data-tanggal="' . ($row->tanggal_wisuda ? $row->tanggal_wisuda->format('Y-m-d') : '') . '"
                             data-active="' . ($row->is_active ? 1 : 0) . '">
                         <i class="fa fa-edit"></i> Edit

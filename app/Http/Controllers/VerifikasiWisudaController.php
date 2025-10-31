@@ -124,20 +124,7 @@ class VerifikasiWisudaController extends Controller
                 return $row->tanggal_update ? Carbon::parse($row->tanggal_update)->translatedFormat('d F Y') . '<br/>' . Carbon::parse($row->tanggal_update)->translatedFormat('H:i:s') . ' WIB' : '';
             })
             ->editColumn('periode_wisuda', function ($row) {
-                $periode_wisuda = $row->periode_wisuda;
-                if ($periode_wisuda) {
-                    $periode_wisuda = Carbon::createFromFormat('Y-m', $row->periode_wisuda)->translatedFormat('F Y');
-
-                    // Get graduation date from PeriodeWisuda
-                    $periodeData = PeriodeWisuda::where('tahun', Carbon::createFromFormat('Y-m', $row->periode_wisuda)->year)
-                        ->where('bulan', Carbon::createFromFormat('Y-m', $row->periode_wisuda)->month)
-                        ->first();
-
-                    if ($periodeData && $periodeData->tanggal_wisuda) {
-                        $periode_wisuda .= '<br/><small class="text-muted">' . Carbon::parse($periodeData->tanggal_wisuda)->translatedFormat('d F Y') . '</small>';
-                    }
-                }
-                return $periode_wisuda;
+                return $this->formatPeriodeDisplay($row->periode_wisuda);
             })
             ->editColumn('pin', function ($row) {
                 return $row->pin ?? '';
@@ -189,20 +176,7 @@ class VerifikasiWisudaController extends Controller
                 return $row->tanggal_update ? Carbon::parse($row->tanggal_update)->translatedFormat('d F Y') . '<br/>' . Carbon::parse($row->tanggal_update)->translatedFormat('H:i:s') . ' WIB' : '';
             })
             ->editColumn('periode_wisuda', function ($row) {
-                $periode_wisuda = $row->periode_wisuda;
-                if ($periode_wisuda) {
-                    $periode_wisuda = Carbon::createFromFormat('Y-m', $row->periode_wisuda)->translatedFormat('F Y');
-
-                    // Get graduation date from PeriodeWisuda
-                    $periodeData = PeriodeWisuda::where('tahun', Carbon::createFromFormat('Y-m', $row->periode_wisuda)->year)
-                        ->where('bulan', Carbon::createFromFormat('Y-m', $row->periode_wisuda)->month)
-                        ->first();
-
-                    if ($periodeData && $periodeData->tanggal_wisuda) {
-                        $periode_wisuda .= '<br/><small class="text-muted">' . Carbon::parse($periodeData->tanggal_wisuda)->translatedFormat('d F Y') . '</small>';
-                    }
-                }
-                return $periode_wisuda;
+                return $this->formatPeriodeDisplay($row->periode_wisuda);
             })
             ->editColumn('pin', function ($row) {
                 return $row->pin ?? '';
@@ -241,20 +215,7 @@ class VerifikasiWisudaController extends Controller
                 return $row->tanggal_update ? Carbon::parse($row->tanggal_update)->translatedFormat('d F Y') . '<br/>' . Carbon::parse($row->tanggal_update)->translatedFormat('H:i:s') . ' WIB' : '';
             })
             ->editColumn('periode_wisuda', function ($row) {
-                $periode_wisuda = $row->periode_wisuda;
-                if ($periode_wisuda) {
-                    $periode_wisuda = Carbon::createFromFormat('Y-m', $row->periode_wisuda)->translatedFormat('F Y');
-
-                    // Get graduation date from PeriodeWisuda
-                    $periodeData = PeriodeWisuda::where('tahun', Carbon::createFromFormat('Y-m', $row->periode_wisuda)->year)
-                        ->where('bulan', Carbon::createFromFormat('Y-m', $row->periode_wisuda)->month)
-                        ->first();
-
-                    if ($periodeData && $periodeData->tanggal_wisuda) {
-                        $periode_wisuda .= '<br/><small class="text-muted">' . Carbon::parse($periodeData->tanggal_wisuda)->translatedFormat('d F Y') . '</small>';
-                    }
-                }
-                return $periode_wisuda;
+                return $this->formatPeriodeDisplay($row->periode_wisuda);
             })
             ->editColumn('pin', function ($row) {
                 return $row->pin ?? '';
@@ -537,20 +498,7 @@ class VerifikasiWisudaController extends Controller
                 return $row->tanggal_update ? Carbon::parse($row->tanggal_update)->translatedFormat('d F Y') . '<br/>' . Carbon::parse($row->tanggal_update)->translatedFormat('H:i:s') . ' WIB' : '';
             })
             ->editColumn('periode_wisuda', function ($row) {
-                $periode_wisuda = $row->periode_wisuda;
-                if ($periode_wisuda) {
-                    $periode_wisuda = Carbon::createFromFormat('Y-m', $row->periode_wisuda)->translatedFormat('F Y');
-
-                    // Get graduation date from PeriodeWisuda
-                    $periodeData = PeriodeWisuda::where('tahun', Carbon::createFromFormat('Y-m', $row->periode_wisuda)->year)
-                        ->where('bulan', Carbon::createFromFormat('Y-m', $row->periode_wisuda)->month)
-                        ->first();
-
-                    if ($periodeData && $periodeData->tanggal_wisuda) {
-                        $periode_wisuda .= '<br/><small class="text-muted">' . Carbon::parse($periodeData->tanggal_wisuda)->translatedFormat('d F Y') . '</small>';
-                    }
-                }
-                return $periode_wisuda;
+                return $this->formatPeriodeDisplay($row->periode_wisuda);
             })
             ->editColumn('pin', function ($row) {
                 return $row->pin ?? '';
@@ -690,4 +638,51 @@ public function bulkProcess(Request $request)
         ], 500);
     }
 }
+
+private function formatPeriodeDisplay($periode_wisuda)
+{
+    if (!$periode_wisuda) return '';
+
+    try {
+        // ekspektasi format "YYYY-MM"
+        $parts = explode('-', $periode_wisuda);
+        $year = intval($parts[0] ?? 0);
+        $monthParsed = intval($parts[1] ?? 0);
+
+        // Tentukan bulan yang akan ditampilkan (1..12) berdasarkan nilai pada kolom mahasiswa
+        if ($monthParsed >= 0 && $monthParsed <= 11) {
+            // kemungkinan disimpan 0-based di record mahasiswa
+            $displayMonth = $monthParsed + 1;
+        } else {
+            // asumsi sudah 1..12
+            $displayMonth = $monthParsed;
+        }
+        if ($displayMonth < 1 || $displayMonth > 12) $displayMonth = 1;
+
+        // Prioritaskan pencocokan yang sesuai dengan data mahasiswa (exact/fallback)
+        $periodeData = null;
+        if ($monthParsed >= 1 && $monthParsed <= 12) {
+            $periodeData = PeriodeWisuda::where('tahun', $year)->where('bulan', $monthParsed)->first();
+            if (!$periodeData && $monthParsed - 1 >= 0) {
+                $periodeData = PeriodeWisuda::where('tahun', $year)->where('bulan', $monthParsed - 1)->first();
+            }
+        } else {
+            $periodeData = PeriodeWisuda::where('tahun', $year)->where('bulan', $monthParsed)->first();
+            if (!$periodeData) {
+                $periodeData = PeriodeWisuda::where('tahun', $year)->where('bulan', $displayMonth)->first();
+            }
+        }
+
+        // Jika ditemukan periode dengan tanggal_wisuda: tampilkan hanya keterangan bawah (tanggal wisuda)
+        if ($periodeData && $periodeData->tanggal_wisuda) {
+            return '<small class="text-muted">' . Carbon::parse($periodeData->tanggal_wisuda)->translatedFormat('d F Y') . '</small>';
+        }
+
+        // Fallback: tampilkan nama bulan/tahun berdasarkan nilai mahasiswa
+        return Carbon::createFromDate($year ?: now()->year, $displayMonth, 1)->translatedFormat('F Y');
+    } catch (\Throwable $e) {
+        Log::warning('formatPeriodeDisplay error: ' . $e->getMessage());
+        return $periode_wisuda;
+    }
+    }
 }
