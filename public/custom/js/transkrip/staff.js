@@ -69,6 +69,18 @@ setInterval(function () {
     table.ajax.reload(null, false); // user paging is not reset on reload
 }, 300000);
 
+const CATATAN_SELESAI = `Silahkan mengambil di Front Office SV UNS.
+Syarat Pengambilan :
+1. FC Ijazah 1 lembar
+2. FC KTP 1 lembar
+3. Surat Kuasa bermaterai (apabila pengambilan diwakilkan)`;
+
+$("#status_id").on("change", function () {
+    if ($(this).val() === "4") {
+        $("#catatan-proses").val(CATATAN_SELESAI);
+    }
+});
+
 $("#show_data").on("click", ".btn-update", function () {
     let id = $(this).data("id");
     let url = window.Laravel.getData.replace(":id", id);
@@ -81,7 +93,8 @@ $("#show_data").on("click", ".btn-update", function () {
                 $("form#form-proses").attr("action", action);
                 $('#form-no-surat').removeAttr('hidden');
                 $("#no_surat").val(res.data.no_transkrip);
-                $("#status_id").val(res.data.status_id);
+                $("#catatan-proses").val(res.data.catatan || "");
+                $("#status_id").val(res.data.status_id).trigger("change");
                 $("#modalProses").modal("show");
             } else {
                 Swal.fire({

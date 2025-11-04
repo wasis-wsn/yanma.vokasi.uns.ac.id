@@ -50,7 +50,7 @@
                                 </ul>
                             </p>
                             @endif
-                            @if (is_null(auth()->user()->verifikasiWisuda) || auth()->user()->verifikasiWisuda->status_id != 2)
+                            @if (is_null(auth()->user()->verifikasiWisuda) || !in_array(auth()->user()->verifikasiWisuda->status_id, [2, 9]))
                                 <div class="alert alert-warning">
                                     <strong>Perhatian!</strong> Verifikasi wisuda Anda belum disetujui. Silakan verifikasi wisuda terlebih dahulu untuk dapat mengakses transkrip nilai.
                                 </div>
