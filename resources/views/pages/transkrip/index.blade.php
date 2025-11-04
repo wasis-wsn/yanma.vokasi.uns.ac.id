@@ -85,7 +85,7 @@
                                         </tr>
                                         <tr>
                                             <td>Catatan</td>
-                                            <td>: {{ auth()->user()->transkripNilai->catatan }}</td>
+                                            <td>: {!! nl2br(e(auth()->user()->transkripNilai->catatan)) !!}</td>
                                         </tr>
                                     </table>
                                 </div>
