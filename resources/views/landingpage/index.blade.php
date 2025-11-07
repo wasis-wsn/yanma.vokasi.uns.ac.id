@@ -976,6 +976,7 @@
                         : collect($prodisAkreditasi);
 
                     $akreditasiGroups = [
+                        'universitas' => ['title' => 'Universitas Sebelas Maret', 'items' => []],
                         'sarjana' => ['title' => 'Sarjana Terapan', 'items' => []],
                         'diploma' => ['title' => 'Diploma', 'items' => []],
                     ];
@@ -984,7 +985,9 @@
                         $name = $prodi->name ?? '';
                         $lower = \Illuminate\Support\Str::lower($name);
 
-                        if (\Illuminate\Support\Str::contains($lower, 'diploma')) {
+                        if (\Illuminate\Support\Str::contains($lower, 'universitas sebelas maret')) {
+                            $akreditasiGroups['universitas']['items'][] = $prodi;
+                        } elseif (\Illuminate\Support\Str::contains($lower, 'diploma')) {
                             $akreditasiGroups['diploma']['items'][] = $prodi;
                         } elseif (\Illuminate\Support\Str::contains($lower, 'sarjana')) {
                             $akreditasiGroups['sarjana']['items'][] = $prodi;
