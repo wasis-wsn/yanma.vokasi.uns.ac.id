@@ -24,56 +24,6 @@
     </div> <!-- Nav Header Component End -->
     <!--Nav End-->
 
-    {{-- Periode Wisuda Card - Moved to top --}}
-    @can('staff')
-    <div class="container-fluid content-inner mt-n5 py-0">
-        <div class="row">
-            <div class="col-sm-12">
-                <div class="card">
-                    <div class="card-header d-flex justify-content-between">
-                        <div class="header-title">
-                            <h4 class="card-title">Periode Wisuda</h4>
-                            <p class="card-text">Kelola periode wisuda per tahun. Periode yang aktif akan otomatis
-                                digunakan saat import data mahasiswa.</p>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="d-flex justify-content-end pb-4">
-                            <div class="dropdown mx-2">
-                                <button class="btn btn-light btn-sm dropdown-toggle" type="button"
-                                    id="tahunPeriodeDropdown" data-bs-toggle="dropdown"
-                                    aria-expanded="false">{{ date('Y') }}</button>
-                                <ul class="dropdown-menu" aria-labelledby="tahunPeriodeDropdown">
-                                    @foreach ($tahuns as $tahun)
-                                    <li><a class="dropdown-item tahun-periode-menu" href="#"
-                                            data-year="{{ $tahun->tahun }}">{{ $tahun->tahun }}</a></li>
-                                    @endforeach
-                                </ul>
-                            </div>
-                        </div>
-
-                        <div class="table-responsive">
-                            <table id="periode-datatable" class="table table-striped" width="100%">
-                                <thead>
-                                    <tr>
-                                        <th>No</th>
-                                        <th>Bulan</th>
-                                        <th>Tanggal Wisuda</th>
-                                        <th>Status</th>
-                                        <th>Aksi</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    @endcan
-
     {{-- Verifikasi Wisuda Card --}}
     <div class="container-fluid content-inner py-0">
         <div class="row">
@@ -154,23 +104,20 @@
                                     <td>:
                                         @php
                                             $periode = $verifikasi->periode_wisuda;
-                                            $tanggalWisuda = null;
+                                            $periodeLabel = null;
 
                                             if ($periode) {
-                                                $periodeDate = \Carbon\Carbon::createFromFormat('Y-m', $periode);
-                                                $periodeData = \App\Models\PeriodeWisuda::where('tahun', $periodeDate->year)
-                                                    ->where('bulan', $periodeDate->month)
-                                                    ->first();
-
-                                                if ($periodeData && $periodeData->tanggal_wisuda) {
-                                                    $tanggalWisuda = \Carbon\Carbon::parse($periodeData->tanggal_wisuda)
-                                                        ->translatedFormat('d F Y');
+                                                try {
+                                                    $periodeLabel = \Carbon\Carbon::createFromFormat('Y-m', $periode)
+                                                        ->translatedFormat('F Y');
+                                                } catch (\Throwable $th) {
+                                                    $periodeLabel = $periode;
                                                 }
                                             }
                                         @endphp
 
-                                        @if($tanggalWisuda)
-                                            {{ $tanggalWisuda }}
+                                        @if($periodeLabel)
+                                            {{ $periodeLabel }}
                                         @else
                                             Belum ditentukan
                                         @endif
@@ -534,49 +481,6 @@
 @can('staff')
 @include('pages.verifikasi_wisuda.modal_detail')
 @include('pages.verifikasi_wisuda.modal_proses')
-
-<!-- Add Edit Periode Modal -->
-<div class="modal fade" id="modalEditPeriode" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Proses Periode Wisuda</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form id="form-edit-periode">
-                @csrf
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">Nama Bulan</label>
-                        <input type="text" id="nama_bulan" class="form-control" readonly>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Tanggal Wisuda</label>
-                        <input type="date" id="tanggal_wisuda" name="tanggal_wisuda" class="form-control">
-                    </div>
-
-                    <div class="form-check mb-3">
-                        <input class="form-check-input" type="checkbox" id="is_active" name="is_active" value="1">
-                        <label class="for-check-label" for="is_active">
-                            Jadikan periode aktif
-                        </label>
-                    </div>
-
-                    <div class="alert alert-warning">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        <strong>Perhatian:</strong> Perubahan tanggal wisuda akan:
-                        <p>Merubah status semua Calon Wisudawan menjadi "Belum Diproses"</p>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
 @endcan
 
 @endsection
@@ -602,8 +506,6 @@
             'import' => route('verifikasiWisuda.import'),
             'listData' => route('verifikasiWisuda.list'),
             'listWisudawan' => route('verifikasiWisuda.listWisudawan'),
-            'listPeriode' => route('periodeWisuda.list'),
-            'updatePeriode' => route('periodeWisuda.update', ':id'),
             'getData' => route('verifikasiWisuda.show', ':id'),
             'routeProses' => route('verifikasiWisuda.proses', ':id'),
             'bulkProcess' => route('verifikasiWisuda.bulkProcess'),

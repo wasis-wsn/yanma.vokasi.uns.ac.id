@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Exports\VerifWisudaExport;
 use App\Models\Layanan;
-use App\Models\PeriodeWisuda;
 use App\Models\SKPI;
 use App\Models\StatusWisuda;
 use App\Models\Tahun;
@@ -15,8 +14,10 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Maatwebsite\Excel\Facades\Excel;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 use Yajra\DataTables\Facades\DataTables;
 // use App\Services\GoogleDriveService;
 
@@ -244,10 +245,28 @@ class VerifikasiWisudaController extends Controller
         try {
             $file = $request->file('file');
             $tahun = $request->tahun;
+            $headingRow = $this->detectHeadingRow($file);
+
+            Log::info('VerifikasiWisuda import started', [
+                'tahun' => $tahun,
+                'filename' => $file->getClientOriginalName(),
+                'filesize' => $file->getSize(),
+                'mimetype' => $file->getMimeType(),
+                'heading_row' => $headingRow,
+                'user_id' => Auth::id()
+            ]);
 
             // Read the Excel/CSV file
-            $import = new \App\Imports\VerifWisudaImport($tahun);
+            $import = new \App\Imports\VerifWisudaImport($tahun, $headingRow);
             Excel::import($import, $file);
+
+            Log::info('VerifikasiWisuda import finished', [
+                'tahun' => $tahun,
+                'total_rows' => $import->getRowCount(),
+                'new_records' => $import->getNewCount(),
+                'updated_records' => $import->getUpdatedCount(),
+                'skipped_rows' => $import->getSkippedRows()
+            ]);
 
             // Get any failures
             $failures = $import->failures();
@@ -316,12 +335,56 @@ class VerifikasiWisudaController extends Controller
                 'message' => $successMessage
             ], 200);
         } catch (\Throwable $th) {
-            Log::error('Import error: ' . $th->getMessage());
+            Log::error('VerifikasiWisuda import error', [
+                'message' => $th->getMessage(),
+                'trace' => $th->getTraceAsString()
+            ]);
             return response()->json([
                 'status' => false,
                 'message' => 'Terjadi kesalahan saat mengimport data: ' . $th->getMessage()
             ], 500);
         }
+    }
+
+    private function detectHeadingRow($file): int
+    {
+        try {
+            $spreadsheet = IOFactory::load($file->getRealPath());
+            $sheet = $spreadsheet->getActiveSheet();
+
+            foreach ($sheet->getRowIterator() as $row) {
+                if ($row->getRowIndex() > 20) {
+                    break;
+                }
+
+                $cellIterator = $row->getCellIterator();
+                $cellIterator->setIterateOnlyExistingCells(false);
+                $foundNimHeader = false;
+
+                foreach ($cellIterator as $cell) {
+                    $value = trim((string) $cell->getValue());
+                    if ($value === '') {
+                        continue;
+                    }
+
+                    $normalized = Str::slug($value, '_');
+                    if ($normalized === 'nim') {
+                        $foundNimHeader = true;
+                        break;
+                    }
+                }
+
+                if ($foundNimHeader) {
+                    return $row->getRowIndex();
+                }
+            }
+        } catch (\Throwable $th) {
+            Log::warning('Failed to detect heading row, fallback to row 1', [
+                'message' => $th->getMessage()
+            ]);
+        }
+
+        return 1;
     }
 
     public function export(Request $request)
@@ -641,48 +704,47 @@ public function bulkProcess(Request $request)
 
 private function formatPeriodeDisplay($periode_wisuda)
 {
-    if (!$periode_wisuda) return '';
+    if (!$periode_wisuda) {
+        return '';
+    }
 
     try {
-        // ekspektasi format "YYYY-MM"
-        $parts = explode('-', $periode_wisuda);
-        $year = intval($parts[0] ?? 0);
-        $monthParsed = intval($parts[1] ?? 0);
+        $normalized = $this->normalizePeriodeValue($periode_wisuda);
 
-        // Tentukan bulan yang akan ditampilkan (1..12) berdasarkan nilai pada kolom mahasiswa
-        if ($monthParsed >= 0 && $monthParsed <= 11) {
-            // kemungkinan disimpan 0-based di record mahasiswa
-            $displayMonth = $monthParsed + 1;
-        } else {
-            // asumsi sudah 1..12
-            $displayMonth = $monthParsed;
-        }
-        if ($displayMonth < 1 || $displayMonth > 12) $displayMonth = 1;
-
-        // Prioritaskan pencocokan yang sesuai dengan data mahasiswa (exact/fallback)
-        $periodeData = null;
-        if ($monthParsed >= 1 && $monthParsed <= 12) {
-            $periodeData = PeriodeWisuda::where('tahun', $year)->where('bulan', $monthParsed)->first();
-            if (!$periodeData && $monthParsed - 1 >= 0) {
-                $periodeData = PeriodeWisuda::where('tahun', $year)->where('bulan', $monthParsed - 1)->first();
-            }
-        } else {
-            $periodeData = PeriodeWisuda::where('tahun', $year)->where('bulan', $monthParsed)->first();
-            if (!$periodeData) {
-                $periodeData = PeriodeWisuda::where('tahun', $year)->where('bulan', $displayMonth)->first();
-            }
+        if (!$normalized) {
+            return e($periode_wisuda);
         }
 
-        // Jika ditemukan periode dengan tanggal_wisuda: tampilkan hanya keterangan bawah (tanggal wisuda)
-        if ($periodeData && $periodeData->tanggal_wisuda) {
-            return '<small class="text-muted">' . Carbon::parse($periodeData->tanggal_wisuda)->translatedFormat('d F Y') . '</small>';
-        }
-
-        // Fallback: tampilkan nama bulan/tahun berdasarkan nilai mahasiswa
-        return Carbon::createFromDate($year ?: now()->year, $displayMonth, 1)->translatedFormat('F Y');
+        [$year, $month] = explode('-', $normalized);
+        return Carbon::createFromDate((int) $year, (int) $month, 1)->translatedFormat('F Y');
     } catch (\Throwable $e) {
         Log::warning('formatPeriodeDisplay error: ' . $e->getMessage());
-        return $periode_wisuda;
+        return e($periode_wisuda);
     }
+}
+
+private function normalizePeriodeValue($periode): ?string
+{
+    $periode = trim((string) $periode);
+
+    if ($periode === '') {
+        return null;
     }
+
+    if (preg_match('/^(\\d{4})[-\\/](\\d{1,2})$/', $periode, $matches)) {
+        return sprintf('%04d-%02d', $matches[1], $matches[2]);
+    }
+
+    if (preg_match('/^(\\d{6})$/', $periode, $matches)) {
+        $year = substr($matches[1], 0, 4);
+        $month = substr($matches[1], 4, 2);
+        return sprintf('%04d-%02d', $year, $month);
+    }
+
+    try {
+        return Carbon::parse($periode)->format('Y-m');
+    } catch (\Throwable $e) {
+        return null;
+    }
+}
 }

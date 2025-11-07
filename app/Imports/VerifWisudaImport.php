@@ -4,7 +4,8 @@ namespace App\Imports;
 
 use App\Models\VerifikasiWisuda;
 use App\Models\User;
-use App\Models\PeriodeWisuda;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\Importable;
@@ -25,19 +26,38 @@ class VerifWisudaImport implements ToModel, WithHeadingRow, WithValidation, Skip
     private $skippedRows = 0; // Add this property
     private $failures = [];
     private $updatedDetails = [];
+    private $headingRow;
 
-    public function __construct($tahun)
+    public function __construct($tahun = null, $headingRow = 1)
     {
         $this->tahun = $tahun;
+        $this->headingRow = is_numeric($headingRow) && (int) $headingRow > 0 ? (int) $headingRow : 1;
+    }
+
+    public function headingRow(): int
+    {
+        return $this->headingRow;
     }
 
     public function model(array $row)
     {
         $this->rowCount++;
+        $periodeColumnKey = $this->findPeriodeColumnKey($row);
+        $periodeColumnValue = $periodeColumnKey ? ($row[$periodeColumnKey] ?? null) : null;
+
+        Log::debug('VerifWisudaImport: processing row', [
+            'row_number' => $this->rowCount,
+            'nim' => $row['nim'] ?? null,
+            'periode_input' => $periodeColumnValue
+        ]);
 
         // Find user by NIM
         $user = User::where('nim', $row['nim'])->first();
         if (!$user) {
+            Log::warning('VerifWisudaImport: user not found, skipping row', [
+                'row_number' => $this->rowCount,
+                'nim' => $row['nim'] ?? null
+            ]);
             $this->skippedRows++; // Increment skipped rows
             return null;
         }
@@ -45,16 +65,16 @@ class VerifWisudaImport implements ToModel, WithHeadingRow, WithValidation, Skip
         // Check if student already exists in VerifikasiWisuda
         $existing = VerifikasiWisuda::where('user_id', $user->id)->first();
 
-        // Get active graduation period for this year - ALWAYS apply this
-        $activePeriode = PeriodeWisuda::getActivePeriode($this->tahun);
-        $periodeWisuda = null;
-
-        if ($activePeriode) {
-            $periodeWisuda = $this->tahun . '-' . str_pad($activePeriode->bulan, 2, '0', STR_PAD_LEFT);
-        }
+        // Read periode wisuda directly from the import file (if provided)
+        $periodeWisuda = $this->extractPeriodeWisuda($row, $periodeColumnKey);
 
         // If no existing record, create new one
         if (!$existing) {
+            Log::info('VerifWisudaImport: creating new verifikasi wisuda record', [
+                'row_number' => $this->rowCount,
+                'nim' => $user->nim,
+                'periode_wisuda' => $periodeWisuda
+            ]);
             return $this->createNewRecord($row, $user, $periodeWisuda);
         }
 
@@ -62,8 +82,8 @@ class VerifWisudaImport implements ToModel, WithHeadingRow, WithValidation, Skip
         $updates = [];
         $hasChanges = false;
 
-        // ALWAYS update periode_wisuda to active period if available
-        if ($periodeWisuda && $existing->periode_wisuda != $periodeWisuda) {
+        // Update periode_wisuda only when provided by the import file
+        if (!is_null($periodeWisuda) && $existing->periode_wisuda != $periodeWisuda) {
             $updates['periode_wisuda'] = $periodeWisuda;
             $hasChanges = true;
         }
@@ -108,6 +128,12 @@ class VerifWisudaImport implements ToModel, WithHeadingRow, WithValidation, Skip
 
         // Update if there are changes and not confirmed yet
     if ($hasChanges) {
+            Log::info('VerifWisudaImport: updating existing record', [
+                'row_number' => $this->rowCount,
+                'nim' => $user->nim,
+                'updates' => $updates
+            ]);
+
             // Update the existing record
             $existing->update($updates);
 
@@ -175,6 +201,13 @@ class VerifWisudaImport implements ToModel, WithHeadingRow, WithValidation, Skip
         } else {
             $this->importedWithoutSeriIjazah++;
         }
+
+        Log::debug('VerifWisudaImport: new record constructed', [
+            'nim' => $user->nim,
+            'periode_wisuda' => $newRecord->periode_wisuda,
+            'no_seri_ijazah' => $newRecord->no_seri_ijazah,
+            'pin' => $newRecord->pin
+        ]);
 
         return $newRecord;
     }
@@ -246,5 +279,84 @@ class VerifWisudaImport implements ToModel, WithHeadingRow, WithValidation, Skip
     public function chunkSize(): int
     {
         return 100;
+    }
+
+    private function extractPeriodeWisuda(array $row, ?string $cachedKey = null): ?string
+    {
+        $key = $cachedKey ?? $this->findPeriodeColumnKey($row);
+
+        if (is_null($key)) {
+            return null;
+        }
+
+        return $this->normalizePeriodeValue($row[$key]);
+    }
+
+    private function normalizePeriodeValue($value): ?string
+    {
+        if (is_null($value)) {
+            return null;
+        }
+
+        if (is_numeric($value)) {
+            $numericString = trim((string) $value);
+
+            // Handle YYYYMM format typed as number (e.g., 202403)
+            if (preg_match('/^(\\d{6})$/', $numericString)) {
+                $year = substr($numericString, 0, 4);
+                $month = substr($numericString, 4, 2);
+                return sprintf('%04d-%02d', $year, $month);
+            }
+
+            // Handle Excel serial numbers representing dates
+            if ((int) $value > 30000) {
+                try {
+                    $date = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($value);
+                    return $date->format('Y-m');
+                } catch (\Throwable $e) {
+                    // fall through to generic handling
+                }
+            }
+        }
+
+        $stringValue = trim((string) $value);
+
+        if ($stringValue === '') {
+            return null;
+        }
+
+        if (preg_match('/^(\\d{4})[-\\/](\\d{1,2})$/', $stringValue, $matches)) {
+            return sprintf('%04d-%02d', $matches[1], $matches[2]);
+        }
+
+        if (preg_match('/^(\\d{6})$/', $stringValue, $matches)) {
+            $year = substr($matches[1], 0, 4);
+            $month = substr($matches[1], 4, 2);
+            return sprintf('%04d-%02d', $year, $month);
+        }
+
+        try {
+            $date = \Carbon\Carbon::parse($stringValue);
+            return $date->format('Y-m');
+        } catch (\Throwable $e) {
+            // If parsing fails, store the original string for reference
+            return $stringValue;
+        }
+    }
+
+    private function findPeriodeColumnKey(array $row): ?string
+    {
+        foreach ($row as $key => $value) {
+            $normalizedKey = Str::of($key)
+                ->lower()
+                ->replace([' ', '-', '_'], '')
+                ->toString();
+
+            if (in_array($normalizedKey, ['periodewisuda', 'periode'])) {
+                return $key;
+            }
+        }
+
+        return null;
     }
 }
