@@ -8,7 +8,6 @@ use App\Models\StatusTranskrip;
 use App\Models\Tahun;
 use App\Models\Template;
 use App\Models\TranskripNilai;
-use App\Models\PeriodeWisuda; // added
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -230,48 +229,47 @@ class TranskripNilaiController extends Controller
     // Add format helper similar to VerifikasiWisudaController
     private function formatPeriodeDisplay($periode_wisuda)
     {
-        if (!$periode_wisuda) return '';
+        if (!$periode_wisuda) {
+            return '';
+        }
 
         try {
-            // ekspektasi format "YYYY-MM"
-            $parts = explode('-', $periode_wisuda);
-            $year = intval($parts[0] ?? 0);
-            $monthParsed = intval($parts[1] ?? 0);
+            $normalized = $this->normalizePeriodeValue($periode_wisuda);
 
-            // Tentukan bulan yang akan ditampilkan (1..12) berdasarkan nilai pada kolom mahasiswa
-            if ($monthParsed >= 0 && $monthParsed <= 11) {
-                // kemungkinan disimpan 0-based di record mahasiswa
-                $displayMonth = $monthParsed + 1;
-            } else {
-                // asumsi sudah 1..12
-                $displayMonth = $monthParsed;
-            }
-            if ($displayMonth < 1 || $displayMonth > 12) $displayMonth = 1;
-
-            // Prioritaskan pencocokan yang sesuai dengan data mahasiswa (exact/fallback)
-            $periodeData = null;
-            if ($monthParsed >= 1 && $monthParsed <= 12) {
-                $periodeData = PeriodeWisuda::where('tahun', $year)->where('bulan', $monthParsed)->first();
-                if (!$periodeData && $monthParsed - 1 >= 0) {
-                    $periodeData = PeriodeWisuda::where('tahun', $year)->where('bulan', $monthParsed - 1)->first();
-                }
-            } else {
-                $periodeData = PeriodeWisuda::where('tahun', $year)->where('bulan', $monthParsed)->first();
-                if (!$periodeData) {
-                    $periodeData = PeriodeWisuda::where('tahun', $year)->where('bulan', $displayMonth)->first();
-                }
+            if (!$normalized) {
+                return e($periode_wisuda);
             }
 
-            // Jika ditemukan periode dengan tanggal_wisuda: tampilkan hanya keterangan bawah (tanggal wisuda)
-            if ($periodeData && $periodeData->tanggal_wisuda) {
-                return '<small class="text-muted">' . Carbon::parse($periodeData->tanggal_wisuda)->translatedFormat('d F Y') . '</small>';
-            }
-
-            // Fallback: tampilkan nama bulan/tahun berdasarkan nilai mahasiswa
-            return Carbon::createFromDate($year ?: now()->year, $displayMonth, 1)->translatedFormat('F Y');
+            [$year, $month] = explode('-', $normalized);
+            return Carbon::createFromDate((int) $year, (int) $month, 1)->translatedFormat('F Y');
         } catch (\Throwable $e) {
             Log::warning('formatPeriodeDisplay error (TranskripNilaiController): ' . $e->getMessage());
-            return $periode_wisuda;
+            return e($periode_wisuda);
+        }
+    }
+
+    private function normalizePeriodeValue($periode): ?string
+    {
+        $periode = trim((string) $periode);
+
+        if ($periode === '') {
+            return null;
+        }
+
+        if (preg_match('/^(\\d{4})[-\\/](\\d{1,2})$/', $periode, $matches)) {
+            return sprintf('%04d-%02d', $matches[1], $matches[2]);
+        }
+
+        if (preg_match('/^(\\d{6})$/', $periode, $matches)) {
+            $year = substr($matches[1], 0, 4);
+            $month = substr($matches[1], 4, 2);
+            return sprintf('%04d-%02d', $year, $month);
+        }
+
+        try {
+            return Carbon::parse($periode)->format('Y-m');
+        } catch (\Throwable $e) {
+            return null;
         }
     }
 }

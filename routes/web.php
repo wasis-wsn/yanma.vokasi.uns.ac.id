@@ -29,7 +29,6 @@ use App\Http\Controllers\TemplateController;
 use App\Http\Controllers\TranskripNilaiController;
 use App\Http\Controllers\UndurDiriController;
 use App\Http\Controllers\VerifikasiWisudaController;
-use App\Http\Controllers\PeriodeWisudaController;
 use App\Http\Controllers\SuratKeteranganAlumniController;
 use App\Http\Controllers\SuratRekomendasiController;
 use Illuminate\Support\Facades\Route;
@@ -224,12 +223,6 @@ Route::middleware('auth')->group(function () {
             Route::get('/', [SuratHasilController::class, 'index'])->name('index');
             Route::get('/list', [SuratHasilController::class, 'list'])->name('list');
             Route::post('/{id}', [SuratHasilController::class, 'update'])->name('update');
-        });
-
-        Route::name('periodeWisuda.')->prefix('periodeWisuda')->group(function () {
-            Route::get('/', [PeriodeWisudaController::class, 'index'])->name('index');
-            Route::get('/list', [PeriodeWisudaController::class, 'list'])->name('list');
-            Route::post('/{id}', [PeriodeWisudaController::class, 'update'])->name('update');
         });
 
     });
