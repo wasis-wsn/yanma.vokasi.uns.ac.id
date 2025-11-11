@@ -14,6 +14,8 @@ use App\Http\Controllers\LegalisirController;
 use App\Http\Controllers\LembarPengesahanTAController;
 use App\Http\Controllers\LPJController;
 use App\Http\Controllers\PembinaController;
+use App\Http\Controllers\PemilihanController;
+use App\Http\Controllers\PemilihanManageController;
 use App\Http\Controllers\PenundaanController;
 use App\Http\Controllers\PerpanjanganStudiController;
 use App\Http\Controllers\ProdiController;
@@ -134,6 +136,13 @@ Route::middleware('auth')->group(function () {
         Route::get('/surattugas/{tahun}', [GrafikController::class, 'surattugas'])->name('surattugas');
     });
 
+    Route::get('/pemilu', [PemilihanController::class, 'indexMahasiswa'])->name('pemilihan.mahasiswa')->middleware('role:mahasiswa');
+
+    Route::name('pemilihan.')->prefix('pemilihan')->middleware('role:mahasiswa')->group(function () {
+        Route::get('/{pemilihan:slug}/summary', [PemilihanController::class, 'summary'])->name('summary');
+        Route::post('/{pemilihan:slug}/vote', [PemilihanController::class, 'vote'])->name('vote');
+    });
+
     /* * * * * * * * * * * * *
     *                        *
     *   Menu Profile         *
@@ -217,6 +226,21 @@ Route::middleware('auth')->group(function () {
             Route::get('/{id}/edit', [LayananController::class, 'edit'])->name('edit');
             Route::post('/{id}', [LayananController::class, 'update'])->name('update');
             Route::delete('/{id}', [LayananController::class, 'destroy'])->name('destroy');
+        });
+        Route::name('pemilu.')->prefix('pemilu/manage')->group(function () {
+            Route::get('/', [PemilihanManageController::class, 'index'])->name('index');
+            Route::get('/list', [PemilihanManageController::class, 'list'])->name('list');
+            Route::get('/{pemilihan}/detail', [PemilihanManageController::class, 'show'])->name('show');
+            Route::post('/', [PemilihanManageController::class, 'store'])->name('store');
+            Route::post('/{pemilihan}', [PemilihanManageController::class, 'update'])->name('update');
+            Route::post('/{pemilihan}/toggle', [PemilihanManageController::class, 'toggleStatus'])->name('toggle');
+            Route::delete('/{pemilihan}', [PemilihanManageController::class, 'destroy'])->name('destroy');
+
+            Route::get('/{pemilihan}/candidates', [PemilihanManageController::class, 'candidates'])->name('candidates');
+            Route::post('/{pemilihan}/candidates', [PemilihanManageController::class, 'storeCandidate'])->name('candidates.store');
+            Route::get('/candidates/{candidate}/detail', [PemilihanManageController::class, 'showCandidate'])->name('candidates.show');
+            Route::post('/candidates/{candidate}', [PemilihanManageController::class, 'updateCandidate'])->name('candidates.update');
+            Route::delete('/candidates/{candidate}', [PemilihanManageController::class, 'destroyCandidate'])->name('candidates.destroy');
         });
 
         Route::name('suratHasil.')->prefix('suratHasil')->group(function () {

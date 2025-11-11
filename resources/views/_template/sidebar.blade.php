@@ -85,7 +85,22 @@
                             <span class="item-name">Berita</span>
                         </a>
                     </li>
+                    <li class="nav-item nav-judul">
+                        <a class="nav-link {{ Request::is('pemilu*') ? 'active' : ''}}" aria-current="page" href="{{ route('pemilu.index') }}">
+                            <i class="fa-solid fa-people-group"></i>
+                            <span class="item-name">Pemilu</span>
+                        </a>
+                    </li>
                 @endcan
+
+                @if(auth()->user()->roles->gate_name === 'mahasiswa')
+                    <li class="nav-item nav-judul">
+                        <a class="nav-link {{ Request::is('pemilu') ? 'active' : ''}}" aria-current="page" href="{{ route('pemilihan.mahasiswa') }}">
+                            <i class="fa-solid fa-person-booth"></i>
+                            <span class="item-name">Pemilu</span>
+                        </a>
+                    </li>
+                @endif
 
                 <li><hr class="hr-horizontal"></li>
 
