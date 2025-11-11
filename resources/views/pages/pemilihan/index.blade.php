@@ -30,9 +30,9 @@
 
 <div class="conatiner-fluid content-inner mt-n5">
     <div class="row">
-        <div class="col-lg-7">
+        <div class="col-12">
             <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
+                <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
                     <div class="header-title">
                         <h4 class="card-title mb-0">Daftar Pemilihan</h4>
                     </div>
@@ -60,24 +60,28 @@
                 </div>
             </div>
         </div>
-        <div class="col-lg-5">
-            <div class="card h-100">
-                <div class="card-header d-flex justify-content-between align-items-center">
+    </div>
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
                     <div class="header-title">
                         <h4 class="card-title mb-0">Kelola Calon</h4>
                         <p class="mb-0 text-muted small" id="selected-pemilihan-label">Pilih pemilihan untuk melihat calon.</p>
                     </div>
-                    <button class="btn btn-outline-primary btn-sm btn-add-candidate" disabled>
-                        <i class="fa fa-user-plus"></i> Tambah Calon
-                    </button>
+                    <div>
+                        <button class="btn btn-outline-primary btn-add-candidate" disabled>
+                            <i class="fa fa-user-plus"></i> Tambah Calon
+                        </button>
+                    </div>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
-                        <table class="table table-sm align-middle table-striped" id="candidate-table">
+                        <table class="table table-striped align-middle" id="candidate-table">
                             <thead>
                                 <tr>
-                                    <th>No.</th>
-                                    <th>Nama</th>
+                                    <th>#</th>
+                                    <th>Nama Calon</th>
                                     <th>Perolehan</th>
                                     <th class="text-end">Aksi</th>
                                 </tr>
