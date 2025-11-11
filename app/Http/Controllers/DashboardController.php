@@ -16,6 +16,7 @@ class DashboardController extends Controller
     public function index()
     {
         $tahuns = Tahun::select('tahun')->orderBy('tahun', 'desc')->get();
+
         return view('pages.dashboard.index', compact('tahuns'));
     }
 
