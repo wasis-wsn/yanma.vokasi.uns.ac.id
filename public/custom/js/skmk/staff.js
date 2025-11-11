@@ -13,10 +13,6 @@ const initializeDataTable = (status, year) => {
             { data: "user.nim" },
             { data: "no_surat" },
             { data: "status_id" },
-            {
-                data: "queue_number",
-                className: "queue-info",
-            },
             { data: "catatan" },
             { data: "action" },
         ],
