@@ -13,10 +13,6 @@ const initializeDataTable = (status, year) => {
             { data: "user.nim" },
             { data: "no_surat" },
             { data: "status_id" },
-            {
-            data: "queue_number",
-            className: "queue-info"
-        },
             { data: "catatan" },
             { data: "action" },
         ],
@@ -32,7 +28,7 @@ const initializeDataTable = (status, year) => {
             },
             {
                 className: "btn-group-vertical",
-                targets: [8],
+                targets: [9],
             },
             {
                 className: "text-wrap",
@@ -64,40 +60,6 @@ $(".status-menu").click(function () {
     $("#statusDropdown").html($(this).html());
     table = initializeDataTable(status_table, year);
 });
-
-setInterval(function() {
-    if ($('#modalDetail').is(':visible')) {
-        $.ajax({
-            url: window.Laravel.queueStatus,
-            type: "GET",
-            headers: {
-                "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content"),
-                "Accept": "application/json"
-            },
-            success: function(res) {
-                if (res.status) {
-                    $("#detail-queue-number").text(res.user_queue);
-                    $("#detail-total-queue").text(res.total_waiting);
-
-                    // Update juga di tabel
-                    table.ajax.reload(null, false);
-                }
-            },
-            error: function(xhr, status, error) {
-                if (xhr.status === 403) {
-                    console.log('Access denied to queue status');
-                    // Redirect to login or show message
-                    window.location.reload();
-                } else if (xhr.status === 401) {
-                    console.log('Unauthorized access');
-                    window.location.href = '/login';
-                } else {
-                    console.log('Error loading queue status:', error);
-                }
-            }
-        });
-    }
-}, 30000); // 30 detik
 
 $("#show_data").on("click", ".btn-detail", function () {
     let id = $(this).data("id");
@@ -138,7 +100,6 @@ $("#show_data").on("click", ".btn-detail", function () {
                     "class",
                     `btn ${res.data.status.color} btn-small`
                 );
-                $("#detail-antrian").html(": " + res.data.queue_number);
                 $("#modalDetail").modal("show");
             } else {
                 Swal.fire({
@@ -158,33 +119,3 @@ $("#show_data").on("click", ".btn-detail", function () {
         },
     });
 });
-
-function updateQueueNumbers() {
-    $.ajax({
-        url: '/suket/update-queue',
-        type: 'POST',
-        headers: {
-            "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content"),
-            "Accept": "application/json"
-        },
-        success: function(res) {
-            if (res.status) {
-                table.ajax.reload(null, false);
-                if ($('#modalDetail').is(':visible')) {
-                    // Update juga di modal detail jika terbuka
-                    $("#detail-queue-number").text(res.user_queue);
-                    $("#detail-total-queue").text(res.total_waiting);
-                }
-            }
-        },
-        error: function(xhr, status, error) {
-            if (xhr.status === 403) {
-                console.log('Access denied to update queue');
-            } else if (xhr.status === 401) {
-                window.location.href = '/login';
-            } else {
-                console.log('Error updating queue:', error);
-            }
-        }
-    });
-}

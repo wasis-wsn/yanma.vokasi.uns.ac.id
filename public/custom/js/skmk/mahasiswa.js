@@ -8,10 +8,6 @@ var table = $("#suket-datatable").DataTable({
         { data: "created_at" },
         { data: "tanggal_proses" },
         { data: "status_id" },
-        { 
-            data: "queue_number",
-            className: "queue-info"
-        },
         { data: "catatan" },
         { data: "action" },
     ],
@@ -23,24 +19,6 @@ var table = $("#suket-datatable").DataTable({
         },
     ],
 });
-
-setInterval(function() {
-    if ($('#modalDetail').is(':visible')) {
-        $.ajax({
-            url: window.Laravel.queueStatus,
-            type: "GET",
-            success: function(res) {
-                if (res.status) {
-                    $("#detail-queue-number").text(res.user_queue);
-                    $("#detail-total-queue").text(res.total_waiting);
-                    
-                    // Update juga di tabel
-                    table.ajax.reload(null, false);
-                }
-            }
-        });
-    }
-}, 30000); // 30 detik
 
 $("#show_data").on("click", ".btn-edit", function () {
     let id = $(this).data("id");
@@ -57,7 +35,7 @@ $("#show_data").on("click", ".btn-edit", function () {
         success: function (res) {
             if (res.status) {
                 $("form#form-edit").attr("action", action);
-                $("#Editsemester").val(res.data.semester);
+                $("#Editsemester").val(res.data.semester_romawi);
                 $("#Edittahun_akademik").val(res.data.tahun_akademik_id);
                 $("#Editsemester_akademik").val(res.data.semester_id);
                 $("#Editnama_ortu").val(res.data.nama_ortu);
@@ -369,20 +347,3 @@ $("#form-edit").submit(function (e) {
         }
     });
 });
-
-function updateQueueNumbers() {
-    $.ajax({
-        url: '/undurDiri/update-queue',
-        type: 'GET',
-        success: function(res) {
-            if (res.status) {
-                table.ajax.reload(null, false);
-                if ($('#modalDetail').is(':visible')) {
-                    // Update juga di modal detail jika terbuka
-                    $("#detail-queue-number").text(res.user_queue);
-                    $("#detail-total-queue").text(res.total_waiting);
-                }
-            }
-        }
-    });
-}

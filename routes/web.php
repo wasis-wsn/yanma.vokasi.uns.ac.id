@@ -419,8 +419,6 @@ Route::middleware('auth')->group(function () {
         Route::post('/export/data', [SKMKController::class, 'export'])->name('export')->middleware('role:staff,dekanat,subkoor,adminprodi,fo');
         Route::post('/{id}', [SKMKController::class, 'proses'])->name('proses')->middleware('role:staff');
         Route::get('/generate/suratHasil/{id}', [SKMKController::class, 'generateSurat'])->name('generate')->middleware('role:staff');
-        Route::get('/queue-status', [SuketController::class, 'queueStatus'])->name('queueStatus');
-        Route::get('/update-queue', [SuketController::class, 'updateQueue'])->name('updateQueue');
     });
 
     Route::name('st.')->prefix('st')->group(function () {

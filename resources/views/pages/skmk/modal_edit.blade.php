@@ -41,7 +41,7 @@
                             <h4 class="py-2">Data Mahasiswa</h4>
                             <div class="form-group">
                                 <label class="form-label" for="Editsemester">Semester <span class="text-danger">*</span>:</label>
-                                <select name="semester" id="Editsemester" class="selectpicker form-control">
+                                <select name="semester_romawi" id="Editsemester" class="selectpicker form-control">
                                     <option value="I">I</option>
                                     <option value="II">II</option>
                                     <option value="III">III</option>
