@@ -49,11 +49,9 @@ class PemilihanManageController extends Controller
                 return '<span class="badge bg-warning text-dark">Terjadwal</span>';
             })
             ->addColumn('action', function ($row) {
-                $toggleLabel = $row->is_active ? 'Nonaktifkan Menu' : 'Aktifkan Menu';
                 $buttons = '<div class="btn-group btn-group-sm" role="group">';
                 $buttons .= '<button type="button" class="btn btn-info btn-manage-candidate" data-id="' . e($row->slug) . '" data-name="' . e($row->name) . '">Kelola Calon</button>';
                 $buttons .= '<button type="button" class="btn btn-warning btn-edit-pemilihan" data-id="' . e($row->slug) . '"><i class="fa fa-pen"></i></button>';
-                $buttons .= '<button type="button" class="btn btn-outline-secondary btn-toggle-pemilihan" data-id="' . e($row->slug) . '">' . $toggleLabel . '</button>';
                 $buttons .= '<button type="button" class="btn btn-danger btn-delete-pemilihan" data-id="' . e($row->slug) . '"><i class="fa fa-trash"></i></button>';
                 $buttons .= '</div>';
                 return $buttons;
@@ -129,6 +127,29 @@ class PemilihanManageController extends Controller
             'status' => true,
             'message' => 'Status menu pemilu diperbarui.',
             'is_active' => $pemilihan->is_active,
+        ]);
+    }
+
+    public function toggleAllMenu(): JsonResponse
+    {
+        $hasActive = Pemilihan::where('is_active', true)->exists();
+
+        if ($hasActive) {
+            // Nonaktifkan semua pemilihan
+            Pemilihan::where('is_active', true)->update(['is_active' => false]);
+            $message = 'Menu pemilu berhasil disembunyikan dari dashboard mahasiswa.';
+            $menuEnabled = false;
+        } else {
+            // Aktifkan semua pemilihan
+            Pemilihan::query()->update(['is_active' => true]);
+            $message = 'Menu pemilu berhasil ditampilkan di dashboard mahasiswa.';
+            $menuEnabled = true;
+        }
+
+        return response()->json([
+            'status' => true,
+            'message' => $message,
+            'menu_enabled' => $menuEnabled,
         ]);
     }
 

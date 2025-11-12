@@ -2,6 +2,10 @@
 
 @section('title', 'Manajemen Pemilu')
 
+@php
+    $fallbackPaslonImage = asset('storage/paslon.png');
+@endphp
+
 @push('css')
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.5/dist/sweetalert2.min.css">
 @endpush
@@ -16,7 +20,7 @@
                     <div class="d-flex justify-content-between align-items-center flex-wrap">
                         <div>
                             <h1>Manajemen Pemilu</h1>
-                            <p>Kelola jadwal pemilihan dan calon presmben/caleg.</p>
+                            <p>Kelola jadwal pemilihan dan calon presbem/caleg.</p>
                         </div>
                     </div>
                 </div>
@@ -36,9 +40,14 @@
                     <div class="header-title">
                         <h4 class="card-title mb-0">Daftar Pemilihan</h4>
                     </div>
-                    <button class="btn btn-primary btn-add-pemilihan">
-                        <i class="fa fa-plus"></i> Tambah Pemilihan
-                    </button>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <button class="btn btn-outline-{{ pemiluMenuEnabled() ? 'danger' : 'success' }} btn-toggle-all-menu">
+                            <i class="fa fa-power-off"></i> {{ pemiluMenuEnabled() ? 'Sembunyikan Menu Pemilu' : 'Tampilkan Menu Pemilu' }}
+                        </button>
+                        <button class="btn btn-primary btn-add-pemilihan">
+                            <i class="fa fa-plus"></i> Tambah Pemilihan
+                        </button>
+                    </div>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
@@ -140,7 +149,8 @@
                         </div>
                         <div class="col-12">
                             <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" role="switch" id="pemilihan_active" name="is_active">
+                                <input type="hidden" name="is_active" value="0">
+                                <input class="form-check-input" type="checkbox" role="switch" id="pemilihan_active" name="is_active" value="1">
                                 <label class="form-check-label" for="pemilihan_active">Tampilkan menu pemilu pada dashboard</label>
                             </div>
                         </div>
@@ -279,7 +289,14 @@
                         <div class="col-md-6">
                             <label class="form-label">Pratinjau Foto</label>
                             <div class="border rounded p-2 text-center" id="candidate_foto_preview_wrapper">
-                                <img src="" alt="Pratinjau foto calon" id="candidate_foto_preview" class="img-fluid rounded d-none" style="max-height: 200px;">
+                                <img
+                                    src=""
+                                    alt="Pratinjau foto calon"
+                                    id="candidate_foto_preview"
+                                    class="img-fluid rounded d-none"
+                                    style="max-height: 200px;"
+                                    onerror="this.onerror=null;this.src='{{ $fallbackPaslonImage }}';"
+                                >
                                 <span class="text-muted small d-block" id="candidate_foto_placeholder">Belum ada foto yang dipilih.</span>
                             </div>
                         </div>
@@ -304,6 +321,7 @@
         'update' => route('pemilu.update', ':id'),
         'delete' => route('pemilu.destroy', ':id'),
         'toggle' => route('pemilu.toggle', ':id'),
+        'toggleAllMenu' => route('pemilu.toggleAllMenu'),
         'show' => route('pemilu.show', ':id'),
         'candidateList' => route('pemilu.candidates', ':id'),
         'candidateStore' => route('pemilu.candidates.store', ':id'),

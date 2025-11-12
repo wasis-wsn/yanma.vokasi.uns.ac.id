@@ -93,7 +93,7 @@
                     </li>
                 @endcan
 
-                @if(auth()->user()->roles->gate_name === 'mahasiswa')
+                @if(auth()->user()->roles->gate_name === 'mahasiswa' && pemiluMenuEnabled())
                     <li class="nav-item nav-judul">
                         <a class="nav-link {{ Request::is('pemilu') ? 'active' : ''}}" aria-current="page" href="{{ route('pemilihan.mahasiswa') }}">
                             <i class="fa-solid fa-person-booth"></i>

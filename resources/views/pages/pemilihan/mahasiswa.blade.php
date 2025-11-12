@@ -3,25 +3,25 @@
 @section('title', 'Pemilu Mahasiswa')
 
 @php
-    $presmbenVote = optional($pemilihanPresmben?->votes?->first());
+    $presbemVote = optional($pemilihanPresbem?->votes?->first());
     $calegVote = optional($pemilihanCaleg?->votes?->first());
 
-    $presmbenSelectedCandidate = $presmbenVote && $pemilihanPresmben
-        ? $pemilihanPresmben->candidates->firstWhere('id', $presmbenVote->candidate_id)
+    $presbemSelectedCandidate = $presbemVote && $pemilihanPresbem
+        ? $pemilihanPresbem->candidates->firstWhere('id', $presbemVote->candidate_id)
         : null;
     $calegSelectedCandidate = $calegVote && $pemilihanCaleg
         ? $pemilihanCaleg->candidates->firstWhere('id', $calegVote->candidate_id)
         : null;
-    $presmbenEligible = $eligibility['presmben'] ?? true;
+    $presbemEligible = $eligibility['presbem'] ?? true;
     $calegEligible = $eligibility['caleg'] ?? false;
 
     $stepperConfig = [
-        'presmben' => [
-            'enabled' => (bool) $pemilihanPresmben,
-            'is_open' => $pemilihanPresmben?->votingWindowIsOpen() ?? false,
-            'vote_url' => $pemilihanPresmben ? route('pemilihan.vote', $pemilihanPresmben) : null,
-            'user_vote' => $presmbenVote?->candidate_id,
-            'eligible' => $presmbenEligible,
+        'presbem' => [
+            'enabled' => (bool) $pemilihanPresbem,
+            'is_open' => $pemilihanPresbem?->votingWindowIsOpen() ?? false,
+            'vote_url' => $pemilihanPresbem ? route('pemilihan.vote', $pemilihanPresbem) : null,
+            'user_vote' => $presbemVote?->candidate_id,
+            'eligible' => $presbemEligible,
         ],
         'caleg' => [
             'enabled' => (bool) $pemilihanCaleg,
@@ -32,6 +32,7 @@
             'eligible' => $calegEligible,
         ],
     ];
+    $fallbackPaslonImage = asset('paslon.png');
 @endphp
 
 @push('css')
@@ -104,6 +105,11 @@
         display: block;
     }
 
+    .pemilihan-option-grid > .col,
+    .pemilihan-option-grid > [class^="col-"] {
+        display: flex;
+    }
+
     .pemilihan-option {
         border: 1px solid #e9ecef;
         border-radius: 1rem;
@@ -112,6 +118,10 @@
         position: relative;
         transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
         min-height: 170px;
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        height: 100%;
     }
 
     .pemilihan-option:hover {
@@ -120,17 +130,19 @@
 
     .pemilihan-option-photo {
         width: 100%;
-        max-height: 180px;
+        aspect-ratio: 3 / 4;
         overflow: hidden;
-        border-radius: 0.75rem;
+        border-radius: 1rem;
         margin-bottom: 0.85rem;
         background-color: #f5f7fb;
+        position: relative;
     }
 
     .pemilihan-option-photo img {
         width: 100%;
-        height: 180px;
+        height: 100%;
         object-fit: cover;
+        object-position: center top;
         display: block;
     }
 
@@ -161,6 +173,47 @@
         font-weight: 600;
         color: #0d6efd;
         font-size: 0.95rem;
+    }
+
+    .pemilihan-option-body {
+        flex: 1 1 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .pemilihan-option-info {
+        list-style: none;
+        padding-left: 0;
+        margin-bottom: 0;
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+
+    .pemilihan-option-info li + li {
+        margin-top: 0.35rem;
+    }
+
+    .pemilihan-option-text {
+        font-size: 0.9rem;
+        color: #5f6c75;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .pemilihan-option-meta {
+        margin-top: auto;
+        padding-top: 0.75rem;
+        border-top: 1px solid #eef1f6;
+        font-size: 0.85rem;
+        color: #5f6c75;
+    }
+
+    .pemilihan-option-meta span {
+        display: block;
+        line-height: 1.35;
     }
 
     .pemilihan-step-note {
@@ -203,7 +256,7 @@
                     <div class="d-flex justify-content-between align-items-center flex-wrap">
                         <div>
                             <h1>Pemilu Mahasiswa</h1>
-                            <p>Pilih calon terbaikmu untuk Presmben maupun Caleg.</p>
+                            <p>Pilih calon terbaikmu untuk Presbem maupun Caleg.</p>
                         </div>
                     </div>
                 </div>
@@ -216,7 +269,7 @@
 </div>
 
 <div class="conatiner-fluid content-inner mt-n5 py-0">
-    @if(!$pemilihanPresmben && !$pemilihanCaleg)
+    @if(!$pemilihanPresbem && !$pemilihanCaleg)
         <div class="card">
             <div class="pemilu-empty-state">
                 <i class="fa-solid fa-person-booth fa-3x mb-3"></i>
@@ -262,11 +315,11 @@
                         </p>
                     </div>
 
-                    @if($pemilihanPresmben && $pemilihanPresmben->candidates->isNotEmpty())
-                        <div class="row g-3">
-                            @foreach($pemilihanPresmben->candidates as $candidate)
+                    @if($pemilihanPresbem && $pemilihanPresbem->candidates->isNotEmpty())
+                        <div class="row g-3 pemilihan-option-grid">
+                            @foreach($pemilihanPresbem->candidates as $candidate)
                                 @php
-                                    $isSelected = $presmbenVote?->candidate_id === $candidate->id;
+                                    $isSelected = $presbemVote?->candidate_id === $candidate->id;
                                     $ketuaSummary = collect([
                                         $candidate->ketua_nama,
                                         $candidate->ketua_prodi,
@@ -284,37 +337,48 @@
                                         $candidate->misi ? 'Misi: ' . $candidate->misi : null,
                                         $candidate->deskripsi,
                                     ])->filter()->implode(' | ');
+                                    $visiPreview = $candidate->visi ? \Illuminate\Support\Str::limit(strip_tags($candidate->visi), 120) : null;
+                                    $misiPreview = $candidate->misi ? \Illuminate\Support\Str::limit(strip_tags($candidate->misi), 120) : null;
+                                    $deskripsiPreview = $candidate->deskripsi ? \Illuminate\Support\Str::limit(strip_tags($candidate->deskripsi), 140) : null;
                                 @endphp
-                                <div class="col-md-6">
-                                    <label class="pemilihan-option {{ $isSelected ? 'is-selected' : '' }} {{ !$stepperConfig['presmben']['is_open'] ? 'is-disabled' : '' }}"
-                                        data-pemilihan="presmben"
+                                <div class="col-12 col-md-6 col-xl-4">
+                                    <label class="pemilihan-option {{ $isSelected ? 'is-selected' : '' }} {{ !$stepperConfig['presbem']['is_open'] ? 'is-disabled' : '' }}"
+                                        data-pemilihan="presbem"
                                         data-candidate-id="{{ $candidate->id }}"
                                         data-candidate-name="{{ $candidate->name }}"
                                         data-candidate-nomor="{{ $candidate->nomor_urut }}"
                                         data-candidate-description="{{ \Illuminate\Support\Str::limit(strip_tags($candidateSummary), 160) }}"
                                     >
-                                        <input type="radio" name="presmben_candidate" value="{{ $candidate->id }}" class="d-none" @checked($isSelected)>
-                                        <div class="d-flex justify-content-between align-items-start mb-2">
-                                            <span class="pemilihan-option-number">No. {{ $candidate->nomor_urut }}</span>
-                                            <span class="badge bg-light text-dark">{{ $candidate->total_votes ?? 0 }} suara</span>
-                                        </div>
-                                        @if($candidate->photo_url)
-                                            <div class="pemilihan-option-photo">
-                                                <img src="{{ $candidate->photo_url }}" alt="Foto {{ $candidate->name }}">
+                                        <input type="radio" name="presbem_candidate" value="{{ $candidate->id }}" class="d-none" @checked($isSelected)>
+                                        <div class="pemilihan-option-body">
+                                            <div class="d-flex justify-content-between align-items-start">
+                                                <span class="pemilihan-option-number">No. {{ $candidate->nomor_urut }}</span>
+                                                <span class="badge bg-light text-dark">{{ $candidate->total_votes ?? 0 }} suara</span>
                                             </div>
-                                        @endif
-                                        <div class="pemilihan-option-title fw-semibold mb-1">{{ $candidate->name }}</div>
-                                        <div class="text-muted small mb-1"><strong>Ketua:</strong> {{ $ketuaSummary ?: '-' }}</div>
-                                        <div class="text-muted small mb-1"><strong>Wakil:</strong> {{ $wakilSummary ?: '-' }}</div>
-                                        @if($candidate->visi)
-                                            <div class="text-muted small mb-1">Visi: {{ $candidate->visi }}</div>
-                                        @endif
-                                        @if($candidate->misi)
-                                            <div class="text-muted small mb-1">Misi: {{ $candidate->misi }}</div>
-                                        @endif
-                                        @if($candidate->deskripsi)
-                                            <div class="text-muted small">{{ $candidate->deskripsi }}</div>
-                                        @endif
+                                            <div class="pemilihan-option-photo">
+                                                <img
+                                                    src="{{ $candidate->photo_url ?: $fallbackPaslonImage }}"
+                                                    alt="Foto {{ $candidate->name }}"
+                                                    onerror="this.onerror=null;this.src='{{ $fallbackPaslonImage }}';"
+                                                >
+                                            </div>
+                                            <div>
+                                                <div class="pemilihan-option-title fw-semibold mb-1">{{ $candidate->name }}</div>
+                                                <ul class="pemilihan-option-info">
+                                                    <li><strong>Ketua:</strong> {{ $ketuaSummary ?: '-' }}</li>
+                                                    <li><strong>Wakil:</strong> {{ $wakilSummary ?: '-' }}</li>
+                                                    @if($visiPreview)
+                                                        <li><strong>Visi:</strong> {{ $visiPreview }}</li>
+                                                    @endif
+                                                    @if($misiPreview)
+                                                        <li><strong>Misi:</strong> {{ $misiPreview }}</li>
+                                                    @endif
+                                                </ul>
+                                            </div>
+                                            @if($deskripsiPreview)
+                                                <p class="pemilihan-option-text mb-0">{{ $deskripsiPreview }}</p>
+                                            @endif
+                                        </div>
                                         @if($isSelected)
                                             <span class="pemilihan-option-badge">Pilihanmu</span>
                                         @endif
@@ -322,7 +386,7 @@
                                 </div>
                             @endforeach
                         </div>
-                    @elseif($pemilihanPresmben)
+                    @elseif($pemilihanPresbem)
                         <div class="alert alert-warning mb-0">
                             Belum ada calon yang terdaftar dalam pemilihan ini.
                         </div>
@@ -339,12 +403,12 @@
                                 Suara hanya dapat dikirim satu kali. Pastikan pilihanmu sudah sesuai sebelum melanjutkan ke tahap berikutnya.
                             </span>
                         </div>
-                        @if($presmbenSelectedCandidate)
+                        @if($presbemSelectedCandidate)
                             <div class="text-success small mt-2">
-                                Kamu sudah memilih kandidat nomor {{ $presmbenSelectedCandidate->nomor_urut ?? '-' }} ({{ $presmbenSelectedCandidate->name ?? 'tidak diketahui' }}).
+                                Kamu sudah memilih kandidat nomor {{ $presbemSelectedCandidate->nomor_urut ?? '-' }} ({{ $presbemSelectedCandidate->name ?? 'tidak diketahui' }}).
                                 Perubahan tidak diperbolehkan.
                             </div>
-                        @elseif(!$stepperConfig['presmben']['is_open'])
+                        @elseif(!$stepperConfig['presbem']['is_open'])
                             <div class="text-warning small mt-2">
                                 Periode pemilihan belum dibuka atau sudah ditutup.
                             </div>
@@ -365,7 +429,7 @@
                             Prodi kamu tidak tercantum dalam dapil legislatif yang sedang dibuka. Kamu tidak perlu memilih caleg.
                         </div>
                     @elseif($pemilihanCaleg && $pemilihanCaleg->candidates->isNotEmpty())
-                        <div class="row g-3">
+                        <div class="row g-3 pemilihan-option-grid">
                             @foreach($pemilihanCaleg->candidates as $candidate)
                                 @php
                                     $isSelected = $calegVote?->candidate_id === $candidate->id;
@@ -386,8 +450,12 @@
                                         $candidate->misi ? 'Misi: ' . $candidate->misi : null,
                                         $candidate->deskripsi,
                                     ])->filter()->implode(' | ');
+                                    $visiPreview = $candidate->visi ? \Illuminate\Support\Str::limit(strip_tags($candidate->visi), 120) : null;
+                                    $misiPreview = $candidate->misi ? \Illuminate\Support\Str::limit(strip_tags($candidate->misi), 120) : null;
+                                    $deskripsiPreview = $candidate->deskripsi ? \Illuminate\Support\Str::limit(strip_tags($candidate->deskripsi), 140) : null;
+                                    $dapilNames = optional($candidate->dapilProdis)->pluck('name')->filter()->implode(', ');
                                 @endphp
-                                <div class="col-md-6">
+                                <div class="col-12 col-md-6 col-xl-4">
                                     <label class="pemilihan-option {{ $isSelected ? 'is-selected' : '' }} {{ !$stepperConfig['caleg']['is_open'] ? 'is-disabled' : '' }}"
                                         data-pemilihan="caleg"
                                         data-candidate-id="{{ $candidate->id }}"
@@ -396,26 +464,40 @@
                                         data-candidate-description="{{ \Illuminate\Support\Str::limit(strip_tags($candidateSummary), 160) }}"
                                     >
                                         <input type="radio" name="caleg_candidate" value="{{ $candidate->id }}" class="d-none" @checked($isSelected)>
-                                        <div class="d-flex justify-content-between align-items-start mb-2">
-                                            <span class="pemilihan-option-number">No. {{ $candidate->nomor_urut }}</span>
-                                            <span class="badge bg-light text-dark">{{ $candidate->total_votes ?? 0 }} suara</span>
-                                        </div>
-                                        @if($candidate->photo_url)
-                                            <div class="pemilihan-option-photo">
-                                                <img src="{{ $candidate->photo_url }}" alt="Foto {{ $candidate->name }}">
+                                        <div class="pemilihan-option-body">
+                                            <div class="d-flex justify-content-between align-items-start">
+                                                <span class="pemilihan-option-number">No. {{ $candidate->nomor_urut }}</span>
+                                                <span class="badge bg-light text-dark">{{ $candidate->total_votes ?? 0 }} suara</span>
                                             </div>
-                                        @endif
-                                        <div class="pemilihan-option-title fw-semibold mb-1">{{ $candidate->name }}</div>
-                                        <div class="text-muted small mb-1"><strong>Ketua:</strong> {{ $ketuaSummary ?: '-' }}</div>
-                                        <div class="text-muted small mb-1"><strong>Wakil:</strong> {{ $wakilSummary ?: '-' }}</div>
-                                        @if($candidate->visi)
-                                            <div class="text-muted small mb-1">Visi: {{ $candidate->visi }}</div>
-                                        @endif
-                                        @if($candidate->misi)
-                                            <div class="text-muted small mb-1">Misi: {{ $candidate->misi }}</div>
-                                        @endif
-                                        @if($candidate->deskripsi)
-                                            <div class="text-muted small">{{ $candidate->deskripsi }}</div>
+                                            <div class="pemilihan-option-photo">
+                                                <img
+                                                    src="{{ $candidate->photo_url ?: $fallbackPaslonImage }}"
+                                                    alt="Foto {{ $candidate->name }}"
+                                                    onerror="this.onerror=null;this.src='{{ $fallbackPaslonImage }}';"
+                                                >
+                                            </div>
+                                            <div>
+                                                <div class="pemilihan-option-title fw-semibold mb-1">{{ $candidate->name }}</div>
+                                                <ul class="pemilihan-option-info">
+                                                    <li><strong>Ketua:</strong> {{ $ketuaSummary ?: '-' }}</li>
+                                                    <li><strong>Wakil:</strong> {{ $wakilSummary ?: '-' }}</li>
+                                                    @if($visiPreview)
+                                                        <li><strong>Visi:</strong> {{ $visiPreview }}</li>
+                                                    @endif
+                                                    @if($misiPreview)
+                                                        <li><strong>Misi:</strong> {{ $misiPreview }}</li>
+                                                    @endif
+                                                </ul>
+                                            </div>
+                                            @if($deskripsiPreview)
+                                                <p class="pemilihan-option-text mb-0">{{ $deskripsiPreview }}</p>
+                                            @endif
+                                        </div>
+                                        @if($dapilNames)
+                                            <div class="pemilihan-option-meta">
+                                                <span class="text-uppercase small fw-semibold text-secondary">Dapil Aktif</span>
+                                                <span>{{ $dapilNames }}</span>
+                                            </div>
                                         @endif
                                         @if($isSelected)
                                             <span class="pemilihan-option-badge">Pilihanmu</span>
@@ -468,19 +550,19 @@
                         </p>
                     </div>
                     <div class="pemilihan-summary">
-                        <div class="pemilihan-summary-item" data-summary-type="presmben">
+                        <div class="pemilihan-summary-item" data-summary-type="presbem">
                             <div class="d-flex justify-content-between align-items-start">
                                 <div>
                                     <p class="text-muted small mb-1">Presiden BEM</p>
-                                    <div class="pemilihan-summary-title" data-summary-name="presmben">
-                                        @if($presmbenSelectedCandidate)
-                                            No. {{ $presmbenSelectedCandidate->nomor_urut }} - {{ $presmbenSelectedCandidate->name }}
+                                    <div class="pemilihan-summary-title" data-summary-name="presbem">
+                                        @if($presbemSelectedCandidate)
+                                            No. {{ $presbemSelectedCandidate->nomor_urut }} - {{ $presbemSelectedCandidate->name }}
                                         @else
                                             Belum dipilih
                                         @endif
                                     </div>
-                                    <div class="text-muted small" data-summary-detail="presmben">
-                                        @if($presmbenSelectedCandidate)
+                                    <div class="text-muted small" data-summary-detail="presbem">
+                                        @if($presbemSelectedCandidate)
                                             Suara kamu sudah tercatat.
                                         @else
                                             Silakan memilih terlebih dahulu.
@@ -488,8 +570,8 @@
                                     </div>
                                 </div>
                                 <button type="button" class="btn btn-link btn-sm px-0 stepper-edit"
-                                    data-target-step="1" data-summary-edit="presmben"
-                                    @if($presmbenVote || !$stepperConfig['presmben']['is_open']) disabled @endif>
+                                    data-target-step="1" data-summary-edit="presbem"
+                                    @if($presbemVote || !$stepperConfig['presbem']['is_open']) disabled @endif>
                                     Ubah
                                 </button>
                             </div>

@@ -27,12 +27,12 @@
         serverSide: true,
         ajax: routes.list,
         columns: [
-            { data: 'DT_RowIndex', name: 'DT_RowIndex' },
+            { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false },
             { data: 'name', name: 'name' },
             { data: 'jenis_label', name: 'jenis' },
             { data: 'periode', name: 'mulai_at' },
             { data: 'status_badge', name: 'is_active', orderable: false, searchable: false },
-            { data: 'candidates_count', name: 'candidates_count' },
+            { data: 'candidates_count', name: 'candidates_count', orderable: false, searchable: false },
             { data: 'action', name: 'action', orderable: false, searchable: false },
         ],
         order: [[1, 'asc']],
@@ -253,7 +253,7 @@
             .done((response) => {
                 if (response.data) {
                     resetPemilihanForm();
-                    $('#pemilihan_id').val(response.data.id);
+                    $('#pemilihan_id').val(response.data.slug);
                     $('#pemilihan_name').val(response.data.name);
                     $('#pemilihan_jenis').val(response.data.jenis);
                     $('#pemilihan_mulai').val(formatDatetimeInput(response.data.mulai_at));
@@ -268,20 +268,33 @@
             .fail(handleAjaxError);
     });
 
-    $('#pemilihan-table').on('click', '.btn-toggle-pemilihan', function () {
-        const id = $(this).data('id');
-        const url = routes.toggle.replace(':id', id);
+    $('.btn-toggle-all-menu').on('click', function () {
+        const currentText = $(this).text().trim();
+        const action = currentText.includes('Sembunyikan') ? 'menyembunyikan' : 'menampilkan';
 
-        $.ajax({
-            url,
-            type: 'POST',
-            headers: { 'X-CSRF-TOKEN': csrfToken },
-        })
-            .done((response) => {
-                Swal.fire('Berhasil', response.message, 'success');
-                pemilihanTable.ajax.reload(null, false);
-            })
-            .fail(handleAjaxError);
+        Swal.fire({
+            title: 'Konfirmasi',
+            text: `Apakah Anda yakin ingin ${action} menu pemilu di dashboard mahasiswa?`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Ya, lanjutkan',
+            cancelButtonText: 'Batal',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: routes.toggleAllMenu,
+                    type: 'POST',
+                    headers: { 'X-CSRF-TOKEN': csrfToken },
+                })
+                    .done((response) => {
+                        Swal.fire('Berhasil', response.message, 'success').then(() => {
+                            // Reload halaman untuk update button state
+                            window.location.reload();
+                        });
+                    })
+                    .fail(handleAjaxError);
+            }
+        });
     });
 
     $('#pemilihan-table').on('click', '.btn-delete-pemilihan', function () {

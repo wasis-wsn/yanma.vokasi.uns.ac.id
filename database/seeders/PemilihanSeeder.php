@@ -15,9 +15,9 @@ class PemilihanSeeder extends Seeder
     {
         $pemilihans = [
             [
-                'name' => 'Pemilihan Presmben 2024',
-                'slug' => Str::slug('Pemilihan Presmben 2024'),
-                'jenis' => 'presmben',
+                'name' => 'Pemilihan Presbem 2024',
+                'slug' => Str::slug('Pemilihan Presbem 2024'),
+                'jenis' => 'presbem',
                 'deskripsi' => 'Pemilihan Presiden BEM Sekolah Vokasi periode 2024.',
                 'mulai_at' => now()->subWeek(),
                 'selesai_at' => now()->addWeeks(2),

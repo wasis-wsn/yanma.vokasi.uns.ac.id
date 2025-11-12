@@ -11,7 +11,7 @@ class Pemilihan extends Model
     use HasFactory;
 
     public const JENIS_OPTIONS = [
-        'presmben' => 'Pemilihan Presmben',
+        'presbem' => 'Pemilihan Presbem',
         'caleg' => 'Pemilihan Caleg',
     ];
 

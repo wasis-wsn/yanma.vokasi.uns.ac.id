@@ -13,7 +13,7 @@
                 submitting: false,
                 calegSkipped: false,
                 choices: {
-                    presmben: this.buildChoiceState('presmben'),
+                    presbem: this.buildChoiceState('presbem'),
                     caleg: this.buildChoiceState('caleg'),
                 },
             };
@@ -23,7 +23,7 @@
             }
 
             this.optionMap = {
-                presmben: {},
+                presbem: {},
                 caleg: {},
             };
 
@@ -183,7 +183,7 @@
 
         handleNext() {
             if (this.state.step < this.state.totalSteps) {
-                if (this.state.step === 1 && !this.isStepSatisfied('presmben')) {
+                if (this.state.step === 1 && !this.isStepSatisfied('presbem')) {
                     return;
                 }
                 if (this.state.step === 2 && !this.isStepSatisfied('caleg')) {
@@ -306,7 +306,7 @@
 
             let disableNext = false;
             if (this.state.step === 1) {
-                disableNext = !this.isStepSatisfied('presmben');
+                disableNext = !this.isStepSatisfied('presbem');
             } else if (this.state.step === 2) {
                 disableNext = !this.isStepSatisfied('caleg');
             }
@@ -315,7 +315,7 @@
         },
 
         hasPendingSubmission() {
-            return ['presmben', 'caleg'].some((type) => this.shouldSubmit(type));
+            return ['presbem', 'caleg'].some((type) => this.shouldSubmit(type));
         },
 
         shouldSubmit(type) {
@@ -349,7 +349,7 @@
             }
 
             const tasks = [];
-            ['presmben', 'caleg'].forEach((type) => {
+            ['presbem', 'caleg'].forEach((type) => {
                 if (this.shouldSubmit(type)) {
                     tasks.push(() => this.submitVote(type));
                 }
@@ -411,7 +411,7 @@
         },
 
         refreshSummary() {
-            ['presmben', 'caleg'].forEach((type) => {
+            ['presbem', 'caleg'].forEach((type) => {
                 const choice = this.state.choices[type];
                 const summaryName = this.root.find(`[data-summary-name="${type}"]`);
                 const summaryDetail = this.root.find(`[data-summary-detail="${type}"]`);
@@ -441,7 +441,7 @@
                 if (!candidateId) {
                     summaryName.text('Belum dipilih');
                     summaryDetail.text(
-                        type === 'presmben'
+                        type === 'presbem'
                             ? 'Silakan memilih calon presiden BEM.'
                             : 'Langkah ini dapat dilewati jika bukan dapilmu.'
                     );

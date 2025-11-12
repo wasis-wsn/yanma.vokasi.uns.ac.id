@@ -232,6 +232,7 @@ Route::middleware('auth')->group(function () {
             Route::get('/list', [PemilihanManageController::class, 'list'])->name('list');
             Route::get('/{pemilihan}/detail', [PemilihanManageController::class, 'show'])->name('show');
             Route::post('/', [PemilihanManageController::class, 'store'])->name('store');
+            Route::post('/toggle-all-menu', [PemilihanManageController::class, 'toggleAllMenu'])->name('toggleAllMenu');
             Route::post('/{pemilihan}', [PemilihanManageController::class, 'update'])->name('update');
             Route::post('/{pemilihan}/toggle', [PemilihanManageController::class, 'toggleStatus'])->name('toggle');
             Route::delete('/{pemilihan}', [PemilihanManageController::class, 'destroy'])->name('destroy');

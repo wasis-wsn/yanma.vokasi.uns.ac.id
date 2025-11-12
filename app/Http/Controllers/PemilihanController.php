@@ -29,19 +29,19 @@ class PemilihanController extends Controller
                 $query->where('user_id', $userId);
             },
         ])->open()
-            ->whereIn('jenis', ['presmben', 'caleg'])
+            ->whereIn('jenis', ['presbem', 'caleg'])
             ->get()
             ->keyBy('jenis');
 
-        $pemilihanPresmben = $pemilihans->get('presmben');
+        $pemilihanPresbem = $pemilihans->get('presbem');
         $pemilihanCaleg = $pemilihans->get('caleg');
 
         $eligibility = [
-            'presmben' => $this->userEligibleForPemilihan($pemilihanPresmben, $userProdiId),
+            'presbem' => $this->userEligibleForPemilihan($pemilihanPresbem, $userProdiId),
             'caleg' => $this->userEligibleForPemilihan($pemilihanCaleg, $userProdiId),
         ];
 
-        return view('pages.pemilihan.mahasiswa', compact('pemilihanPresmben', 'pemilihanCaleg', 'eligibility'));
+        return view('pages.pemilihan.mahasiswa', compact('pemilihanPresbem', 'pemilihanCaleg', 'eligibility'));
     }
 
     public function summary(Pemilihan $pemilihan): JsonResponse

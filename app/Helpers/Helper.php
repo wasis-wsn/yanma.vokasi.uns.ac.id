@@ -2,6 +2,7 @@
 
 use App\Models\KategoriLayanan;
 use App\Models\User;
+use App\Models\Pemilihan;
 use Illuminate\Support\Facades\Crypt;
 
 function encodeId($id)
@@ -33,4 +34,9 @@ function getLayanan()
         }
     }
     return $kategoris;
+}
+
+function pemiluMenuEnabled(): bool
+{
+    return Pemilihan::where('is_active', true)->exists();
 }
