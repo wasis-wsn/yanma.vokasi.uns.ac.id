@@ -81,14 +81,15 @@
                             <thead>
                                 <tr>
                                     <th>#</th>
-                                    <th>Nama Calon</th>
+                                    <th>Profil Calon</th>
+                                    <th>Prodi & Dapil</th>
                                     <th>Perolehan</th>
                                     <th class="text-end">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td colspan="4" class="text-center text-muted">Belum ada pemilihan yang dipilih.</td>
+                                    <td colspan="5" class="text-center text-muted">Belum ada pemilihan yang dipilih.</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -162,7 +163,7 @@
                 <h5 class="modal-title" id="modalCandidateLabel">Tambah Calon</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form id="form-candidate">
+            <form id="form-candidate" enctype="multipart/form-data">
                 <div class="modal-body">
                     @csrf
                     <input type="hidden" name="candidate_id" id="candidate_id">
@@ -172,24 +173,115 @@
                             <input type="number" min="1" class="form-control" name="nomor_urut" id="candidate_nomor" required>
                         </div>
                         <div class="col-md-8">
-                            <label class="form-label">Nama Calon</label>
+                            <label class="form-label">Nama Pasangan / Koalisi</label>
                             <input type="text" class="form-control" name="name" id="candidate_name" required>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Visi</label>
-                            <textarea name="visi" id="candidate_visi" class="form-control" rows="2"></textarea>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Misi</label>
-                            <textarea name="misi" id="candidate_misi" class="form-control" rows="2"></textarea>
-                        </div>
+
                         <div class="col-12">
-                            <label class="form-label">Deskripsi Singkat</label>
-                            <textarea name="deskripsi" id="candidate_deskripsi" class="form-control" rows="2"></textarea>
+                            <div class="border rounded p-3">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h6 class="mb-0">Data Diri Ketua</h6>
+                                    <span class="badge bg-primary-subtle text-primary">Ketua</span>
+                                </div>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Nama Ketua</label>
+                                        <input type="text" class="form-control" name="ketua_nama" id="ketua_nama" required>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Prodi Ketua</label>
+                                        <select class="form-select" name="ketua_prodi" id="ketua_prodi" required>
+                                            <option value="" disabled selected>Pilih prodi</option>
+                                            @foreach($prodis as $prodi)
+                                                <option value="{{ $prodi->name }}">{{ $prodi->name }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label">Angkatan</label>
+                                        <input type="text" class="form-control" name="ketua_angkatan" id="ketua_angkatan" required>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
+
                         <div class="col-12">
-                            <label class="form-label">Foto/URL (opsional)</label>
-                            <input type="text" class="form-control" name="foto" id="candidate_foto" placeholder="Link foto atau nama file">
+                            <div class="border rounded p-3">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h6 class="mb-0">Data Diri Wakil Ketua</h6>
+                                    <span class="badge bg-info-subtle text-info">Wakil</span>
+                                </div>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Nama Wakil Ketua</label>
+                                        <input type="text" class="form-control" name="wakil_nama" id="wakil_nama" required>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Prodi Wakil</label>
+                                        <select class="form-select" name="wakil_prodi" id="wakil_prodi" required>
+                                            <option value="" disabled selected>Pilih prodi</option>
+                                            @foreach($prodis as $prodi)
+                                                <option value="{{ $prodi->name }}">{{ $prodi->name }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label">Angkatan</label>
+                                        <input type="text" class="form-control" name="wakil_angkatan" id="wakil_angkatan" required>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-12" id="candidate_dapil_group">
+                            <label class="form-label d-block">Dapil (Pilih Prodi)</label>
+                            <div class="border rounded p-2 dapil-checkbox-wrapper" style="max-height: 260px; overflow-y: auto;">
+                                @foreach($prodis as $prodi)
+                                    <div class="form-check">
+                                        <input class="form-check-input dapil-prodi-checkbox" type="checkbox" value="{{ $prodi->id }}" id="dapil_prodi_{{ $prodi->id }}" name="dapil_prodi_ids[]">
+                                        <label class="form-check-label" for="dapil_prodi_{{ $prodi->id }}">
+                                            {{ $prodi->name }}
+                                        </label>
+                                    </div>
+                                @endforeach
+                            </div>
+                            <div class="form-text" id="dapil_helper_text">Aktif ketika pemilihan merupakan Caleg.</div>
+                        </div>
+
+                        <div class="col-12">
+                            <div class="border rounded p-3">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h6 class="mb-0">Visi & Misi</h6>
+                                    <span class="badge bg-light text-muted">Program</span>
+                                </div>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Visi</label>
+                                        <textarea name="visi" id="candidate_visi" class="form-control" rows="3"></textarea>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Misi</label>
+                                        <textarea name="misi" id="candidate_misi" class="form-control" rows="3"></textarea>
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label">Deskripsi Singkat</label>
+                                        <textarea name="deskripsi" id="candidate_deskripsi" class="form-control" rows="3"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Foto Calon</label>
+                            <input type="file" class="form-control" name="foto" id="candidate_foto" accept="image/*">
+                            <div class="form-text">Format JPG/PNG/WebP maksimal 2 MB.</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Pratinjau Foto</label>
+                            <div class="border rounded p-2 text-center" id="candidate_foto_preview_wrapper">
+                                <img src="" alt="Pratinjau foto calon" id="candidate_foto_preview" class="img-fluid rounded d-none" style="max-height: 200px;">
+                                <span class="text-muted small d-block" id="candidate_foto_placeholder">Belum ada foto yang dipilih.</span>
+                            </div>
                         </div>
                     </div>
                 </div>

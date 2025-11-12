@@ -15,11 +15,14 @@ class PemilihanController extends Controller
 {
     public function indexMahasiswa()
     {
-        $userId = Auth::id();
+        $user = Auth::user();
+        $userId = $user?->id;
+        $userProdiId = $user?->prodi;
 
         $pemilihans = Pemilihan::with([
             'candidates' => function ($query) {
                 $query->withCount('votes as total_votes')
+                    ->with('dapilProdis:id,name')
                     ->orderBy('nomor_urut');
             },
             'votes' => function ($query) use ($userId) {
@@ -33,7 +36,12 @@ class PemilihanController extends Controller
         $pemilihanPresmben = $pemilihans->get('presmben');
         $pemilihanCaleg = $pemilihans->get('caleg');
 
-        return view('pages.pemilihan.mahasiswa', compact('pemilihanPresmben', 'pemilihanCaleg'));
+        $eligibility = [
+            'presmben' => $this->userEligibleForPemilihan($pemilihanPresmben, $userProdiId),
+            'caleg' => $this->userEligibleForPemilihan($pemilihanCaleg, $userProdiId),
+        ];
+
+        return view('pages.pemilihan.mahasiswa', compact('pemilihanPresmben', 'pemilihanCaleg', 'eligibility'));
     }
 
     public function summary(Pemilihan $pemilihan): JsonResponse
@@ -62,7 +70,16 @@ class PemilihanController extends Controller
             ], 422);
         }
 
-        $userId = Auth::id();
+        $user = Auth::user();
+        $userId = $user?->id;
+        $userProdiId = $user?->prodi;
+
+        if ($pemilihan->jenis === 'caleg' && !$this->userEligibleForPemilihan($pemilihan, $userProdiId)) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Prodi kamu bukan bagian dari dapil pemilihan legislatif ini.',
+            ], 403);
+        }
 
         $candidate = $pemilihan->candidates()
             ->where('pemilihan_candidates.id', $request->input('candidate_id'))
@@ -118,11 +135,14 @@ class PemilihanController extends Controller
 
     private function buildPayload(Pemilihan $pemilihan): array
     {
-        $userId = Auth::id();
+        $user = Auth::user();
+        $userId = $user?->id;
+        $userProdiId = $user?->prodi;
 
         $pemilihan->load([
             'candidates' => function ($query) {
                 $query->withCount('votes as total_votes')
+                    ->with('dapilProdis:id,name')
                     ->orderBy('nomor_urut');
             },
             'votes' => function ($query) use ($userId) {
@@ -144,16 +164,24 @@ class PemilihanController extends Controller
                 'selesai_at' => optional($pemilihan->selesai_at)->toDateTimeString(),
                 'is_active' => (bool) $pemilihan->is_active,
                 'is_open' => $pemilihan->votingWindowIsOpen(),
+                'eligible' => $this->userEligibleForPemilihan($pemilihan, $userProdiId),
             ],
             'candidates' => $pemilihan->candidates->map(function ($candidate) {
                 return [
                     'id' => $candidate->id,
                     'nomor_urut' => $candidate->nomor_urut,
                     'name' => $candidate->name,
+                    'ketua_nama' => $candidate->ketua_nama,
+                    'ketua_prodi' => $candidate->ketua_prodi,
+                    'ketua_angkatan' => $candidate->ketua_angkatan,
+                    'wakil_nama' => $candidate->wakil_nama,
+                    'wakil_prodi' => $candidate->wakil_prodi,
+                    'wakil_angkatan' => $candidate->wakil_angkatan,
                     'visi' => $candidate->visi,
                     'misi' => $candidate->misi,
                     'deskripsi' => $candidate->deskripsi,
                     'foto' => $candidate->foto,
+                    'photo_url' => $candidate->photo_url,
                     'total_votes' => (int) ($candidate->total_votes ?? 0),
                 ];
             })->values(),
@@ -164,5 +192,32 @@ class PemilihanController extends Controller
                 ];
             }),
         ];
+    }
+
+    private function userEligibleForPemilihan(?Pemilihan $pemilihan, ?int $userProdiId): bool
+    {
+        if (!$pemilihan) {
+            return false;
+        }
+
+        if ($pemilihan->jenis !== 'caleg') {
+            return true;
+        }
+
+        if (!$userProdiId) {
+            return false;
+        }
+
+        if (!$pemilihan->relationLoaded('candidates')) {
+            $pemilihan->load(['candidates' => function ($query) {
+                $query->with('dapilProdis:id,name');
+            }]);
+        } else {
+            $pemilihan->candidates->loadMissing('dapilProdis:id,name');
+        }
+
+        return $pemilihan->candidates->contains(function ($candidate) use ($userProdiId) {
+            return $candidate->dapilProdis->contains('id', $userProdiId);
+        });
     }
 }

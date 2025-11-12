@@ -5,6 +5,22 @@
     const candidateModal = document.getElementById('modalCandidate') ? new bootstrap.Modal(document.getElementById('modalCandidate')) : null;
 
     let selectedPemilihanId = null;
+    let selectedPemilihanJenis = null;
+
+    const candidatePhotoPreview = $('#candidate_foto_preview');
+    const candidatePhotoPlaceholder = $('#candidate_foto_placeholder');
+    const candidatePhotoInput = $('#candidate_foto');
+    const candidateDapilGroup = $('#candidate_dapil_group');
+    const candidateDapilCheckboxes = candidateDapilGroup.find('.dapil-prodi-checkbox');
+    const dapilHelperText = $('#dapil_helper_text');
+    const leaderInputs = {
+        ketua_nama: $('#ketua_nama'),
+        ketua_prodi: $('#ketua_prodi'),
+        ketua_angkatan: $('#ketua_angkatan'),
+        wakil_nama: $('#wakil_nama'),
+        wakil_prodi: $('#wakil_prodi'),
+        wakil_angkatan: $('#wakil_angkatan'),
+    };
 
     const pemilihanTable = $('#pemilihan-table').DataTable({
         processing: true,
@@ -35,10 +51,84 @@
     }
 
     function resetCandidateForm() {
-        $('#form-candidate')[0].reset();
+        const form = $('#form-candidate')[0];
+        form.reset();
         $('#candidate_id').val('');
+        candidateDapilCheckboxes.prop('checked', false);
+        Object.values(leaderInputs).forEach((input) => {
+            if (input.is('select')) {
+                input.prop('selectedIndex', 0);
+            } else {
+                input.val('');
+            }
+        });
+        candidatePhotoInput.val('');
+        setPhotoPreview(null);
         $('#modalCandidateLabel').text('Tambah Calon');
         $('#btn-save-candidate').text('Simpan');
+        updateDapilFieldState();
+    }
+
+    function setPhotoPreview(url) {
+        if (url) {
+            candidatePhotoPreview.attr('src', url).removeClass('d-none');
+            candidatePhotoPlaceholder.addClass('d-none');
+        } else {
+            candidatePhotoPreview.attr('src', '').addClass('d-none');
+            candidatePhotoPlaceholder.removeClass('d-none');
+        }
+    }
+
+    function setSelectValue(selectEl, value) {
+        if (!selectEl || !selectEl.length) {
+            return;
+        }
+        if (!value) {
+            selectEl.val('');
+            return;
+        }
+        if (!selectEl.find(`option[value="${value}"]`).length) {
+            selectEl.append(new Option(value, value));
+        }
+        selectEl.val(value);
+    }
+
+    function fillLeaderFields(payload = {}) {
+        Object.entries(leaderInputs).forEach(([key, input]) => {
+            if (input.is('select')) {
+                setSelectValue(input, payload[key] || '');
+            } else {
+                input.val(payload[key] || '');
+            }
+        });
+    }
+
+    function renderLeaderLine(label, name, prodi, angkatan) {
+        const metaParts = [];
+        if (prodi) {
+            metaParts.push(prodi);
+        }
+        if (angkatan) {
+            metaParts.push(`Angkatan ${angkatan}`);
+        }
+        const meta = metaParts.length ? ` <span class="text-muted">(${metaParts.join(' • ')})</span>` : '';
+        return `<div class="small text-muted"><strong>${label}:</strong> ${name || '-'}${meta}</div>`;
+    }
+
+    function updateDapilFieldState() {
+        const isCaleg = selectedPemilihanJenis === 'caleg';
+        candidateDapilGroup.toggleClass('d-none', !isCaleg);
+        candidateDapilCheckboxes.prop('disabled', !isCaleg);
+        if (!isCaleg) {
+            candidateDapilCheckboxes.prop('checked', false);
+        }
+        if (dapilHelperText.length) {
+            dapilHelperText.text(
+                isCaleg
+                    ? 'Pilih satu atau beberapa prodi dapil untuk calon legislatif.'
+                    : 'Dapil hanya perlu diisi untuk pemilihan legislatif.'
+            );
+        }
     }
 
     function updateSelectedPemilihanLabel(name = null) {
@@ -46,7 +136,9 @@
         if (!name) {
             label.text('Pilih pemilihan untuk melihat calon.');
             $('.btn-add-candidate').prop('disabled', true);
-            $('#candidate-table tbody').html('<tr><td colspan="4" class="text-center text-muted">Belum ada pemilihan yang dipilih.</td></tr>');
+            $('#candidate-table tbody').html('<tr><td colspan="5" class="text-center text-muted">Belum ada pemilihan yang dipilih.</td></tr>');
+            selectedPemilihanJenis = null;
+            updateDapilFieldState();
             return;
         }
         label.text(`Pemilihan: ${name}`);
@@ -64,18 +156,36 @@
             tbody.empty();
 
             if (response.pemilihan) {
+                selectedPemilihanJenis = response.pemilihan.jenis || null;
                 updateSelectedPemilihanLabel(response.pemilihan.name);
+            } else {
+                selectedPemilihanJenis = null;
+                updateSelectedPemilihanLabel();
             }
 
-            if (!response.candidates.length) {
-                tbody.append('<tr><td colspan="4" class="text-center text-muted">Belum ada calon.</td></tr>');
+            updateDapilFieldState();
+
+            const candidates = Array.isArray(response.candidates) ? response.candidates : [];
+
+            if (!candidates.length) {
+                tbody.append('<tr><td colspan="5" class="text-center text-muted">Belum ada calon.</td></tr>');
                 return;
             }
 
-            response.candidates.forEach((candidate, index) => {
+            candidates.forEach((candidate, index) => {
                 const visi = candidate.visi ? `<div class="small text-muted mb-1">Visi: ${candidate.visi}</div>` : '';
                 const misi = candidate.misi ? `<div class="small text-muted">Misi: ${candidate.misi}</div>` : '';
-                const detail = `<div class="fw-semibold text-dark">${candidate.nomor_urut}. ${candidate.name}</div>${visi}${misi}`;
+                const ketuaLine = renderLeaderLine('Ketua', candidate.ketua_nama, candidate.ketua_prodi, candidate.ketua_angkatan);
+                const wakilLine = renderLeaderLine('Wakil', candidate.wakil_nama, candidate.wakil_prodi, candidate.wakil_angkatan);
+                const detailText = `<div class="fw-semibold text-dark mb-1">${candidate.nomor_urut}. ${candidate.name}</div>${ketuaLine}${wakilLine}${visi}${misi}`;
+
+                const photoHtml = candidate.photo_url
+                    ? `<img src="${candidate.photo_url}" class="rounded border" style="width:72px;height:72px;object-fit:cover;" alt="Foto ${candidate.name}" loading="lazy">`
+                    : '<div class="rounded border bg-light d-flex align-items-center justify-content-center text-muted" style="width:72px;height:72px;"><i class="fa-solid fa-user"></i></div>';
+
+                const dapilBadges = candidate.dapil_names && candidate.dapil_names.length
+                    ? candidate.dapil_names.map((name) => `<div class="d-block mb-1"><span class="badge bg-primary text-white">${name}</span></div>`).join('')
+                    : '<span class="text-muted small d-block">Belum ada dapil.</span>';
 
                 const action = `
                     <div class="btn-group btn-group-sm" role="group">
@@ -87,7 +197,15 @@
                 tbody.append(`
                     <tr>
                         <td>${index + 1}</td>
-                        <td>${detail}</td>
+                        <td>
+                            <div class="d-flex align-items-start gap-3">
+                                <div>${photoHtml}</div>
+                                <div>${detailText}</div>
+                            </div>
+                        </td>
+                        <td>
+                            <div>${dapilBadges}</div>
+                        </td>
                         <td><span class="fw-semibold">${candidate.total_votes}</span></td>
                         <td class="text-end">${action}</td>
                     </tr>
@@ -102,6 +220,22 @@
             message = xhr.responseJSON.message;
         }
         Swal.fire('Gagal', message, 'error');
+    }
+
+    updateDapilFieldState();
+
+    if (candidatePhotoInput.length) {
+        candidatePhotoInput.on('change', function (event) {
+            const file = event.target.files && event.target.files[0];
+            if (!file) {
+                setPhotoPreview(null);
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (e) => setPhotoPreview(e.target.result);
+            reader.readAsDataURL(file);
+        });
     }
 
     $('.btn-add-pemilihan').on('click', function () {
@@ -230,10 +364,17 @@
                     $('#candidate_id').val(response.data.id);
                     $('#candidate_nomor').val(response.data.nomor_urut);
                     $('#candidate_name').val(response.data.name);
+                    fillLeaderFields(response.data);
                     $('#candidate_visi').val(response.data.visi);
                     $('#candidate_misi').val(response.data.misi);
                     $('#candidate_deskripsi').val(response.data.deskripsi);
-                    $('#candidate_foto').val(response.data.foto);
+                    const dapilIds = (response.data.dapil_prodi_ids || []).map((id) => Number(id));
+                    candidateDapilCheckboxes.each(function () {
+                        const checkbox = $(this);
+                        checkbox.prop('checked', dapilIds.includes(Number(checkbox.val())));
+                    });
+                    setPhotoPreview(response.data.photo_url || null);
+                    updateDapilFieldState();
                     $('#modalCandidateLabel').text('Edit Calon');
                     $('#btn-save-candidate').text('Perbarui');
                     if (candidateModal) candidateModal.show();
@@ -276,13 +417,16 @@
         }
         const candidateId = $('#candidate_id').val();
         const baseUrl = candidateId ? routes.candidateUpdate.replace(':id', candidateId) : routes.candidateStore.replace(':id', selectedPemilihanId);
-        const formData = $(this).serialize();
+        const formElement = document.getElementById('form-candidate');
+        const formData = new FormData(formElement);
 
         $.ajax({
             url: baseUrl,
             type: 'POST',
             data: formData,
             headers: { 'X-CSRF-TOKEN': csrfToken },
+            processData: false,
+            contentType: false,
         })
             .done((response) => {
                 Swal.fire('Berhasil', response.message, 'success');

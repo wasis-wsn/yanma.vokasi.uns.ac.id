@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\Pemilihan;
 use App\Models\PemilihanCandidate;
+use App\Models\Prodi;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -15,7 +17,9 @@ class PemilihanManageController extends Controller
     public function index()
     {
         $jenisOptions = Pemilihan::jenisOptions();
-        return view('pages.pemilihan.index', compact('jenisOptions'));
+        $prodis = Prodi::orderBy('name')->get(['id', 'name']);
+
+        return view('pages.pemilihan.index', compact('jenisOptions', 'prodis'));
     }
 
     public function list(Request $request)
@@ -131,7 +135,9 @@ class PemilihanManageController extends Controller
     public function candidates(Pemilihan $pemilihan): JsonResponse
     {
         $pemilihan->load(['candidates' => function ($query) {
-            $query->withCount('votes as total_votes')->orderBy('nomor_urut');
+            $query->withCount('votes as total_votes')
+                ->with(['prodi:id,name', 'dapilProdis:id,name'])
+                ->orderBy('nomor_urut');
         }]);
 
         return response()->json([
@@ -143,10 +149,22 @@ class PemilihanManageController extends Controller
                     'pemilihan_id' => $candidate->pemilihan_id,
                     'nomor_urut' => $candidate->nomor_urut,
                     'name' => $candidate->name,
+                    'ketua_nama' => $candidate->ketua_nama,
+                    'ketua_prodi' => $candidate->ketua_prodi,
+                    'ketua_angkatan' => $candidate->ketua_angkatan,
+                    'wakil_nama' => $candidate->wakil_nama,
+                    'wakil_prodi' => $candidate->wakil_prodi,
+                    'wakil_angkatan' => $candidate->wakil_angkatan,
                     'visi' => $candidate->visi,
                     'misi' => $candidate->misi,
                     'deskripsi' => $candidate->deskripsi,
                     'foto' => $candidate->foto,
+                    'photo_url' => $candidate->photo_url,
+                    'prodi' => $candidate->prodi ? [
+                        'id' => $candidate->prodi->id,
+                        'name' => $candidate->prodi->name,
+                    ] : null,
+                    'dapil_names' => $candidate->dapilProdis->pluck('name')->values(),
                     'total_votes' => (int) ($candidate->total_votes ?? 0),
                 ];
             })->values(),
@@ -155,8 +173,16 @@ class PemilihanManageController extends Controller
 
     public function storeCandidate(Request $request, Pemilihan $pemilihan): JsonResponse
     {
-        $data = $this->validateCandidate($request, $pemilihan->id);
-        $pemilihan->candidates()->create($data);
+        $data = $this->validateCandidate($request, $pemilihan);
+
+        if ($request->hasFile('foto')) {
+            $data['foto'] = $request->file('foto')->store('pemilihan/candidates', 'public');
+        }
+
+        $dapilIds = $this->extractDapilProdiIds($request, $pemilihan);
+
+        $candidate = $pemilihan->candidates()->create($data);
+        $this->syncCandidateDapils($candidate, $dapilIds);
 
         return response()->json([
             'status' => true,
@@ -166,16 +192,52 @@ class PemilihanManageController extends Controller
 
     public function showCandidate(PemilihanCandidate $candidate): JsonResponse
     {
+        $candidate->loadMissing(['prodi:id,name', 'dapilProdis:id,name']);
+
         return response()->json([
             'status' => true,
-            'data' => $candidate,
+            'data' => [
+                'id' => $candidate->id,
+                'pemilihan_id' => $candidate->pemilihan_id,
+                'nomor_urut' => $candidate->nomor_urut,
+                'name' => $candidate->name,
+                'ketua_nama' => $candidate->ketua_nama,
+                'ketua_prodi' => $candidate->ketua_prodi,
+                'ketua_angkatan' => $candidate->ketua_angkatan,
+                'wakil_nama' => $candidate->wakil_nama,
+                'wakil_prodi' => $candidate->wakil_prodi,
+                'wakil_angkatan' => $candidate->wakil_angkatan,
+                'visi' => $candidate->visi,
+                'misi' => $candidate->misi,
+                'deskripsi' => $candidate->deskripsi,
+                'prodi_id' => $candidate->prodi_id,
+                'prodi_name' => $candidate->prodi?->name,
+                'dapil_prodi_ids' => $candidate->dapilProdis->pluck('id'),
+                'dapil_prodi_names' => $candidate->dapilProdis->pluck('name'),
+                'foto' => $candidate->foto,
+                'photo_url' => $candidate->photo_url,
+            ],
         ]);
     }
 
     public function updateCandidate(Request $request, PemilihanCandidate $candidate): JsonResponse
     {
-        $data = $this->validateCandidate($request, $candidate->pemilihan_id, $candidate->id);
+        $candidate->loadMissing('pemilihan');
+        $data = $this->validateCandidate($request, $candidate->pemilihan, $candidate->id);
+
+        if ($request->hasFile('foto')) {
+            if ($candidate->foto) {
+                Storage::disk('public')->delete($candidate->foto);
+            }
+            $data['foto'] = $request->file('foto')->store('pemilihan/candidates', 'public');
+        } else {
+            unset($data['foto']);
+        }
+
+        $dapilIds = $this->extractDapilProdiIds($request, $candidate->pemilihan);
+
         $candidate->update($data);
+        $this->syncCandidateDapils($candidate, $dapilIds);
 
         return response()->json([
             'status' => true,
@@ -226,8 +288,18 @@ class PemilihanManageController extends Controller
         ]);
     }
 
-    private function validateCandidate(Request $request, int $pemilihanId, ?int $candidateId = null): array
+    private function validateCandidate(Request $request, Pemilihan $pemilihan, ?int $candidateId = null): array
     {
+        $pemilihanId = $pemilihan->id;
+        $dapilRules = [
+            $pemilihan->jenis === 'caleg' ? 'required' : 'nullable',
+            'array',
+        ];
+
+        if ($pemilihan->jenis === 'caleg') {
+            $dapilRules[] = 'min:1';
+        }
+
         return $request->validate([
             'nomor_urut' => [
                 'required',
@@ -238,22 +310,41 @@ class PemilihanManageController extends Controller
                 })->ignore($candidateId),
             ],
             'name' => ['required', 'string', 'max:255'],
+            'ketua_nama' => ['required', 'string', 'max:255'],
+            'ketua_prodi' => ['required', 'string', 'max:255'],
+            'ketua_angkatan' => ['required', 'string', 'max:50'],
+            'wakil_nama' => ['required', 'string', 'max:255'],
+            'wakil_prodi' => ['required', 'string', 'max:255'],
+            'wakil_angkatan' => ['required', 'string', 'max:50'],
             'visi' => ['nullable', 'string'],
             'misi' => ['nullable', 'string'],
             'deskripsi' => ['nullable', 'string'],
-            'foto' => ['nullable', 'string', 'max:255'],
+            'prodi_id' => ['nullable', 'exists:ref_prodi,id'],
+            'dapil_prodi_ids' => $dapilRules,
+            'dapil_prodi_ids.*' => ['integer', 'exists:ref_prodi,id'],
+            'foto' => ['nullable', 'image', 'max:2048'],
         ], [
             'required' => ':attribute wajib diisi.',
             'string' => ':attribute tidak valid.',
             'integer' => ':attribute tidak valid.',
             'min' => ':attribute minimal :min.',
             'unique' => ':attribute sudah digunakan.',
+            'exists' => ':attribute tidak valid.',
+            'image' => ':attribute harus berupa gambar.',
         ], [
             'nomor_urut' => 'Nomor urut',
             'name' => 'Nama calon',
+            'ketua_nama' => 'Nama ketua',
+            'ketua_prodi' => 'Prodi ketua',
+            'ketua_angkatan' => 'Angkatan ketua',
+            'wakil_nama' => 'Nama wakil ketua',
+            'wakil_prodi' => 'Prodi wakil ketua',
+            'wakil_angkatan' => 'Angkatan wakil ketua',
             'visi' => 'Visi',
             'misi' => 'Misi',
             'deskripsi' => 'Deskripsi',
+            'prodi_id' => 'Prodi calon',
+            'dapil_prodi_ids' => 'Daftar dapil',
             'foto' => 'Foto',
         ]);
     }
@@ -276,5 +367,24 @@ class PemilihanManageController extends Controller
         }
 
         return $slug;
+    }
+
+    private function extractDapilProdiIds(Request $request, Pemilihan $pemilihan): array
+    {
+        if ($pemilihan->jenis !== 'caleg') {
+            return [];
+        }
+
+        return collect($request->input('dapil_prodi_ids', []))
+            ->filter(fn ($value) => !is_null($value) && $value !== '')
+            ->map(fn ($value) => (int) $value)
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    private function syncCandidateDapils(PemilihanCandidate $candidate, array $prodiIds): void
+    {
+        $candidate->dapilProdis()->sync($prodiIds);
     }
 }
