@@ -57,7 +57,15 @@ Route::get('/', function (HttpRequest $request) {
         ->orderBy('name')
         ->get();
 
-    return view('landingpage.index', compact('berita', 'prodisAkreditasi'));
+    // Get voting statistics
+    $totalMahasiswa = \App\Models\User::whereHas('roles', function($query) {
+        $query->where('gate_name', 'mahasiswa');
+    })->count();
+
+    $totalVoted = \App\Models\PemilihanVote::distinct('user_id')->count('user_id');
+    $totalBelumVote = $totalMahasiswa - $totalVoted;
+
+    return view('landingpage.index', compact('berita', 'prodisAkreditasi', 'totalVoted', 'totalBelumVote'));
 })->name('home');
 /* * * * * * * * * * * * * * * * *
 *                                *

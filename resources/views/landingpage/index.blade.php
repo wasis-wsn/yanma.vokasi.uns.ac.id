@@ -534,6 +534,175 @@
 }
 
 
+    /* Pemilwa Section Styles */
+    .pemilwa-section {
+        background: linear-gradient(135deg, #f8fafc 0%, #e8f0fe 100%);
+        padding: 80px 0;
+        position: relative;
+    }
+
+    .pemilwa-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #3b82f6 0%, #b6cff6 100%);
+    }
+
+    .pemilwa-section .section-header p {
+        color: #64748b;
+        font-size: 1.1rem;
+        margin-top: 10px;
+    }
+
+    .chart-container {
+        background: white;
+        border-radius: 20px;
+        padding: 40px;
+        box-shadow: 0 10px 40px rgba(59, 130, 246, 0.15);
+        margin-bottom: 0;
+        border: 1px solid rgba(59, 130, 246, 0.1);
+        position: relative;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .chart-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #3b82f6 0%, #b6cff6 100%);
+        border-radius: 20px 20px 0 0;
+    }
+
+    .voting-stats {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .stat-box {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 5px 20px rgba(59, 130, 246, 0.1);
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        border: 1px solid rgba(59, 130, 246, 0.1);
+        transition: all 0.3s ease;
+    }
+
+    .stat-box:hover {
+        transform: translateX(5px);
+        box-shadow: 0 10px 30px rgba(59, 130, 246, 0.2);
+    }
+
+    .stat-box.voted {
+        border-left: 3px solid #3b82f6;
+    }
+
+    .stat-box.not-voted {
+        border-left: 3px solid #93b9f7;
+    }
+
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.4rem;
+        flex-shrink: 0;
+    }
+
+    .stat-box.voted .stat-icon {
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        color: white;
+        box-shadow: 0 5px 15px rgba(59, 130, 246, 0.3);
+    }
+
+    .stat-box.not-voted .stat-icon {
+        background: linear-gradient(135deg, #93b9f7 0%, #b6cff6 100%);
+        color: white;
+        box-shadow: 0 5px 15px rgba(147, 185, 247, 0.3);
+    }
+
+    .stat-content {
+        flex: 1;
+    }
+
+    .stat-value {
+        font-size: 1.8rem;
+        font-weight: 800;
+        color: #1e293b;
+        line-height: 1;
+        margin-bottom: 5px;
+    }
+
+    .stat-label {
+        font-size: 0.875rem;
+        color: #64748b;
+        font-weight: 600;
+    }
+
+    @media (max-width: 991px) {
+        .pemilwa-section {
+            padding: 60px 0;
+        }
+
+        .chart-container {
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        .stat-box {
+            padding: 20px;
+        }
+
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            font-size: 1.3rem;
+        }
+
+        .stat-value {
+            font-size: 1.6rem;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .stat-box {
+            padding: 18px;
+        }
+
+        .stat-icon {
+            width: 45px;
+            height: 45px;
+            font-size: 1.2rem;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+        }
+    }
+
     /* Layanan Section - EXISTING STYLES PRESERVED */
     .service-item{
         border: none;
@@ -895,6 +1064,46 @@
             </div>
         </section>
 
+        <!-- Pemilwa Section -->
+        <section class="pemilwa-section">
+            <div class="container">
+                <div class="section-header fade-in-up">
+                    <h2>Statistik Pemilihan Mahasiswa</h2>
+                    <p>Data partisipasi mahasiswa dalam pemilihan</p>
+                </div>
+
+                <div class="row align-items-center">
+                    <div class="col-lg-6 col-md-6">
+                        <div class="chart-container fade-in-left">
+                            <canvas id="votingChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 col-md-6">
+                        <div class="voting-stats fade-in-right">
+                            <div class="stat-box voted">
+                                <div class="stat-icon">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                                <div class="stat-content">
+                                    <div class="stat-value">{{ $totalVoted ?? 0 }}</div>
+                                    <div class="stat-label">Sudah Memilih</div>
+                                </div>
+                            </div>
+                            <div class="stat-box not-voted">
+                                <div class="stat-icon">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                                <div class="stat-content">
+                                    <div class="stat-value">{{ $totalBelumVote ?? 0 }}</div>
+                                    <div class="stat-label">Belum Memilih</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- Layanan Section - UNCHANGED -->
         <div class="layanan">
             @foreach (getLayanan() as $kategoriIndex => $kategori)
@@ -1024,9 +1233,96 @@
 @endsection
 
 @push('js')
+<!-- Chart.js Library -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
 <script>
 // Enhanced scroll animations with colorful navbar integration
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Voting Pie Chart
+    const votingCtx = document.getElementById('votingChart');
+    if (votingCtx) {
+        const totalVoted = {{ $totalVoted ?? 0 }};
+        const totalBelumVote = {{ $totalBelumVote ?? 0 }};
+
+        new Chart(votingCtx, {
+            type: 'pie',
+            data: {
+                labels: ['Sudah Memilih', 'Belum Memilih'],
+                datasets: [{
+                    data: [totalVoted, totalBelumVote],
+                    backgroundColor: [
+                        'rgba(59, 130, 246, 0.85)',   // Blue for voted (matching hero)
+                        'rgba(147, 185, 247, 0.85)'   // Light blue for not voted
+                    ],
+                    borderColor: [
+                        'rgba(59, 130, 246, 1)',
+                        'rgba(147, 185, 247, 1)'
+                    ],
+                    borderWidth: 3,
+                    hoverOffset: 15,
+                    hoverBackgroundColor: [
+                        'rgba(37, 99, 235, 0.95)',    // Darker blue on hover
+                        'rgba(182, 207, 246, 0.95)'   // Lighter blue on hover
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 25,
+                            font: {
+                                size: 15,
+                                family: "'Inter', sans-serif",
+                                weight: '600'
+                            },
+                            color: '#1e293b',
+                            usePointStyle: true,
+                            pointStyle: 'circle',
+                            boxWidth: 15,
+                            boxHeight: 15
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(59, 130, 246, 0.95)',
+                        padding: 15,
+                        titleFont: {
+                            size: 15,
+                            weight: 'bold',
+                            family: "'Inter', sans-serif"
+                        },
+                        bodyFont: {
+                            size: 14,
+                            family: "'Inter', sans-serif"
+                        },
+                        borderColor: 'rgba(255, 255, 255, 0.3)',
+                        borderWidth: 2,
+                        cornerRadius: 8,
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.parsed || 0;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                                return ' ' + label + ': ' + value + ' mahasiswa (' + percentage + '%)';
+                            }
+                        }
+                    }
+                },
+                animation: {
+                    animateRotate: true,
+                    animateScale: true,
+                    duration: 1800,
+                    easing: 'easeInOutQuart'
+                }
+            }
+        });
+    }
+
     const observerOptions = {
         threshold: 0.1,
         rootMargin: '0px 0px -50px 0px'
