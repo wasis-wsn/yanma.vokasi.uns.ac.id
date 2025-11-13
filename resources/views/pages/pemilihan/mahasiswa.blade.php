@@ -263,6 +263,35 @@
         box-shadow: 0 8px 18px rgba(108, 117, 125, 0.15) !important;
         background: #dee2e6;
     }
+
+    .pemilihan-thanks-state {
+        padding: 3rem 1rem;
+        text-align: center;
+    }
+
+    .pemilihan-thanks-icon {
+        width: 72px;
+        height: 72px;
+        border-radius: 999px;
+        background: rgba(25, 135, 84, 0.12);
+        color: #198754;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+    }
+
+    .pemilihan-thanks-list {
+        max-width: 540px;
+        margin: 2rem auto 0;
+        text-align: left;
+    }
+
+    .pemilihan-thanks-list li + li {
+        margin-top: 0.75rem;
+        padding-top: 0.75rem;
+        border-top: 1px dashed #dee2e6;
+    }
 </style>
 @endpush
 
@@ -298,20 +327,52 @@
             </div>
         </div>
     @else
-        <div class="card pemilihan-stepper-card" id="pemilihanStepper" data-config='@json($stepperConfig)'>
-            <div class="card-body">
-                @if($hasFinishedPemilihan)
-                    <div class="alert alert-success d-flex gap-3 align-items-start mb-4" role="alert">
-                        <i class="fa-solid fa-circle-check fa-lg mt-1 text-success"></i>
-                        <div>
-                            <div class="fw-semibold mb-1">Terima kasih sudah mengikuti pemilihan!</div>
-                            <div class="text-muted small mb-0">
-                                Suaramu telah tercatat pada sistem. Silakan pantau pengumuman hasil resmi dari panitia.
-                            </div>
+        @if($hasFinishedPemilihan)
+            <div class="card pemilihan-stepper-card">
+                <div class="card-body">
+                    <div class="pemilihan-thanks-state">
+                        <div class="pemilihan-thanks-icon mb-3">
+                            <i class="fa-solid fa-circle-check"></i>
                         </div>
+                        <h4 class="mb-2">Terima kasih sudah mengikuti pemilihan!</h4>
+                        <p class="text-muted mb-4">
+                            Suaramu sudah tercatat di sistem. Nantikan pengumuman resmi hasil pemilihan dari panitia.
+                        </p>
+                        <ul class="list-unstyled pemilihan-thanks-list text-muted small mb-0">
+                            @if($pemilihanPresbem)
+                                <li>
+                                    <span class="d-block text-dark fw-semibold mb-1">Presiden BEM</span>
+                                    @if($presbemSelectedCandidate)
+                                        No. {{ $presbemSelectedCandidate->nomor_urut }} - {{ $presbemSelectedCandidate->name }}
+                                    @elseif($presbemVote)
+                                        Kotak kosong dipilih.
+                                    @else
+                                        Suara kamu sudah tercatat.
+                                    @endif
+                                </li>
+                            @endif
+                            @if($pemilihanCaleg)
+                                <li>
+                                    <span class="d-block text-dark fw-semibold mb-1">Legislatif DEMA</span>
+                                    @if(!$calegEligible)
+                                        Kamu tidak terdaftar pada dapil legislatif yang aktif saat ini.
+                                    @elseif($calegSelectedCandidate)
+                                        No. {{ $calegSelectedCandidate->nomor_urut }} - {{ $calegSelectedCandidate->name }}
+                                    @elseif($calegVote)
+                                        Kotak kosong dipilih.
+                                    @else
+                                        Suara kamu sudah tercatat.
+                                    @endif
+                                </li>
+                            @endif
+                        </ul>
                     </div>
-                @endif
-                <div class="pemilihan-stepper-header mb-4">
+                </div>
+            </div>
+        @else
+            <div class="card pemilihan-stepper-card" id="pemilihanStepper" data-config='@json($stepperConfig)'>
+                <div class="card-body">
+                    <div class="pemilihan-stepper-header mb-4">
                     <div class="stepper-item active" data-step="1">
                         <span class="stepper-number">1</span>
                         <div>
@@ -704,11 +765,14 @@
                     </div>
                 </div>
             </div>
-        </div>
+            </div>
+        @endif
     @endif
 </div>
 @endsection
 
 @push('js')
-<script src="{{ asset('custom/js/dashboard/pemilihan.js') }}?q{{Str::random(5)}}"></script>
+    @if(!$hasFinishedPemilihan)
+        <script src="{{ asset('custom/js/dashboard/pemilihan.js') }}?q{{ Str::random(5) }}"></script>
+    @endif
 @endpush
