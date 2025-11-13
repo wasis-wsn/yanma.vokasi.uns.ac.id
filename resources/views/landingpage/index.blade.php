@@ -1069,38 +1069,45 @@
             <div class="container">
                 <div class="section-header fade-in-up">
                     <h2>Statistik Pemilihan Mahasiswa</h2>
-                    <p>Data partisipasi mahasiswa dalam pemilihan</p>
+                    <p>Suara per paslon untuk setiap pemilihan yang sedang aktif</p>
                 </div>
 
-                <div class="row align-items-center">
-                    <div class="col-lg-6 col-md-6">
-                        <div class="chart-container fade-in-left">
-                            <canvas id="votingChart"></canvas>
-                        </div>
-                    </div>
-                    <div class="col-lg-6 col-md-6">
-                        <div class="voting-stats fade-in-right">
-                            <div class="stat-box voted">
-                                <div class="stat-icon">
-                                    <i class="fas fa-check-circle"></i>
-                                </div>
-                                <div class="stat-content">
-                                    <div class="stat-value">{{ $totalVoted ?? 0 }}</div>
-                                    <div class="stat-label">Sudah Memilih</div>
+                @php $hasPemilwa = isset($pemilwaSummaries) && count($pemilwaSummaries) > 0; @endphp
+                @if($hasPemilwa)
+                    @foreach($pemilwaSummaries as $pem)
+                        <div class="row align-items-center mb-5">
+                            <div class="col-12">
+                                <h4 class="mb-3">{{ $pem['name'] }}</h4>
+                            </div>
+                            <div class="col-lg-6 col-md-6">
+                                <div class="chart-container fade-in-left">
+                                    <canvas id="votingChart-{{ $pem['slug'] }}"></canvas>
                                 </div>
                             </div>
-                            <div class="stat-box not-voted">
-                                <div class="stat-icon">
-                                    <i class="fas fa-clock"></i>
-                                </div>
-                                <div class="stat-content">
-                                    <div class="stat-value">{{ $totalBelumVote ?? 0 }}</div>
-                                    <div class="stat-label">Belum Memilih</div>
+                            <div class="col-lg-6 col-md-6">
+                                <div class="voting-stats fade-in-right">
+                                    @foreach($pem['candidates'] as $idx => $c)
+                                        <div class="stat-box voted">
+                                            <div class="stat-icon">
+                                                <i class="fas fa-user"></i>
+                                            </div>
+                                            <div class="stat-content">
+                                                <div class="stat-value">{{ $c['votes'] }}</div>
+                                                <div class="stat-label">{{ $c['label'] }}</div>
+                                            </div>
+                                        </div>
+                                    @endforeach
                                 </div>
                             </div>
                         </div>
+                    @endforeach
+                @else
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="alert alert-info">Belum ada pemilihan aktif saat ini.</div>
+                        </div>
                     </div>
-                </div>
+                @endif
             </div>
         </section>
 
@@ -1239,89 +1246,78 @@
 <script>
 // Enhanced scroll animations with colorful navbar integration
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize Voting Pie Chart
-    const votingCtx = document.getElementById('votingChart');
-    if (votingCtx) {
-        const totalVoted = {{ $totalVoted ?? 0 }};
-        const totalBelumVote = {{ $totalBelumVote ?? 0 }};
+    // Initialize per-election charts dynamically
+    const pemilwaData = {!! json_encode($pemilwaSummaries ?? []) !!};
+    const palette = [
+        'rgba(59, 130, 246, 0.85)', // blue
+        'rgba(16, 185, 129, 0.85)', // green
+        'rgba(245, 158, 11, 0.85)', // amber
+        'rgba(239, 68, 68, 0.85)',  // red
+        'rgba(99, 102, 241, 0.85)', // indigo
+        'rgba(236, 72, 153, 0.85)', // pink
+        'rgba(34, 197, 94, 0.85)',  // emerald
+        'rgba(250, 204, 21, 0.85)'  // yellow
+    ];
 
-        new Chart(votingCtx, {
-            type: 'pie',
+    (pemilwaData || []).forEach(function(p, idx) {
+        const canvasId = `votingChart-${p.slug}`;
+        const ctx = document.getElementById(canvasId);
+        if (!ctx) return;
+
+        const labels = (p.candidates || []).map(c => c.label);
+        const data = (p.candidates || []).map(c => c.votes);
+        const colors = labels.map((_, i) => palette[i % palette.length]);
+        const borderColors = colors.map(c => c.replace('0.85', '1'));
+
+        new Chart(ctx, {
+            type: 'doughnut',
             data: {
-                labels: ['Sudah Memilih', 'Belum Memilih'],
+                labels: labels,
                 datasets: [{
-                    data: [totalVoted, totalBelumVote],
-                    backgroundColor: [
-                        'rgba(59, 130, 246, 0.85)',   // Blue for voted (matching hero)
-                        'rgba(147, 185, 247, 0.85)'   // Light blue for not voted
-                    ],
-                    borderColor: [
-                        'rgba(59, 130, 246, 1)',
-                        'rgba(147, 185, 247, 1)'
-                    ],
-                    borderWidth: 3,
-                    hoverOffset: 15,
-                    hoverBackgroundColor: [
-                        'rgba(37, 99, 235, 0.95)',    // Darker blue on hover
-                        'rgba(182, 207, 246, 0.95)'   // Lighter blue on hover
-                    ]
+                    data: data,
+                    backgroundColor: colors,
+                    borderColor: borderColors,
+                    borderWidth: 2,
+                    hoverOffset: 12
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: true,
+                cutout: '55%', // doughnut hole size; set to 0 for full pie
                 plugins: {
                     legend: {
+                        display: true,
                         position: 'bottom',
                         labels: {
-                            padding: 25,
-                            font: {
-                                size: 15,
-                                family: "'Inter', sans-serif",
-                                weight: '600'
-                            },
+                            padding: 16,
+                            font: { size: 14, family: "'Inter', sans-serif", weight: '600' },
                             color: '#1e293b',
                             usePointStyle: true,
-                            pointStyle: 'circle',
-                            boxWidth: 15,
-                            boxHeight: 15
+                            boxWidth: 14,
+                            boxHeight: 14
                         }
                     },
                     tooltip: {
-                        backgroundColor: 'rgba(59, 130, 246, 0.95)',
-                        padding: 15,
-                        titleFont: {
-                            size: 15,
-                            weight: 'bold',
-                            family: "'Inter', sans-serif"
-                        },
-                        bodyFont: {
-                            size: 14,
-                            family: "'Inter', sans-serif"
-                        },
-                        borderColor: 'rgba(255, 255, 255, 0.3)',
-                        borderWidth: 2,
+                        backgroundColor: 'rgba(30,41,59,0.9)',
+                        padding: 12,
+                        titleFont: { size: 14, weight: '700', family: "'Inter', sans-serif" },
+                        bodyFont: { size: 13, family: "'Inter', sans-serif" },
                         cornerRadius: 8,
                         callbacks: {
                             label: function(context) {
-                                const label = context.label || '';
-                                const value = context.parsed || 0;
-                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
-                                return ' ' + label + ': ' + value + ' mahasiswa (' + percentage + '%)';
+                                const value = (context.parsed ?? 0) || 0;
+                                const total = (context.dataset.data || []).reduce((a, b) => (a || 0) + (b || 0), 0);
+                                const pct = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                                return ` ${context.label}: ${value} suara (${pct}%)`;
                             }
                         }
                     }
                 },
-                animation: {
-                    animateRotate: true,
-                    animateScale: true,
-                    duration: 1800,
-                    easing: 'easeInOutQuart'
-                }
+                animation: { animateRotate: true, animateScale: true, duration: 1200, easing: 'easeOutQuart' }
             }
         });
-    }
+    });
 
     const observerOptions = {
         threshold: 0.1,

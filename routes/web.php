@@ -65,7 +65,36 @@ Route::get('/', function (HttpRequest $request) {
     $totalVoted = \App\Models\PemilihanVote::distinct('user_id')->count('user_id');
     $totalBelumVote = $totalMahasiswa - $totalVoted;
 
-    return view('landingpage.index', compact('berita', 'prodisAkreditasi', 'totalVoted', 'totalBelumVote'));
+    // Build dynamic pemilwa summaries (open/active elections with per-candidate vote counts)
+    $pemilwas = \App\Models\Pemilihan::open()
+        ->with(['candidates' => function ($q) {
+            $q->withCount('votes as total_votes')->orderBy('nomor_urut');
+        }])
+        // Oldest first: use mulai_at if present, otherwise fallback to created_at
+        ->orderByRaw('COALESCE(mulai_at, created_at) ASC')
+        ->orderBy('name')
+        ->get();
+
+    $pemilwaSummaries = $pemilwas->map(function ($p) {
+        return [
+            'id' => $p->id,
+            'slug' => $p->slug,
+            'name' => $p->name,
+            'jenis' => $p->jenis,
+            'total_votes' => (int) $p->candidates->sum('total_votes'),
+            'candidates' => $p->candidates->map(function ($c) {
+                return [
+                    'id' => $c->id,
+                    'nomor_urut' => $c->nomor_urut,
+                    'label' => (is_null($c->nomor_urut) ? $c->name : ('No. ' . $c->nomor_urut . ' - ' . $c->name)),
+                    'short_label' => (is_null($c->nomor_urut) ? $c->name : ('No ' . $c->nomor_urut)),
+                    'votes' => (int) ($c->total_votes ?? 0),
+                ];
+            })->values(),
+        ];
+    })->values();
+
+    return view('landingpage.index', compact('berita', 'prodisAkreditasi', 'totalVoted', 'totalBelumVote', 'pemilwaSummaries'));
 })->name('home');
 /* * * * * * * * * * * * * * * * *
 *                                *
