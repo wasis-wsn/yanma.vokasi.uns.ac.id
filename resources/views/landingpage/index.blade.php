@@ -557,21 +557,17 @@
         margin-top: 10px;
     }
 
-    .chart-container {
+    .pemilwa-card {
         background: white;
-        border-radius: 20px;
+        border-radius: 24px;
         padding: 40px;
-        box-shadow: 0 10px 40px rgba(59, 130, 246, 0.15);
-        margin-bottom: 0;
-        border: 1px solid rgba(59, 130, 246, 0.1);
+        box-shadow: 0 12px 40px rgba(59, 130, 246, 0.15);
+        border: 1px solid rgba(59, 130, 246, 0.12);
         position: relative;
-        height: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        overflow: hidden;
     }
 
-    .chart-container::before {
+    .pemilwa-card::before {
         content: '';
         position: absolute;
         top: 0;
@@ -579,10 +575,46 @@
         right: 0;
         height: 4px;
         background: linear-gradient(90deg, #3b82f6 0%, #b6cff6 100%);
-        border-radius: 20px 20px 0 0;
+        border-radius: 24px 24px 0 0;
+    }
+
+    .pemilwa-card-header {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-bottom: 24px;
+    }
+
+    .pemilwa-card-header h4 {
+        margin-bottom: 0;
+    }
+
+    .pemilwa-card-header small {
+        font-size: 0.9rem;
+        color: #64748b;
+        font-weight: 600;
+    }
+
+    .pemilwa-card-body {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 32px;
+        align-items: stretch;
+    }
+
+    .chart-container {
+        flex: 1 1 360px;
+        min-height: 320px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
     }
 
     .voting-stats {
+        flex: 1 1 320px;
         display: flex;
         flex-direction: column;
         gap: 20px;
@@ -659,9 +691,16 @@
             padding: 60px 0;
         }
 
-        .chart-container {
+        .pemilwa-card {
             padding: 30px;
-            margin-bottom: 30px;
+        }
+
+        .pemilwa-card-body {
+            gap: 24px;
+        }
+
+        .chart-container {
+            min-height: 280px;
         }
 
         .stat-box {
@@ -1075,17 +1114,16 @@
                 @php $hasPemilwa = isset($pemilwaSummaries) && count($pemilwaSummaries) > 0; @endphp
                 @if($hasPemilwa)
                     @foreach($pemilwaSummaries as $pem)
-                        <div class="row align-items-center mb-5">
-                            <div class="col-12">
-                                <h4 class="mb-3">{{ $pem['name'] }}</h4>
+                        <div class="pemilwa-card fade-in-up mb-5">
+                            <div class="pemilwa-card-header">
+                                <h4>{{ $pem['name'] }}</h4>
+                                <small>Total suara masuk: {{ number_format($pem['total_votes'] ?? 0) }}</small>
                             </div>
-                            <div class="col-lg-6 col-md-6">
-                                <div class="chart-container fade-in-left">
+                            <div class="pemilwa-card-body">
+                                <div class="chart-container">
                                     <canvas id="votingChart-{{ $pem['slug'] }}"></canvas>
                                 </div>
-                            </div>
-                            <div class="col-lg-6 col-md-6">
-                                <div class="voting-stats fade-in-right">
+                                <div class="voting-stats">
                                     @foreach($pem['candidates'] as $idx => $c)
                                         <div class="stat-box voted">
                                             <div class="stat-icon">

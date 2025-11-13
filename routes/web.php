@@ -70,27 +70,46 @@ Route::get('/', function (HttpRequest $request) {
         ->with(['candidates' => function ($q) {
             $q->withCount('votes as total_votes')->orderBy('nomor_urut');
         }])
+        ->withCount(['votes as golput_votes' => function ($q) {
+            $q->whereNull('candidate_id');
+        }])
         // Oldest first: use mulai_at if present, otherwise fallback to created_at
         ->orderByRaw('COALESCE(mulai_at, created_at) ASC')
         ->orderBy('name')
         ->get();
 
     $pemilwaSummaries = $pemilwas->map(function ($p) {
+        $golputVotes = (int) ($p->golput_votes ?? 0);
+
+        $candidates = $p->candidates->map(function ($c) {
+            return [
+                'id' => $c->id,
+                'nomor_urut' => $c->nomor_urut,
+                'label' => (is_null($c->nomor_urut) ? $c->name : ('No. ' . $c->nomor_urut . ' - ' . $c->name)),
+                'short_label' => (is_null($c->nomor_urut) ? $c->name : ('No ' . $c->nomor_urut)),
+                'votes' => (int) ($c->total_votes ?? 0),
+            ];
+        })->values();
+
+        $shouldShowGolput = $golputVotes > 0 || $p->candidates->count() === 1;
+        if ($shouldShowGolput) {
+            $candidates->push([
+                'id' => null,
+                'nomor_urut' => null,
+                'label' => 'Kotak Kosong',
+                'short_label' => 'Kotak Kosong',
+                'votes' => $golputVotes,
+                'is_golput' => true,
+            ]);
+        }
+
         return [
             'id' => $p->id,
             'slug' => $p->slug,
             'name' => $p->name,
             'jenis' => $p->jenis,
-            'total_votes' => (int) $p->candidates->sum('total_votes'),
-            'candidates' => $p->candidates->map(function ($c) {
-                return [
-                    'id' => $c->id,
-                    'nomor_urut' => $c->nomor_urut,
-                    'label' => (is_null($c->nomor_urut) ? $c->name : ('No. ' . $c->nomor_urut . ' - ' . $c->name)),
-                    'short_label' => (is_null($c->nomor_urut) ? $c->name : ('No ' . $c->nomor_urut)),
-                    'votes' => (int) ($c->total_votes ?? 0),
-                ];
-            })->values(),
+            'total_votes' => (int) ($p->candidates->sum('total_votes') + $golputVotes),
+            'candidates' => $candidates,
         ];
     })->values();
 
