@@ -18,6 +18,7 @@ class PemilihanCandidate extends Model
     protected $fillable = [
         'pemilihan_id',
         'prodi_id',
+        'dapil_id',
         'nomor_urut',
         'name',
         'ketua_nama',
@@ -48,6 +49,11 @@ class PemilihanCandidate extends Model
     public function prodi(): BelongsTo
     {
         return $this->belongsTo(Prodi::class, 'prodi_id');
+    }
+
+    public function dapil(): BelongsTo
+    {
+        return $this->belongsTo(Dapil::class, 'dapil_id');
     }
 
     public function dapilProdis(): BelongsToMany

@@ -69,4 +69,14 @@ class Prodi extends Model
     {
         return $this->hasMany(PembinaOrmawa::class, 'unit_id', 'id');
     }
+
+    /**
+     * Get dapils that this prodi belongs to
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
+    public function dapils()
+    {
+        return $this->belongsToMany(Dapil::class, 'dapil_prodi')->withTimestamps();
+    }
 }
