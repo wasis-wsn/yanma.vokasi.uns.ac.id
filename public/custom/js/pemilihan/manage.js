@@ -183,10 +183,9 @@
                     ? `<img src="${candidate.photo_url}" class="rounded border" style="width:72px;height:72px;object-fit:cover;" alt="Foto ${candidate.name}" loading="lazy">`
                     : '<div class="rounded border bg-light d-flex align-items-center justify-content-center text-muted" style="width:72px;height:72px;"><i class="fa-solid fa-user"></i></div>';
 
-                const dapilBadges = candidate.dapil_names && candidate.dapil_names.length
-                    ? candidate.dapil_names.map((name) => `<div class="d-block mb-1"><span class="badge bg-primary text-white">${name}</span></div>`).join('')
-                    : '<span class="text-muted small d-block">Belum ada dapil.</span>';
-
+                const dapilTitle = candidate.dapil && candidate.dapil.name
+                    ? `<div class="fw-semibold text-primary mb-2"><i class="fa-solid fa-location-dot me-1"></i>Dapil ${candidate.dapil.name}</div>`
+                    : '<div class="text-muted small mb-2">Dapil belum ditentukan.</div>';
                 const action = `
                     <div class="btn-group btn-group-sm" role="group">
                         <button class="btn btn-warning btn-edit-candidate" data-id="${candidate.id}"><i class="fa fa-pen"></i></button>
@@ -204,7 +203,9 @@
                             </div>
                         </td>
                         <td>
-                            <div>${dapilBadges}</div>
+                            <div>
+                                ${dapilTitle}
+                            </div>
                         </td>
                         <td><span class="fw-semibold">${candidate.total_votes}</span></td>
                         <td class="text-end">${action}</td>
@@ -445,6 +446,183 @@
                 Swal.fire('Berhasil', response.message, 'success');
                 if (candidateModal) candidateModal.hide();
                 loadCandidates(selectedPemilihanId);
+            })
+            .fail(handleAjaxError);
+    });
+
+    // ============================================
+    // DAPIL MANAGEMENT
+    // ============================================
+    const dapilModal = document.getElementById('modalDapil') ? new bootstrap.Modal(document.getElementById('modalDapil')) : null;
+
+    const dapilTable = $('#dapil-table').DataTable({
+        processing: true,
+        ajax: {
+            url: routes.dapilList,
+            dataSrc: 'data'
+        },
+        columns: [
+            {
+                data: null,
+                render: (data, type, row, meta) => meta.row + 1,
+                orderable: false,
+                searchable: false
+            },
+            { data: 'name', name: 'name' },
+            { data: 'description', name: 'description', defaultContent: '-' },
+            {
+                data: 'prodis',
+                render: (data) => {
+                    if (!data || data.length === 0) return '<span class="text-muted">Belum ada prodi</span>';
+                    const names = data.map(p => p.name).join(', ');
+                    return `<span class="badge bg-primary-subtle text-primary">${data.length} prodi</span><br><small class="text-muted">${names}</small>`;
+                },
+                orderable: false
+            },
+            {
+                data: null,
+                render: (data) => {
+                    return `
+                        <button class="btn btn-sm btn-warning btn-edit-dapil" data-id="${data.id}">
+                            <i class="fa fa-edit"></i> Edit
+                        </button>
+                        <button class="btn btn-sm btn-danger btn-delete-dapil" data-id="${data.id}">
+                            <i class="fa fa-trash"></i> Hapus
+                        </button>
+                    `;
+                },
+                orderable: false,
+                searchable: false
+            }
+        ],
+        order: [[1, 'asc']],
+    });
+
+    function resetDapilForm() {
+        $('#form-dapil')[0].reset();
+        $('#dapil_id').val('');
+        $('.dapil-prodi-checkbox').prop('checked', false);
+        $('#modalDapilLabel').text('Tambah Dapil');
+        $('#btn-save-dapil').text('Simpan');
+    }
+
+    function loadDapilsToSelect() {
+        $.get(routes.dapilList)
+            .done((response) => {
+                const select = $('#candidate_dapil_id');
+                select.find('option:not(:first)').remove();
+
+                if (response.data && response.data.length > 0) {
+                    response.data.forEach((dapil) => {
+                        const prodiNames = dapil.prodis ? dapil.prodis.map(p => p.name).join(', ') : '';
+                        const optionText = prodiNames ? `${dapil.name} (${prodiNames})` : dapil.name;
+                        select.append(new Option(optionText, dapil.id));
+                    });
+                }
+            })
+            .fail(handleAjaxError);
+    }
+
+    // Load dapils on page load
+    loadDapilsToSelect();
+
+    $('.btn-add-dapil').on('click', function () {
+        resetDapilForm();
+        if (dapilModal) {
+            dapilModal.show();
+        }
+    });
+
+    $(document).on('click', '.btn-edit-dapil', function () {
+        const id = $(this).data('id');
+        const url = routes.dapilList;
+
+        $.get(url)
+            .done((response) => {
+                const dapil = response.data.find(d => d.id === id);
+                if (!dapil) {
+                    Swal.fire('Error', 'Dapil tidak ditemukan', 'error');
+                    return;
+                }
+
+                $('#dapil_id').val(dapil.id);
+                $('#dapil_name').val(dapil.name);
+                $('#dapil_description').val(dapil.description);
+
+                // Check prodis
+                $('.dapil-prodi-checkbox').prop('checked', false);
+                if (dapil.prodis && dapil.prodis.length > 0) {
+                    dapil.prodis.forEach((prodi) => {
+                        $(`#dapil_prodi_${prodi.id}`).prop('checked', true);
+                    });
+                }
+
+                $('#modalDapilLabel').text('Edit Dapil');
+                $('#btn-save-dapil').text('Perbarui');
+                if (dapilModal) dapilModal.show();
+            })
+            .fail(handleAjaxError);
+    });
+
+    $(document).on('click', '.btn-delete-dapil', function () {
+        const id = $(this).data('id');
+        Swal.fire({
+            title: 'Hapus Dapil?',
+            text: 'Data dapil akan dihapus permanen.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Ya, hapus',
+            cancelButtonText: 'Batal',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const url = routes.dapilDelete.replace(':id', id);
+                $.ajax({
+                    url,
+                    type: 'DELETE',
+                    headers: { 'X-CSRF-TOKEN': csrfToken },
+                })
+                    .done((response) => {
+                        Swal.fire('Berhasil', response.message, 'success');
+                        dapilTable.ajax.reload();
+                        loadDapilsToSelect();
+                    })
+                    .fail(handleAjaxError);
+            }
+        });
+    });
+
+    $('#form-dapil').on('submit', function (e) {
+        e.preventDefault();
+        const dapilId = $('#dapil_id').val();
+        const baseUrl = dapilId ? routes.dapilUpdate.replace(':id', dapilId) : routes.dapilStore;
+
+        const formData = {
+            name: $('#dapil_name').val(),
+            description: $('#dapil_description').val()
+        };
+
+        // Collect checked prodi IDs
+        const prodiIds = [];
+        $('.dapil-prodi-checkbox:checked').each(function () {
+            prodiIds.push($(this).val());
+        });
+
+        // Only add prodi_ids if there are checked items
+        if (prodiIds.length > 0) {
+            formData.prodi_ids = prodiIds;
+        }
+
+        $.ajax({
+            url: baseUrl,
+            type: 'POST',
+            data: formData,
+            headers: { 'X-CSRF-TOKEN': csrfToken },
+        })
+            .done((response) => {
+                Swal.fire('Berhasil', response.message, 'success');
+                if (dapilModal) dapilModal.hide();
+                dapilTable.ajax.reload();
+                loadDapilsToSelect();
             })
             .fail(handleAjaxError);
     });

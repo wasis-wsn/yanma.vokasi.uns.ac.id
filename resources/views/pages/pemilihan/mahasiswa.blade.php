@@ -33,6 +33,9 @@
         ],
     ];
     $fallbackPaslonImage = asset('paslon.png');
+    $presbemCompleted = !$pemilihanPresbem || (bool) $presbemVote;
+    $calegCompleted = !$pemilihanCaleg || !$calegEligible || (bool) $calegVote;
+    $hasFinishedPemilihan = $presbemCompleted && $calegCompleted;
 @endphp
 
 @push('css')
@@ -243,6 +246,23 @@
         margin-top: 1.5rem;
         padding-top: 1.5rem;
     }
+
+    /* Golput Option Styles */
+    .pemilihan-option-golput {
+        background: #f8f9fa;
+        min-height: auto !important;
+    }
+
+    .pemilihan-option-golput:hover {
+        border-color: #6c757d !important;
+        background: #e9ecef;
+    }
+
+    .pemilihan-option-golput.is-selected {
+        border-color: #6c757d !important;
+        box-shadow: 0 8px 18px rgba(108, 117, 125, 0.15) !important;
+        background: #dee2e6;
+    }
 </style>
 @endpush
 
@@ -280,6 +300,17 @@
     @else
         <div class="card pemilihan-stepper-card" id="pemilihanStepper" data-config='@json($stepperConfig)'>
             <div class="card-body">
+                @if($hasFinishedPemilihan)
+                    <div class="alert alert-success d-flex gap-3 align-items-start mb-4" role="alert">
+                        <i class="fa-solid fa-circle-check fa-lg mt-1 text-success"></i>
+                        <div>
+                            <div class="fw-semibold mb-1">Terima kasih sudah mengikuti pemilihan!</div>
+                            <div class="text-muted small mb-0">
+                                Suaramu telah tercatat pada sistem. Silakan pantau pengumuman hasil resmi dari panitia.
+                            </div>
+                        </div>
+                    </div>
+                @endif
                 <div class="pemilihan-stepper-header mb-4">
                     <div class="stepper-item active" data-step="1">
                         <span class="stepper-number">1</span>
@@ -317,6 +348,34 @@
 
                     @if($pemilihanPresbem && $pemilihanPresbem->candidates->isNotEmpty())
                         <div class="row g-3 pemilihan-option-grid">
+                            {{-- Opsi Kotak Kosong (hanya muncul jika kandidat = 1) --}}
+                            @if($pemilihanPresbem->candidates->count() === 1)
+                                <div class="col-12 col-md-6 col-xl-4">
+                                    @php
+                                        $isKotakKosongSelected = $presbemVote?->candidate_id === null && $presbemVote !== null;
+                                    @endphp
+                                    <label class="pemilihan-option pemilihan-option-golput {{ $isKotakKosongSelected ? 'is-selected' : '' }} {{ !$stepperConfig['presbem']['is_open'] ? 'is-disabled' : '' }}"
+                                        data-pemilihan="presbem"
+                                        data-candidate-id="0"
+                                        data-candidate-name="Kotak Kosong"
+                                        data-candidate-nomor="0"
+                                        data-candidate-description="Memilih kotak kosong"
+                                        style="border: 2px dashed #6c757d;"
+                                    >
+                                        <input type="radio" name="presbem_candidate" value="0" class="d-none" @checked($isKotakKosongSelected)>
+                                        <div class="pemilihan-option-body text-center">
+                                            <div class="py-4">
+                                                <i class="fa-regular fa-square fa-3x text-muted mb-3"></i>
+                                                <h5 class="fw-bold text-muted mb-2">Kotak Kosong</h5>
+                                                <p class="text-muted small mb-0">Saya memilih kotak kosong</p>
+                                            </div>
+                                        </div>
+                                        @if($isKotakKosongSelected)
+                                            <span class="pemilihan-option-badge" style="background-color: #6c757d;">Pilihanmu</span>
+                                        @endif
+                                    </label>
+                                </div>
+                            @endif
                             @foreach($pemilihanPresbem->candidates as $candidate)
                                 @php
                                     $isSelected = $presbemVote?->candidate_id === $candidate->id;
@@ -430,6 +489,34 @@
                         </div>
                     @elseif($pemilihanCaleg && $pemilihanCaleg->candidates->isNotEmpty())
                         <div class="row g-3 pemilihan-option-grid">
+                            {{-- Opsi Kotak Kosong untuk caleg (hanya muncul jika kandidat = 1) --}}
+                            @if($pemilihanCaleg->candidates->count() === 1)
+                                <div class="col-12 col-md-6 col-xl-4">
+                                    @php
+                                        $isKotakKosongCalegSelected = $calegVote?->candidate_id === null && $calegVote !== null;
+                                    @endphp
+                                    <label class="pemilihan-option pemilihan-option-golput {{ $isKotakKosongCalegSelected ? 'is-selected' : '' }} {{ !$stepperConfig['caleg']['is_open'] ? 'is-disabled' : '' }}"
+                                        data-pemilihan="caleg"
+                                        data-candidate-id="0"
+                                        data-candidate-name="Kotak Kosong"
+                                        data-candidate-nomor="0"
+                                        data-candidate-description="Memilih kotak kosong"
+                                        style="border: 2px dashed #6c757d;"
+                                    >
+                                        <input type="radio" name="caleg_candidate" value="0" class="d-none" @checked($isKotakKosongCalegSelected)>
+                                        <div class="pemilihan-option-body text-center">
+                                            <div class="py-4">
+                                                <i class="fa-regular fa-square fa-3x text-muted mb-3"></i>
+                                                <h5 class="fw-bold text-muted mb-2">Kotak Kosong</h5>
+                                                <p class="text-muted small mb-0">Saya memilih kotak kosong</p>
+                                            </div>
+                                        </div>
+                                        @if($isKotakKosongCalegSelected)
+                                            <span class="pemilihan-option-badge" style="background-color: #6c757d;">Pilihanmu</span>
+                                        @endif
+                                    </label>
+                                </div>
+                            @endif
                             @foreach($pemilihanCaleg->candidates as $candidate)
                                 @php
                                     $isSelected = $calegVote?->candidate_id === $candidate->id;
@@ -453,7 +540,6 @@
                                     $visiPreview = $candidate->visi ? \Illuminate\Support\Str::limit(strip_tags($candidate->visi), 120) : null;
                                     $misiPreview = $candidate->misi ? \Illuminate\Support\Str::limit(strip_tags($candidate->misi), 120) : null;
                                     $deskripsiPreview = $candidate->deskripsi ? \Illuminate\Support\Str::limit(strip_tags($candidate->deskripsi), 140) : null;
-                                    $dapilNames = optional($candidate->dapilProdis)->pluck('name')->filter()->implode(', ');
                                 @endphp
                                 <div class="col-12 col-md-6 col-xl-4">
                                     <label class="pemilihan-option {{ $isSelected ? 'is-selected' : '' }} {{ !$stepperConfig['caleg']['is_open'] ? 'is-disabled' : '' }}"
@@ -493,12 +579,6 @@
                                                 <p class="pemilihan-option-text mb-0">{{ $deskripsiPreview }}</p>
                                             @endif
                                         </div>
-                                        @if($dapilNames)
-                                            <div class="pemilihan-option-meta">
-                                                <span class="text-uppercase small fw-semibold text-secondary">Dapil Aktif</span>
-                                                <span>{{ $dapilNames }}</span>
-                                            </div>
-                                        @endif
                                         @if($isSelected)
                                             <span class="pemilihan-option-badge">Pilihanmu</span>
                                         @endif

@@ -127,7 +127,8 @@
             }
 
             const candidateId = option.data('candidateId');
-            if (!candidateId) {
+            // Allow candidateId = 0 (kotak kosong), but not undefined/null
+            if (candidateId === undefined || candidateId === null) {
                 return;
             }
 
@@ -161,7 +162,8 @@
         highlightSelection(type, candidateId) {
             const options = this.root.find(`.pemilihan-option[data-pemilihan="${type}"]`);
             options.removeClass('is-selected');
-            if (!candidateId) {
+            // Allow candidateId = 0 (kotak kosong)
+            if (candidateId === undefined || candidateId === null) {
                 return;
             }
 
@@ -252,7 +254,8 @@
             if (type === 'caleg' && this.state.calegSkipped) {
                 return true;
             }
-            return !!choice.selected;
+            // Allow candidateId = 0 (kotak kosong) as a valid selection
+            return choice.selected !== undefined && choice.selected !== null;
         },
 
         updateStepUI() {
@@ -332,7 +335,8 @@
             if (type === 'caleg' && this.state.calegSkipped) {
                 return false;
             }
-            if (!choice.selected) {
+            // Allow candidateId = 0 (kotak kosong)
+            if (choice.selected === undefined || choice.selected === null) {
                 return false;
             }
             return String(choice.selected) !== String(choice.initial || '');
@@ -388,12 +392,16 @@
                 return Promise.reject('URL pemilihan tidak ditemukan.');
             }
 
+            // Handle kotak kosong (candidate_id = 0 means null)
+            const candidateId = String(choice.selected) === '0' ? null : choice.selected;
+
             return new Promise((resolve, reject) => {
                 $.ajax({
                     url: choice.voteUrl,
                     type: 'POST',
                     data: {
-                        candidate_id: choice.selected,
+                        candidate_id: candidateId,
+                        is_golput: candidateId === null ? 1 : 0,
                     },
                     headers: {
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
@@ -431,14 +439,19 @@
                     return;
                 }
 
-                const candidateId = choice.selected || choice.initial;
+                // Use choice.selected if defined (including 0), otherwise use choice.initial
+                const candidateId = choice.selected !== undefined && choice.selected !== null
+                    ? choice.selected
+                    : choice.initial;
+
                 if (!choice.enabled) {
                     summaryName.text('Tidak ada pemilihan aktif');
                     summaryDetail.text('Belum ada jadwal yang diumumkan.');
                     return;
                 }
 
-                if (!candidateId) {
+                // Check if candidateId is undefined or null (not selected yet)
+                if (candidateId === undefined || candidateId === null) {
                     summaryName.text('Belum dipilih');
                     summaryDetail.text(
                         type === 'presbem'

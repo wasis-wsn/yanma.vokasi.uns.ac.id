@@ -70,6 +70,42 @@
             </div>
         </div>
     </div>
+
+    {{-- Section Dapil --}}
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <div class="header-title">
+                        <h4 class="card-title mb-0">Kelola Dapil (Daerah Pemilihan)</h4>
+                        <p class="mb-0 text-muted small">Kelola dapil dan prodi yang terdaftar di setiap dapil.</p>
+                    </div>
+                    <div>
+                        <button class="btn btn-primary btn-add-dapil">
+                            <i class="fa fa-plus"></i> Tambah Dapil
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table id="dapil-table" class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Nama Dapil</th>
+                                    <th>Deskripsi</th>
+                                    <th>Prodi Terdaftar</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="row">
         <div class="col-12">
             <div class="card">
@@ -244,18 +280,12 @@
                         </div>
 
                         <div class="col-12" id="candidate_dapil_group">
-                            <label class="form-label d-block">Dapil (Pilih Prodi)</label>
-                            <div class="border rounded p-2 dapil-checkbox-wrapper" style="max-height: 260px; overflow-y: auto;">
-                                @foreach($prodis as $prodi)
-                                    <div class="form-check">
-                                        <input class="form-check-input dapil-prodi-checkbox" type="checkbox" value="{{ $prodi->id }}" id="dapil_prodi_{{ $prodi->id }}" name="dapil_prodi_ids[]">
-                                        <label class="form-check-label" for="dapil_prodi_{{ $prodi->id }}">
-                                            {{ $prodi->name }}
-                                        </label>
-                                    </div>
-                                @endforeach
-                            </div>
-                            <div class="form-text" id="dapil_helper_text">Aktif ketika pemilihan merupakan Caleg.</div>
+                            <label class="form-label">Pilih Dapil</label>
+                            <select class="form-select" name="dapil_id" id="candidate_dapil_id">
+                                <option value="" selected>Pilih dapil (opsional)</option>
+                                {{-- Dapil options will be loaded via JavaScript --}}
+                            </select>
+                            <div class="form-text" id="dapil_helper_text">Aktif ketika pemilihan merupakan Caleg. Pilih dapil yang sesuai.</div>
                         </div>
 
                         <div class="col-12">
@@ -310,6 +340,52 @@
         </div>
     </div>
 </div>
+
+{{-- Modal Dapil --}}
+<div class="modal fade" id="modalDapil" tabindex="-1" aria-labelledby="modalDapilLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalDapilLabel">Tambah Dapil</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="form-dapil">
+                <div class="modal-body">
+                    @csrf
+                    <input type="hidden" name="dapil_id" id="dapil_id">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Nama Dapil</label>
+                            <input type="text" class="form-control" name="name" id="dapil_name" placeholder="Dapil 1" required>
+                        </div>
+                        <div class="col-md-8">
+                            <label class="form-label">Deskripsi</label>
+                            <input type="text" class="form-control" name="description" id="dapil_description" placeholder="Deskripsi dapil">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label d-block">Pilih Prodi</label>
+                            <div class="border rounded p-3" style="max-height: 300px; overflow-y: auto;">
+                                @foreach($prodis as $prodi)
+                                    <div class="form-check">
+                                        <input class="form-check-input dapil-prodi-checkbox" type="checkbox" value="{{ $prodi->id }}" id="dapil_prodi_{{ $prodi->id }}" name="prodi_ids[]">
+                                        <label class="form-check-label" for="dapil_prodi_{{ $prodi->id }}">
+                                            {{ $prodi->name }}
+                                        </label>
+                                    </div>
+                                @endforeach
+                            </div>
+                            <div class="form-text">Pilih prodi yang terdaftar dalam dapil ini.</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary" id="btn-save-dapil">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('js')
@@ -328,6 +404,10 @@
         'candidateUpdate' => route('pemilu.candidates.update', ':id'),
         'candidateDelete' => route('pemilu.candidates.destroy', ':id'),
         'candidateShow' => route('pemilu.candidates.show', ':id'),
+        'dapilList' => route('dapil.index'),
+        'dapilStore' => route('dapil.store'),
+        'dapilUpdate' => route('dapil.update', ':id'),
+        'dapilDelete' => route('dapil.destroy', ':id'),
     ]) !!};
 </script>
 <script src="{{ asset('custom/js/pemilihan/manage.js') }}?q={{ Str::random(5) }}"></script>
