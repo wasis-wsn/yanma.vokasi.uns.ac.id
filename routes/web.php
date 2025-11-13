@@ -279,6 +279,14 @@ Route::middleware('auth')->group(function () {
             Route::get('/candidates/{candidate}/detail', [PemilihanManageController::class, 'showCandidate'])->name('candidates.show');
             Route::post('/candidates/{candidate}', [PemilihanManageController::class, 'updateCandidate'])->name('candidates.update');
             Route::delete('/candidates/{candidate}', [PemilihanManageController::class, 'destroyCandidate'])->name('candidates.destroy');
+
+        });
+
+        Route::name('dapil.')->prefix('dapil')->group(function () {
+            Route::get('/', [\App\Http\Controllers\DapilController::class, 'index'])->name('index');
+            Route::post('/', [\App\Http\Controllers\DapilController::class, 'store'])->name('store');
+            Route::post('/{dapil}', [\App\Http\Controllers\DapilController::class, 'update'])->name('update');
+            Route::delete('/{dapil}', [\App\Http\Controllers\DapilController::class, 'destroy'])->name('destroy');
         });
 
         Route::name('suratHasil.')->prefix('suratHasil')->group(function () {

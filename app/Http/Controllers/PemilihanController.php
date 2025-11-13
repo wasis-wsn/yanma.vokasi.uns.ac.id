@@ -54,14 +54,19 @@ class PemilihanController extends Controller
 
     public function vote(Request $request, Pemilihan $pemilihan): JsonResponse
     {
-        $request->validate([
-            'candidate_id' => ['required', 'exists:pemilihan_candidates,id'],
-        ], [
-            'required' => ':attribute wajib dipilih',
-            'exists' => ':attribute tidak ditemukan',
-        ], [
-            'candidate_id' => 'kandidat',
-        ]);
+        // Check if golput
+        $isGolput = $request->input('is_golput', 0) == 1 || $request->input('candidate_id') === null;
+
+        if (!$isGolput) {
+            $request->validate([
+                'candidate_id' => ['required', 'exists:pemilihan_candidates,id'],
+            ], [
+                'required' => ':attribute wajib dipilih',
+                'exists' => ':attribute tidak ditemukan',
+            ], [
+                'candidate_id' => 'kandidat',
+            ]);
+        }
 
         if (!$pemilihan->votingWindowIsOpen()) {
             return response()->json([
@@ -74,6 +79,7 @@ class PemilihanController extends Controller
         $userId = $user?->id;
         $userProdiId = $user?->prodi;
 
+        // Check eligibility (only for caleg/legislatif)
         if ($pemilihan->jenis === 'caleg' && !$this->userEligibleForPemilihan($pemilihan, $userProdiId)) {
             return response()->json([
                 'status' => false,
@@ -81,12 +87,16 @@ class PemilihanController extends Controller
             ], 403);
         }
 
-        $candidate = $pemilihan->candidates()
-            ->where('pemilihan_candidates.id', $request->input('candidate_id'))
-            ->firstOrFail();
+        // Validate candidate exists if not golput
+        $candidate = null;
+        if (!$isGolput) {
+            $candidate = $pemilihan->candidates()
+                ->where('pemilihan_candidates.id', $request->input('candidate_id'))
+                ->firstOrFail();
+        }
 
         try {
-            DB::transaction(function () use ($pemilihan, $candidate, $userId) {
+            DB::transaction(function () use ($pemilihan, $candidate, $userId, $isGolput) {
                 $alreadyVote = PemilihanVote::where('pemilihan_id', $pemilihan->id)
                     ->where('user_id', $userId)
                     ->lockForUpdate()
@@ -98,7 +108,7 @@ class PemilihanController extends Controller
 
                 PemilihanVote::create([
                     'pemilihan_id' => $pemilihan->id,
-                    'candidate_id' => $candidate->id,
+                    'candidate_id' => $isGolput ? null : $candidate->id,
                     'user_id' => $userId,
                     'voted_at' => now(),
                 ]);
@@ -126,9 +136,13 @@ class PemilihanController extends Controller
             ], 500);
         }
 
+        $message = $isGolput
+            ? 'Terima kasih, pilihan Anda untuk memilih kotak kosong sudah tercatat.'
+            : 'Terima kasih, suara Anda sudah tercatat.';
+
         return response()->json([
             'status' => true,
-            'message' => 'Terima kasih, suara Anda sudah tercatat.',
+            'message' => $message,
             'data' => $this->buildPayload($pemilihan->fresh()),
         ]);
     }
@@ -200,14 +214,17 @@ class PemilihanController extends Controller
             return false;
         }
 
+        // For Presiden BEM (presbem), all students are eligible
         if ($pemilihan->jenis !== 'caleg') {
             return true;
         }
 
+        // For Legislatif DEMA (caleg), check dapil eligibility
         if (!$userProdiId) {
             return false;
         }
 
+        // Load candidates with their dapil prodis if not loaded
         if (!$pemilihan->relationLoaded('candidates')) {
             $pemilihan->load(['candidates' => function ($query) {
                 $query->with('dapilProdis:id,name');
@@ -216,6 +233,7 @@ class PemilihanController extends Controller
             $pemilihan->candidates->loadMissing('dapilProdis:id,name');
         }
 
+        // Check if user's prodi is in any candidate's dapil
         return $pemilihan->candidates->contains(function ($candidate) use ($userProdiId) {
             return $candidate->dapilProdis->contains('id', $userProdiId);
         });

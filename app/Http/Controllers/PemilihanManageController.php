@@ -157,7 +157,7 @@ class PemilihanManageController extends Controller
     {
         $pemilihan->load(['candidates' => function ($query) {
             $query->withCount('votes as total_votes')
-                ->with(['prodi:id,name', 'dapilProdis:id,name'])
+                ->with(['prodi:id,name', 'dapil:id,name', 'dapilProdis:id,name'])
                 ->orderBy('nomor_urut');
         }]);
 
@@ -184,6 +184,10 @@ class PemilihanManageController extends Controller
                     'prodi' => $candidate->prodi ? [
                         'id' => $candidate->prodi->id,
                         'name' => $candidate->prodi->name,
+                    ] : null,
+                    'dapil' => $candidate->dapil ? [
+                        'id' => $candidate->dapil->id,
+                        'name' => $candidate->dapil->name,
                     ] : null,
                     'dapil_names' => $candidate->dapilProdis->pluck('name')->values(),
                     'total_votes' => (int) ($candidate->total_votes ?? 0),
@@ -312,14 +316,10 @@ class PemilihanManageController extends Controller
     private function validateCandidate(Request $request, Pemilihan $pemilihan, ?int $candidateId = null): array
     {
         $pemilihanId = $pemilihan->id;
-        $dapilRules = [
-            $pemilihan->jenis === 'caleg' ? 'required' : 'nullable',
-            'array',
-        ];
-
-        if ($pemilihan->jenis === 'caleg') {
-            $dapilRules[] = 'min:1';
-        }
+        // Dapil validation rules (only for caleg)
+        $dapilRules = $pemilihan->jenis === 'caleg'
+            ? ['required', 'exists:dapils,id']
+            : ['nullable', 'exists:dapils,id'];
 
         return $request->validate([
             'nomor_urut' => [
@@ -341,8 +341,7 @@ class PemilihanManageController extends Controller
             'misi' => ['nullable', 'string'],
             'deskripsi' => ['nullable', 'string'],
             'prodi_id' => ['nullable', 'exists:ref_prodi,id'],
-            'dapil_prodi_ids' => $dapilRules,
-            'dapil_prodi_ids.*' => ['integer', 'exists:ref_prodi,id'],
+            'dapil_id' => $dapilRules,
             'foto' => ['nullable', 'image', 'max:2048'],
         ], [
             'required' => ':attribute wajib diisi.',
@@ -365,7 +364,7 @@ class PemilihanManageController extends Controller
             'misi' => 'Misi',
             'deskripsi' => 'Deskripsi',
             'prodi_id' => 'Prodi calon',
-            'dapil_prodi_ids' => 'Daftar dapil',
+            'dapil_id' => 'Dapil',
             'foto' => 'Foto',
         ]);
     }
