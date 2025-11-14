@@ -43,6 +43,11 @@
                         <input class="form-control" type="file" id="file-revisi" name="file" accept="application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
                         <small class="text-muted">Unggah dokumen final ketika status diselesaikan.</small>
                     </div>
+                    <div class="form-group" id="form-catatan-edit" hidden>
+                        <label class="form-label" for="catatan-revisi">Catatan <span class="text-danger">*</span></label>
+                        <textarea class="form-control" id="catatan-revisi" name="catatan" rows="3" placeholder="Tuliskan alasan revisi untuk pemohon"></textarea>
+                        <small class="text-muted">Wajib diisi saat status diubah menjadi Revisi.</small>
+                    </div>
                     @endcanany
                 </div>
                 <div class="modal-footer">

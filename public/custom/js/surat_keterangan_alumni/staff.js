@@ -1,6 +1,28 @@
 (function() {
     'use strict';
 
+    const requireNoSuratStatuses = ["6"];
+    const requireFileStatuses = ["9"];
+    const requireCatatanStatuses = ["3", "7", "8"];
+
+    const toggleCatatanField = (statusValue) => {
+        const catatanWrapper = $('#form-catatan-edit');
+        const catatanInput = $('#catatan-revisi');
+
+        if (!catatanWrapper.length || !catatanInput.length) {
+            return;
+        }
+
+        if (requireCatatanStatuses.includes(statusValue)) {
+            catatanWrapper.removeAttr('hidden');
+            catatanInput.attr('required', true);
+        } else {
+            catatanWrapper.attr('hidden', true);
+            catatanInput.removeAttr('required');
+            catatanInput.val('');
+        }
+    };
+
     // Check if Laravel routes are properly defined
     if (!window.Laravel || !window.Laravel.listData) {
         console.error('Laravel routes are not properly defined');
@@ -34,6 +56,7 @@
             { data: "tanggal_lulus" },
             { data: "nomor_ijazah" },
             { data: "status" },
+            { data: "catatan" },
             { data: "tanggal_submit", name: "created_at" },
             { data: "action" },
         ],
@@ -45,19 +68,19 @@
             },
             {
                 width: "10%",
-                targets: [3,8],
+                targets: [3,9],
             },
             {
                 className: "btn-group-vertical",
-                targets: [9],
+                targets: [10],
             },
             {
                 className: "text-wrap",
-                targets: [2],
+                targets: [2,8],
             },
             {
                 className: "text-center",
-                targets: [5,6,7,8,9],
+                targets: [5,6,7,9,10],
             },
         ],
         lengthMenu: [
@@ -114,6 +137,7 @@ $("#show_data").on("click", ".btn-detail", function () {
                 $("#detail-nama").html(": " + (res.data.user ? res.data.user.name : '-'));
                 $("#detail-nim").html(": " + (res.data.user ? res.data.user.nim : '-'));
                 $("#detail-prodi").html(": " + (res.data.user && res.data.user.prodis ? res.data.user.prodis.name : '-'));
+                $("#detail-no-wa").html(": " + (res.data.user && res.data.user.no_wa ? res.data.user.no_wa : '-'));
                 $("#detail-permohonan").html(": " + (res.data.permohonan || '-'));
                 $("#detail-tanggal_lulus").html(": " + (res.data.tanggal_lulus || '-'));
                 $("#detail-nomor_ijazah").html(": " + (res.data.nomor_ijazah || '-'));
@@ -207,10 +231,11 @@ function showModalEdit(p) {
                 $("#form-edit input[name='no_surat']").val(res.data.no_surat || '');
                 $("#form-edit textarea[name='catatan']").val(res.data.catatan || '');
 
-                const requireNoSurat = ["6"];
-                const requireFile = ["9"];
+                const currentStatus = res.data.status_id !== null && res.data.status_id !== undefined
+                    ? String(res.data.status_id)
+                    : '';
 
-                if (requireNoSurat.includes(res.data.status_id)) {
+                if (requireNoSuratStatuses.includes(currentStatus)) {
                     $('#form-no-surat-edit').removeAttr('hidden');
                     $('#no_surat-revisi').attr('required', true);
                 } else {
@@ -218,7 +243,7 @@ function showModalEdit(p) {
                     $('#no_surat-revisi').removeAttr('required');
                 }
 
-                if (requireFile.includes(res.data.status_id)) {
+                if (requireFileStatuses.includes(currentStatus)) {
                     $('#form-file-edit').removeAttr('hidden');
                     $('#file-revisi').attr('required', true);
                 } else {
@@ -226,6 +251,8 @@ function showModalEdit(p) {
                     $('#file-revisi').removeAttr('required');
                     $('#file-revisi').val('');
                 }
+
+                toggleCatatanField(currentStatus);
 
                 $("#modalEdit").modal("show");
                 $('#status_id-revisi').trigger('change');
@@ -350,8 +377,8 @@ $('#status_id').change(function () {
 });
 
 $('#status_id-revisi').on('change', function () {
-    const value = $(this).val();
-    if (value === '6') {
+    const value = $(this).val() || '';
+    if (requireNoSuratStatuses.includes(value)) {
         $('#form-no-surat-edit').removeAttr('hidden');
         $('#no_surat-revisi').attr('required', true);
     } else {
@@ -359,7 +386,7 @@ $('#status_id-revisi').on('change', function () {
         $('#no_surat-revisi').removeAttr('required');
     }
 
-    if (value === '9') {
+    if (requireFileStatuses.includes(value)) {
         $('#form-file-edit').removeAttr('hidden');
         $('#file-revisi').attr('required', true);
     } else {
@@ -367,6 +394,8 @@ $('#status_id-revisi').on('change', function () {
         $('#file-revisi').removeAttr('required');
         $('#file-revisi').val('');
     }
+
+    toggleCatatanField(value);
 });
 
 $("#form-proses").submit(function (e) {
@@ -441,6 +470,10 @@ $("#form-edit").submit(function (e) {
             if (file) {
                 formData.append('file', file);
             }
+        }
+        const catatanInput = $('#catatan-revisi');
+        if (catatanInput.length) {
+            formData.append('catatan', catatanInput.val() || '');
         }
 
         $.ajax({

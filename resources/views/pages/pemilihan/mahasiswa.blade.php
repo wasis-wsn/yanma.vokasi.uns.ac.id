@@ -33,8 +33,9 @@
         ],
     ];
     $fallbackPaslonImage = asset('paslon.png');
-    $presbemCompleted = !$pemilihanPresbem || (bool) $presbemVote;
-    $calegCompleted = !$pemilihanCaleg || !$calegEligible || (bool) $calegVote;
+    // Perbaikan: Cek apakah vote benar-benar exists dengan mengecek ID atau atribut lain
+    $presbemCompleted = !$pemilihanPresbem || ($presbemVote && $presbemVote->id);
+    $calegCompleted = !$pemilihanCaleg || !$calegEligible || ($calegVote && $calegVote->id);
     $hasFinishedPemilihan = $presbemCompleted && $calegCompleted;
 @endphp
 

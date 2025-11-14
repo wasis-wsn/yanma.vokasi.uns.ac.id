@@ -56,6 +56,7 @@
         <th>Tanggal Lulus</th>
         <th>Nomor Ijazah</th>
         <th>Status</th>
+        <th>Catatan</th>
         <th>Tanggal Submit</th>
         <th>Aksi</th>
     @endcan
@@ -69,6 +70,7 @@
         <th>Tanggal Lulus</th>
         <th>Nomor Ijazah</th>
         <th>Status</th>
+        <th>Catatan</th>
         <th>Tanggal Submit</th>
         <th>Aksi</th>
     @endcanany

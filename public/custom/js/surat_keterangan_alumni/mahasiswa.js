@@ -34,13 +34,15 @@
             { data: 'tanggal_lulus' },
             { data: 'nomor_ijazah' },
             { data: 'status' },
+            { data: 'catatan' },
             { data: 'tanggal_submit', name: 'created_at' },
             { data: 'action' }
         ],
         columnDefs: [
             { className: 'text-center', width: '3%', targets: [1] },
-            { className: 'text-center', targets: [2,3,4,5,6] },
-            { className: 'btn-group-vertical', targets: [6] }
+            { className: 'text-center', targets: [2,3,4,6,7] },
+            { className: 'text-wrap', targets: [5] },
+            { className: 'btn-group-vertical', targets: [7] }
         ],
         order: [[0, 'desc']]
     });
@@ -70,6 +72,7 @@ $('#show_data').on('click', '.btn-detail', function() {
                     $('#detail-nama').html(': ' + (res.data.user ? res.data.user.name : '-'));
                     $('#detail-nim').html(': ' + (res.data.user ? res.data.user.nim : '-'));
                     $('#detail-prodi').html(': ' + (res.data.user && res.data.user.prodis ? res.data.user.prodis.name : '-'));
+                    $('#detail-no-wa').html(': ' + (res.data.user && res.data.user.no_wa ? res.data.user.no_wa : '-'));
                     $('#detail-permohonan').html(': ' + (res.data.permohonan || '-'));
                     $('#detail-tanggal_lulus').html(': ' + (res.data.tanggal_lulus || '-'));
                     $('#detail-nomor_ijazah').html(': ' + (res.data.nomor_ijazah || '-'));

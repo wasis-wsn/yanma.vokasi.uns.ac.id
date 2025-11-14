@@ -21,6 +21,10 @@
                             <td id="detail-prodi"></td>
                         </tr>
                         <tr>
+                            <td>Nomor WhatsApp</td>
+                            <td id="detail-no-wa"></td>
+                        </tr>
+                        <tr>
                             <td>Permohonan</td>
                             <td id="detail-permohonan"></td>
                         </tr>
