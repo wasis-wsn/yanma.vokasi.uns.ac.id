@@ -275,11 +275,15 @@ class SuratKeteranganAlumniController extends Controller
             // Validasi untuk Staff - hanya edit status
             $request->validate([
                 'status_id' => ['required', 'exists:status_alumni,id'],
+                'catatan' => ['nullable', \Illuminate\Validation\Rule::requiredIf(function () use ($request) {
+                    return in_array($request->status_id, ['3', '7', '8']);
+                })],
             ], [
                 'required' => ':attribute wajib diisi!',
                 'exists' => ':attribute tidak valid!',
             ], [
                 'status_id' => 'Status',
+                'catatan' => 'Catatan',
             ]);
         } else {
             // Validasi untuk Mahasiswa - edit data pengajuan
@@ -316,6 +320,9 @@ class SuratKeteranganAlumniController extends Controller
 
                 $data_update['status_id'] = $request->status_id;
                 $data_update['tanggal_proses'] = now();
+                if ($request->has('catatan')) {
+                    $data_update['catatan'] = $request->catatan ?: null;
+                }
 
                 // Log data prepared for update
                 Log::debug('SuratKeteranganAlumni prepared update data (staff)', [
