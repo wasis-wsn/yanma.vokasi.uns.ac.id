@@ -557,87 +557,6 @@
         margin-top: 10px;
     }
 
-    .respond-rate-card {
-        background: white;
-        border-radius: 24px;
-        padding: 32px;
-        box-shadow: 0 12px 40px rgba(15, 23, 42, 0.12);
-        border: 1px solid rgba(15, 23, 42, 0.08);
-        margin-bottom: 48px;
-    }
-
-    .respond-rate-header {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: baseline;
-        justify-content: space-between;
-        gap: 1rem;
-        margin-bottom: 20px;
-    }
-
-    .respond-rate-header h3 {
-        font-family: 'Poppins', 'Open Sans', 'Source Sans Pro', sans-serif;
-        font-weight: 700;
-        margin-bottom: 0;
-        color: #0f172a;
-    }
-
-    .respond-rate-header p {
-        margin-bottom: 0;
-        color: #475569;
-        font-weight: 600;
-    }
-
-    .respond-rate-body {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: 32px;
-    }
-
-    .respond-rate-chart {
-        flex: 0 0 220px;
-        height: 220px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .respond-rate-info {
-        flex: 1;
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-        gap: 16px;
-    }
-
-    .respond-item {
-        border: 1px solid rgba(15, 23, 42, 0.08);
-        border-radius: 18px;
-        padding: 18px;
-        background: #f8fafc;
-    }
-
-    .respond-item .label {
-        display: block;
-        font-size: 0.85rem;
-        color: #64748b;
-        margin-bottom: 6px;
-    }
-
-    .respond-item .value {
-        font-size: 1.8rem;
-        font-weight: 800;
-        color: #0f172a;
-        line-height: 1;
-    }
-
-    .respond-item.voted .value {
-        color: #0ea5e9;
-    }
-
-    .respond-item.not-voted .value {
-        color: #94a3b8;
-    }
 
     .pemilwa-grid {
         display: grid;
@@ -701,10 +620,6 @@
     @media (max-width: 991px) {
         .pemilwa-section {
             padding: 60px 0;
-        }
-
-        .respond-rate-card {
-            padding: 24px;
         }
 
         .pemilwa-grid {
@@ -1115,13 +1030,6 @@
         </section>
 
         @php
-            $totalResponVoted = max(0, (int) ($totalVoted ?? 0));
-            $totalResponBelum = max(0, (int) ($totalBelumVote ?? 0));
-            $totalRespon = $totalResponVoted + $totalResponBelum;
-            $respondRate = $totalRespon > 0 ? round(($totalResponVoted / $totalRespon) * 100, 1) : 0;
-            $notRespondRate = $totalRespon > 0 ? round(($totalResponBelum / $totalRespon) * 100, 1) : 0;
-            $respondRateLabel = rtrim(rtrim(number_format($respondRate, 1), '0'), '.');
-            $notRespondRateLabel = rtrim(rtrim(number_format($notRespondRate, 1), '0'), '.');
             $hasPemilwa = isset($pemilwaSummaries) && count($pemilwaSummaries) > 0;
         @endphp
 
@@ -1132,28 +1040,6 @@
                     <div class="section-header fade-in-up">
                         <h2>Statistik Pemilihan Mahasiswa</h2>
                         <p>Suara per paslon untuk setiap pemilihan yang sedang aktif</p>
-                    </div>
-
-                    <div class="respond-rate-card fade-in-up">
-                        <div class="respond-rate-header">
-                            <h3>Respond Rate Pemilih</h3>
-                            <p>{{ number_format($totalResponVoted) }} dari {{ number_format($totalRespon) }} mahasiswa telah memilih</p>
-                        </div>
-                        <div class="respond-rate-body">
-                            <div class="respond-rate-chart">
-                                <canvas id="respondRateChart"></canvas>
-                            </div>
-                            <div class="respond-rate-info">
-                                <div class="respond-item voted">
-                                    <span class="label">Sudah memilih</span>
-                                    <span class="value">{{ $respondRateLabel }}%</span>
-                                </div>
-                                <div class="respond-item not-voted">
-                                    <span class="label">Belum memilih</span>
-                                    <span class="value">{{ $notRespondRateLabel }}%</span>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                     <div class="pemilwa-grid">
                         @foreach($pemilwaSummaries as $pem)
@@ -1310,58 +1196,11 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize per-election charts dynamically
     const pemilwaData = {!! json_encode($pemilwaSummaries ?? []) !!};
-    const respondDataset = {
-        voted: Number({{ $totalResponVoted }}),
-        notVoted: Number({{ $totalResponBelum }}),
-    };
     const chartFontFamily = "'Poppins','Open Sans','Source Sans Pro',sans-serif";
     if (window.Chart && Chart.defaults && Chart.defaults.font) {
         Chart.defaults.font.family = chartFontFamily;
         Chart.defaults.font.size = 12;
         Chart.defaults.font.weight = '600';
-    }
-
-    const respondCtx = document.getElementById('respondRateChart');
-    if (respondCtx) {
-        const respondColors = ['rgba(14, 165, 233, 0.95)', 'rgba(148, 163, 184, 0.4)'];
-        const respondBorder = respondColors.map(c => c.replace('0.95', '1').replace('0.4', '0.8'));
-        const totalRespondDataset = (respondDataset.voted || 0) + (respondDataset.notVoted || 0);
-
-        new Chart(respondCtx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Sudah Memilih', 'Belum Memilih'],
-                datasets: [{
-                    data: [respondDataset.voted, respondDataset.notVoted],
-                    backgroundColor: respondColors,
-                    borderColor: respondBorder,
-                    borderWidth: 2,
-                    hoverOffset: 10,
-                }],
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                cutout: '55%',
-                plugins: {
-                    legend: {
-                        display: false,
-                    },
-                    tooltip: {
-                        backgroundColor: 'rgba(15,23,42,0.95)',
-                        bodyFont: { size: 12, family: chartFontFamily },
-                        callbacks: {
-                            label: function(context) {
-                                const value = (context.parsed ?? 0) || 0;
-                                const pct = totalRespondDataset > 0 ? (value / totalRespondDataset) * 100 : 0;
-                                const pctText = `${pct.toFixed(1).replace(/\.0$/, '')}%`;
-                                return ` ${context.label}: ${pctText}`;
-                            },
-                        },
-                    },
-                },
-            },
-        });
     }
 
     const palette = [
@@ -1380,10 +1219,18 @@ document.addEventListener('DOMContentLoaded', function() {
         const ctx = document.getElementById(canvasId);
         if (!ctx) return;
 
-        const labels = (p.candidates || []).map(c => c.label);
-        const data = (p.candidates || []).map(c => c.votes);
-        const colors = labels.map((_, i) => palette[i % palette.length]);
-        const borderColors = colors.map(c => c.replace('0.85', '1'));
+        const candidates = Array.isArray(p.candidates) ? p.candidates : [];
+        const labels = candidates.map(c => c.label);
+        const data = candidates.map(c => c.votes);
+        const colors = candidates.map((c, i) =>
+            c.is_golput ? 'rgba(148, 163, 184, 0.75)' : palette[i % palette.length]
+        );
+        const borderColors = colors.map((color) => {
+            if (color.includes('rgba')) {
+                return color.replace(/0\.\d+/, '1');
+            }
+            return color;
+        });
 
         new Chart(ctx, {
             type: 'doughnut',

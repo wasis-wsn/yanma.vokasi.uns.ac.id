@@ -111,6 +111,8 @@ Route::get('/', function (HttpRequest $request) {
             'total_votes' => (int) ($p->candidates->sum('total_votes') + $golputVotes),
             'candidates' => $candidates,
         ];
+    })->sortBy(function ($summary) {
+        return $summary['jenis'] === 'presbem' ? 0 : 1;
     })->values();
 
     return view('landingpage.index', compact('berita', 'prodisAkreditasi', 'totalVoted', 'totalBelumVote', 'pemilwaSummaries'));
