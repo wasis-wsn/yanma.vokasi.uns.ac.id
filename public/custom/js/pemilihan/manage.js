@@ -469,7 +469,6 @@
                 searchable: false
             },
             { data: 'name', name: 'name' },
-            { data: 'description', name: 'description', defaultContent: '-' },
             {
                 data: 'prodis',
                 render: (data) => {
@@ -547,7 +546,6 @@
 
                 $('#dapil_id').val(dapil.id);
                 $('#dapil_name').val(dapil.name);
-                $('#dapil_description').val(dapil.description);
 
                 // Check prodis
                 $('.dapil-prodi-checkbox').prop('checked', false);
@@ -597,8 +595,7 @@
         const baseUrl = dapilId ? routes.dapilUpdate.replace(':id', dapilId) : routes.dapilStore;
 
         const formData = {
-            name: $('#dapil_name').val(),
-            description: $('#dapil_description').val()
+            name: $('#dapil_name').val()
         };
 
         // Collect checked prodi IDs

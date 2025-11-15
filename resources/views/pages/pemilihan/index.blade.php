@@ -93,7 +93,6 @@
                                 <tr>
                                     <th>#</th>
                                     <th>Nama Dapil</th>
-                                    <th>Deskripsi</th>
                                     <th>Prodi Terdaftar</th>
                                     <th>Aksi</th>
                                 </tr>
@@ -357,10 +356,6 @@
                         <div class="col-md-4">
                             <label class="form-label">Nama Dapil</label>
                             <input type="text" class="form-control" name="name" id="dapil_name" placeholder="Dapil 1" required>
-                        </div>
-                        <div class="col-md-8">
-                            <label class="form-label">Deskripsi</label>
-                            <input type="text" class="form-control" name="description" id="dapil_description" placeholder="Deskripsi dapil">
                         </div>
                         <div class="col-12">
                             <label class="form-label d-block">Pilih Prodi</label>
