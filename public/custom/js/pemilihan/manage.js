@@ -11,7 +11,7 @@
     const candidatePhotoPlaceholder = $('#candidate_foto_placeholder');
     const candidatePhotoInput = $('#candidate_foto');
     const candidateDapilGroup = $('#candidate_dapil_group');
-    const candidateDapilCheckboxes = candidateDapilGroup.find('.dapil-prodi-checkbox');
+    const candidateDapilSelect = $('#candidate_dapil_id');
     const dapilHelperText = $('#dapil_helper_text');
     const leaderInputs = {
         ketua_nama: $('#ketua_nama'),
@@ -54,7 +54,6 @@
         const form = $('#form-candidate')[0];
         form.reset();
         $('#candidate_id').val('');
-        candidateDapilCheckboxes.prop('checked', false);
         Object.values(leaderInputs).forEach((input) => {
             if (input.is('select')) {
                 input.prop('selectedIndex', 0);
@@ -62,6 +61,7 @@
                 input.val('');
             }
         });
+        candidateDapilSelect.val('').trigger('change');
         candidatePhotoInput.val('');
         setPhotoPreview(null);
         $('#modalCandidateLabel').text('Tambah Calon');
@@ -118,14 +118,14 @@
     function updateDapilFieldState() {
         const isCaleg = selectedPemilihanJenis === 'caleg';
         candidateDapilGroup.toggleClass('d-none', !isCaleg);
-        candidateDapilCheckboxes.prop('disabled', !isCaleg);
+        candidateDapilSelect.prop('disabled', !isCaleg);
         if (!isCaleg) {
-            candidateDapilCheckboxes.prop('checked', false);
+            candidateDapilSelect.val('');
         }
         if (dapilHelperText.length) {
             dapilHelperText.text(
                 isCaleg
-                    ? 'Pilih satu atau beberapa prodi dapil untuk calon legislatif.'
+                    ? 'Pilih dapil yang sesuai untuk calon legislatif.'
                     : 'Dapil hanya perlu diisi untuk pemilihan legislatif.'
             );
         }
@@ -382,11 +382,7 @@
                     $('#candidate_visi').val(response.data.visi);
                     $('#candidate_misi').val(response.data.misi);
                     $('#candidate_deskripsi').val(response.data.deskripsi);
-                    const dapilIds = (response.data.dapil_prodi_ids || []).map((id) => Number(id));
-                    candidateDapilCheckboxes.each(function () {
-                        const checkbox = $(this);
-                        checkbox.prop('checked', dapilIds.includes(Number(checkbox.val())));
-                    });
+                    candidateDapilSelect.val(response.data.dapil_id || '');
                     setPhotoPreview(response.data.photo_url || null);
                     updateDapilFieldState();
                     $('#modalCandidateLabel').text('Edit Calon');

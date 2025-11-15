@@ -6,7 +6,6 @@ use App\Models\Prodi;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -54,12 +53,6 @@ class PemilihanCandidate extends Model
     public function dapil(): BelongsTo
     {
         return $this->belongsTo(Dapil::class, 'dapil_id');
-    }
-
-    public function dapilProdis(): BelongsToMany
-    {
-        return $this->belongsToMany(Prodi::class, 'pemilihan_candidate_dapils', 'candidate_id', 'prodi_id')
-            ->withTimestamps();
     }
 
     public function votes(): HasMany

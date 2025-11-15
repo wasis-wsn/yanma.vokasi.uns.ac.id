@@ -22,7 +22,7 @@ class PemilihanController extends Controller
         $pemilihans = Pemilihan::with([
             'candidates' => function ($query) {
                 $query->withCount('votes as total_votes')
-                    ->with('dapilProdis:id,name')
+                    ->with(['dapil:id,name', 'dapil.prodis:id,name'])
                     ->orderBy('nomor_urut');
             },
             'votes' => function ($query) use ($userId) {
@@ -156,7 +156,7 @@ class PemilihanController extends Controller
         $pemilihan->load([
             'candidates' => function ($query) {
                 $query->withCount('votes as total_votes')
-                    ->with('dapilProdis:id,name')
+                    ->with(['dapil:id,name', 'dapil.prodis:id,name'])
                     ->orderBy('nomor_urut');
             },
             'votes' => function ($query) use ($userId) {
@@ -196,6 +196,11 @@ class PemilihanController extends Controller
                     'deskripsi' => $candidate->deskripsi,
                     'foto' => $candidate->foto,
                     'photo_url' => $candidate->photo_url,
+                    'dapil' => $candidate->dapil ? [
+                        'id' => $candidate->dapil->id,
+                        'name' => $candidate->dapil->name,
+                        'prodi_names' => $candidate->dapil->prodis->pluck('name')->values(),
+                    ] : null,
                     'total_votes' => (int) ($candidate->total_votes ?? 0),
                 ];
             })->values(),
@@ -227,15 +232,16 @@ class PemilihanController extends Controller
         // Load candidates with their dapil prodis if not loaded
         if (!$pemilihan->relationLoaded('candidates')) {
             $pemilihan->load(['candidates' => function ($query) {
-                $query->with('dapilProdis:id,name');
+                $query->with(['dapil:id,name', 'dapil.prodis:id,name']);
             }]);
         } else {
-            $pemilihan->candidates->loadMissing('dapilProdis:id,name');
+            $pemilihan->candidates->loadMissing(['dapil:id,name', 'dapil.prodis:id,name']);
         }
 
         // Check if user's prodi is in any candidate's dapil
         return $pemilihan->candidates->contains(function ($candidate) use ($userProdiId) {
-            return $candidate->dapilProdis->contains('id', $userProdiId);
+            return $candidate->dapil
+                && $candidate->dapil->prodis->contains('id', $userProdiId);
         });
     }
 }

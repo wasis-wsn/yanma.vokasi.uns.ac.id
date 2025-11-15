@@ -157,7 +157,11 @@ class PemilihanManageController extends Controller
     {
         $pemilihan->load(['candidates' => function ($query) {
             $query->withCount('votes as total_votes')
-                ->with(['prodi:id,name', 'dapil:id,name', 'dapilProdis:id,name'])
+                ->with([
+                    'prodi:id,name',
+                    'dapil:id,name',
+                    'dapil.prodis:id,name',
+                ])
                 ->orderBy('nomor_urut');
         }]);
 
@@ -188,8 +192,8 @@ class PemilihanManageController extends Controller
                     'dapil' => $candidate->dapil ? [
                         'id' => $candidate->dapil->id,
                         'name' => $candidate->dapil->name,
+                        'prodi_names' => $candidate->dapil->prodis->pluck('name')->values(),
                     ] : null,
-                    'dapil_names' => $candidate->dapilProdis->pluck('name')->values(),
                     'total_votes' => (int) ($candidate->total_votes ?? 0),
                 ];
             })->values(),
@@ -204,10 +208,7 @@ class PemilihanManageController extends Controller
             $data['foto'] = $request->file('foto')->store('pemilihan/candidates', 'public');
         }
 
-        $dapilIds = $this->extractDapilProdiIds($request, $pemilihan);
-
         $candidate = $pemilihan->candidates()->create($data);
-        $this->syncCandidateDapils($candidate, $dapilIds);
 
         return response()->json([
             'status' => true,
@@ -217,7 +218,7 @@ class PemilihanManageController extends Controller
 
     public function showCandidate(PemilihanCandidate $candidate): JsonResponse
     {
-        $candidate->loadMissing(['prodi:id,name', 'dapilProdis:id,name']);
+        $candidate->loadMissing(['prodi:id,name', 'dapil:id,name', 'dapil.prodis:id,name']);
 
         return response()->json([
             'status' => true,
@@ -237,8 +238,11 @@ class PemilihanManageController extends Controller
                 'deskripsi' => $candidate->deskripsi,
                 'prodi_id' => $candidate->prodi_id,
                 'prodi_name' => $candidate->prodi?->name,
-                'dapil_prodi_ids' => $candidate->dapilProdis->pluck('id'),
-                'dapil_prodi_names' => $candidate->dapilProdis->pluck('name'),
+                'dapil_id' => $candidate->dapil_id,
+                'dapil_name' => $candidate->dapil?->name,
+                'dapil_prodi_names' => $candidate->dapil
+                    ? $candidate->dapil->prodis->pluck('name')->values()
+                    : collect(),
                 'foto' => $candidate->foto,
                 'photo_url' => $candidate->photo_url,
             ],
@@ -259,10 +263,7 @@ class PemilihanManageController extends Controller
             unset($data['foto']);
         }
 
-        $dapilIds = $this->extractDapilProdiIds($request, $candidate->pemilihan);
-
         $candidate->update($data);
-        $this->syncCandidateDapils($candidate, $dapilIds);
 
         return response()->json([
             'status' => true,
@@ -389,22 +390,4 @@ class PemilihanManageController extends Controller
         return $slug;
     }
 
-    private function extractDapilProdiIds(Request $request, Pemilihan $pemilihan): array
-    {
-        if ($pemilihan->jenis !== 'caleg') {
-            return [];
-        }
-
-        return collect($request->input('dapil_prodi_ids', []))
-            ->filter(fn ($value) => !is_null($value) && $value !== '')
-            ->map(fn ($value) => (int) $value)
-            ->unique()
-            ->values()
-            ->all();
-    }
-
-    private function syncCandidateDapils(PemilihanCandidate $candidate, array $prodiIds): void
-    {
-        $candidate->dapilProdis()->sync($prodiIds);
-    }
 }
