@@ -1047,7 +1047,7 @@
 
         @if($showPemilwaSection)
             <!-- Pemilwa Section -->
-            <section id="pemilu-section" class="pemilwa-section">
+            <section id="pemilwa-section" class="pemilwa-section">
                 <div class="container">
                     <div class="section-header fade-in-up">
                         <h2>Statistik Pemilihan Mahasiswa</h2>
