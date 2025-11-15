@@ -65,8 +65,9 @@ Route::get('/', function (HttpRequest $request) {
     $totalVoted = \App\Models\PemilihanVote::distinct('user_id')->count('user_id');
     $totalBelumVote = $totalMahasiswa - $totalVoted;
 
-    // Build dynamic pemilwa summaries (open/active elections with per-candidate vote counts)
-    $pemilwas = \App\Models\Pemilihan::open()
+    // Build dynamic pemilwa summaries (active elections with per-candidate vote counts)
+    $pemilwas = \App\Models\Pemilihan::query()
+        ->where('is_active', true)
         ->with(['candidates' => function ($q) {
             $q->withCount('votes as total_votes')->orderBy('nomor_urut');
         }])

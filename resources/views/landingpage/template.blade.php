@@ -77,6 +77,13 @@
                         <li><a class="nav-link {{ Request::is('/') ? 'active' : '' }}" href="{{ route('home') }}">Beranda</a></li>
                         <li><a class="nav-link {{ Request::is('akreditasi/lp') ? 'active' : '' }}" href="{{ route('home') }}#akreditasi-overview">Akreditasi</a></li>
                     @endif
+                    @if (pemiluMenuEnabled())
+                        @if (Request::is('/'))
+                            <li><a class="nav-link scrollto" href="#pemilwa-section">Pemilwa</a></li>
+                        @else
+                            <li><a class="nav-link" href="{{ route('home') }}#pemilwa-section">Pemilwa</a></li>
+                        @endif
+                    @endif
                     <!--<li><a class="nav-link scrollto" href="https://peminjaman.vokasi.uns.ac.id">Peminjaman Tempat</a></li>-->
                     <li><a class="nav-link scrollto {{ Request::is('contact/lp') ? 'active' : '' }}" href="{{route('contact.landingPage')}}">Kontak</a></li>
                 </ul>

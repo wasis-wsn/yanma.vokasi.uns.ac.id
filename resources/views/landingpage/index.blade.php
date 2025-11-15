@@ -617,6 +617,17 @@
         position: relative;
     }
 
+    .pemilwa-empty {
+        background: white;
+        border-radius: 20px;
+        padding: 40px;
+        text-align: center;
+        color: #64748b;
+        font-weight: 600;
+        box-shadow: 0 10px 30px rgba(59, 130, 246, 0.08);
+        border: 1px dashed rgba(59, 130, 246, 0.25);
+    }
+
     @media (max-width: 991px) {
         .pemilwa-section {
             padding: 60px 0;
@@ -1031,30 +1042,37 @@
 
         @php
             $hasPemilwa = isset($pemilwaSummaries) && count($pemilwaSummaries) > 0;
+            $showPemilwaSection = pemiluMenuEnabled() || $hasPemilwa;
         @endphp
 
-        @if($hasPemilwa)
+        @if($showPemilwaSection)
             <!-- Pemilwa Section -->
-            <section class="pemilwa-section">
+            <section id="pemilu-section" class="pemilwa-section">
                 <div class="container">
                     <div class="section-header fade-in-up">
                         <h2>Statistik Pemilihan Mahasiswa</h2>
                         <p>Suara per paslon untuk setiap pemilihan yang sedang aktif</p>
                     </div>
-                    <div class="pemilwa-grid">
-                        @foreach($pemilwaSummaries as $pem)
-                            <div class="pemilwa-card fade-in-up">
-                                <div class="pemilwa-card-header" style="justify-content: ">
-                                    <h4>{{ $pem['name'] }}</h4>
-                                </div>
-                                <div class="pemilwa-card-body">
-                                    <div class="chart-container">
-                                        <canvas id="votingChart-{{ $pem['slug'] }}"></canvas>
+                    @if($hasPemilwa)
+                        <div class="pemilwa-grid">
+                            @foreach($pemilwaSummaries as $pem)
+                                <div class="pemilwa-card fade-in-up">
+                                    <div class="pemilwa-card-header">
+                                        <h4>{{ $pem['name'] }}</h4>
+                                    </div>
+                                    <div class="pemilwa-card-body">
+                                        <div class="chart-container">
+                                            <canvas id="votingChart-{{ $pem['slug'] }}"></canvas>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        @endforeach
-                    </div>
+                            @endforeach
+                        </div>
+                    @else
+                        <div class="pemilwa-empty fade-in-up">
+                            Belum ada statistik pemilihan yang dapat ditampilkan saat ini.
+                        </div>
+                    @endif
                 </div>
             </section>
         @endif
@@ -1188,12 +1206,15 @@
 @endsection
 
 @push('js')
+@if($hasPemilwa)
 <!-- Chart.js Library -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+@endif
 
 <script>
 // Enhanced scroll animations with colorful navbar integration
 document.addEventListener('DOMContentLoaded', function() {
+    @if($hasPemilwa)
     // Initialize per-election charts dynamically
     const pemilwaData = {!! json_encode($pemilwaSummaries ?? []) !!};
     const chartFontFamily = "'Poppins','Open Sans','Source Sans Pro',sans-serif";
@@ -1282,6 +1303,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+    @endif
 
     const observerOptions = {
         threshold: 0.1,
