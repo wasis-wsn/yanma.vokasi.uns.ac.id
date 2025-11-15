@@ -114,31 +114,39 @@
     }
 
     .pemilihan-option {
-        border: 1px solid #e9ecef;
-        border-radius: 1rem;
-        padding: 1.25rem;
+        border: 1px solid #e6ebf1;
+        border-radius: 1.25rem;
+        padding: 1.5rem;
         cursor: pointer;
         position: relative;
-        transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
-        min-height: 170px;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+        min-height: 220px;
         display: flex;
         flex-direction: column;
         width: 100%;
         height: 100%;
+        gap: 1rem;
+        background-color: #fff;
+        box-shadow: 0 12px 30px rgba(15, 37, 64, 0.08);
+        overflow: hidden;
     }
 
     .pemilihan-option:hover {
         border-color: #0d6efd;
+        box-shadow: 0 18px 36px rgba(13, 110, 253, 0.18);
+        transform: translateY(-4px);
     }
 
     .pemilihan-option-photo {
-        width: 100%;
-        aspect-ratio: 3 / 4;
+        width: 130px;
+        height: 160px;
         overflow: hidden;
         border-radius: 1rem;
-        margin-bottom: 0.85rem;
         background-color: #f5f7fb;
         position: relative;
+        flex-shrink: 0;
+        border: 1px solid #edf1f7;
+        box-shadow: 0 6px 16px rgba(15, 37, 64, 0.08);
     }
 
     .pemilihan-option-photo img {
@@ -151,7 +159,7 @@
 
     .pemilihan-option.is-selected {
         border-color: #0d6efd;
-        box-shadow: 0 8px 18px rgba(13, 110, 253, 0.12);
+        box-shadow: 0 16px 32px rgba(13, 110, 253, 0.15);
     }
 
     .pemilihan-option.is-disabled {
@@ -170,53 +178,71 @@
         padding: 0.15rem 0.65rem;
         border-radius: 999px;
         letter-spacing: 0.03em;
+        box-shadow: 0 8px 14px rgba(25, 135, 84, 0.25);
     }
 
     .pemilihan-option-number {
         font-weight: 600;
         color: #0d6efd;
-        font-size: 0.95rem;
+        font-size: 0.85rem;
+        background-color: rgba(13, 110, 253, 0.12);
+        border-radius: 999px;
+        padding: 0.25rem 0.85rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        position: absolute;
+        top: 1rem;
+        left: 1rem;
     }
 
     .pemilihan-option-body {
         flex: 1 1 auto;
         display: flex;
         flex-direction: column;
-        gap: 0.75rem;
+        gap: 1rem;
+        position: relative;
+        padding-top: 0.5rem;
     }
 
-    .pemilihan-option-info {
-        list-style: none;
-        padding-left: 0;
-        margin-bottom: 0;
-        color: #6c757d;
+    .pemilihan-option-layout {
+        display: flex;
+        gap: 1.25rem;
+        align-items: stretch;
+    }
+
+    .pemilihan-option-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
         font-size: 0.9rem;
-    }
-
-    .pemilihan-option-info li + li {
-        margin-top: 0.35rem;
-    }
-
-    .pemilihan-option-text {
-        font-size: 0.9rem;
-        color: #5f6c75;
-        display: -webkit-box;
-        -webkit-line-clamp: 3;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
     }
 
     .pemilihan-option-meta {
-        margin-top: auto;
-        padding-top: 0.75rem;
-        border-top: 1px solid #eef1f6;
-        font-size: 0.85rem;
+        margin-top: 0.35rem;
+        font-size: 0.8rem;
         color: #5f6c75;
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
     }
 
     .pemilihan-option-meta span {
-        display: block;
-        line-height: 1.35;
+        display: flex;
+        line-height: 1.4;
+        gap: 0.35rem;
+    }
+
+    .pemilihan-option-footer {
+        margin-top: auto;
+        padding-top: 0.75rem;
+        border-top: 1px dashed #e6ebf1;
+        font-size: 0.8rem;
+        color: #5f6c75;
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
     }
 
     .pemilihan-step-note {
@@ -443,13 +469,15 @@
                                     $ketuaSummary = collect([
                                         $candidate->ketua_nama,
                                         $candidate->ketua_prodi,
-                                        $candidate->ketua_angkatan ? 'Angkatan ' . $candidate->ketua_angkatan : null,
+                                        $candidate->ketua_angkatan ? "'" . $candidate->ketua_angkatan : null,
                                     ])->filter()->implode(' • ');
                                     $wakilSummary = collect([
                                         $candidate->wakil_nama,
                                         $candidate->wakil_prodi,
-                                        $candidate->wakil_angkatan ? 'Angkatan ' . $candidate->wakil_angkatan : null,
+                                        $candidate->wakil_angkatan ? "'" . $candidate->wakil_angkatan : null,
                                     ])->filter()->implode(' • ');
+                                    $dapilName = $candidate->dapil?->name;
+                                    $dapilProdis = $candidate->dapil?->prodis?->pluck('name')->filter()->implode(', ');
                                     $candidateSummary = collect([
                                         $ketuaSummary ? 'Ketua: ' . $ketuaSummary : null,
                                         $wakilSummary ? 'Wakil: ' . $wakilSummary : null,
@@ -471,32 +499,38 @@
                                     >
                                         <input type="radio" name="presbem_candidate" value="{{ $candidate->id }}" class="d-none" @checked($isSelected)>
                                         <div class="pemilihan-option-body">
-                                            <div class="d-flex justify-content-between align-items-start">
-                                                <span class="pemilihan-option-number">No. {{ $candidate->nomor_urut }}</span>
-                                                <span class="badge bg-light text-dark">{{ $candidate->total_votes ?? 0 }} suara</span>
+                                            <span class="pemilihan-option-number">No. {{ $candidate->nomor_urut }}</span>
+                                            <div class="pemilihan-option-layout">
+                                                <div class="pemilihan-option-photo">
+                                                    <img
+                                                        src="{{ $candidate->photo_url ?: $fallbackPaslonImage }}"
+                                                        alt="Foto {{ $candidate->name }}"
+                                                        onerror="this.onerror=null;this.src='{{ $fallbackPaslonImage }}';"
+                                                    >
+                                                </div>
+                                                <div class="pemilihan-option-content">
+                                                    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                                                        <div class="pemilihan-option-title fw-semibold mb-0">{{ $candidate->name }}</div>
+                                                        <span class="badge bg-light text-dark">{{ $candidate->total_votes ?? 0 }} suara</span>
+                                                    </div>
+                                                    <div class="pemilihan-option-meta">
+                                                        <span><strong>Ketua:</strong> {{ $ketuaSummary ?: '-' }}</span>
+                                                        <span><strong>Wakil:</strong> {{ $wakilSummary ?: '-' }}</span>
+                                                    </div>
+                                                </div>
                                             </div>
-                                            <div class="pemilihan-option-photo">
-                                                <img
-                                                    src="{{ $candidate->photo_url ?: $fallbackPaslonImage }}"
-                                                    alt="Foto {{ $candidate->name }}"
-                                                    onerror="this.onerror=null;this.src='{{ $fallbackPaslonImage }}';"
-                                                >
-                                            </div>
-                                            <div>
-                                                <div class="pemilihan-option-title fw-semibold mb-1">{{ $candidate->name }}</div>
-                                                <ul class="pemilihan-option-info">
-                                                    <li><strong>Ketua:</strong> {{ $ketuaSummary ?: '-' }}</li>
-                                                    <li><strong>Wakil:</strong> {{ $wakilSummary ?: '-' }}</li>
+                                            @if($visiPreview || $misiPreview || $deskripsiPreview)
+                                                <div class="pemilihan-option-footer">
                                                     @if($visiPreview)
-                                                        <li><strong>Visi:</strong> {{ $visiPreview }}</li>
+                                                        <div><strong>Visi:</strong> {{ $visiPreview }}</div>
                                                     @endif
                                                     @if($misiPreview)
-                                                        <li><strong>Misi:</strong> {{ $misiPreview }}</li>
+                                                        <div><strong>Misi:</strong> {{ $misiPreview }}</div>
                                                     @endif
-                                                </ul>
-                                            </div>
-                                            @if($deskripsiPreview)
-                                                <p class="pemilihan-option-text mb-0">{{ $deskripsiPreview }}</p>
+                                                    @if($deskripsiPreview)
+                                                        <div>{{ $deskripsiPreview }}</div>
+                                                    @endif
+                                                </div>
                                             @endif
                                         </div>
                                         @if($isSelected)
@@ -540,7 +574,7 @@
                     <div class="mb-4">
                         <h5 class="mb-1">Pemilihan Legislatif DEMA</h5>
                         <p class="text-muted mb-0">
-                            Pilih calon legislatif sesuai dapilmu. Jika tidak ada dapil yang dibuka untukmu, lewati langkah ini.
+                            Pilih calon legislatif sesuai dapilmu. Jika tidak ada dapil yang dibuka untukmu, kamu akan otomatis melewati langkah ini.
                         </p>
                     </div>
 
@@ -584,12 +618,12 @@
                                     $ketuaSummary = collect([
                                         $candidate->ketua_nama,
                                         $candidate->ketua_prodi,
-                                        $candidate->ketua_angkatan ? 'Angkatan ' . $candidate->ketua_angkatan : null,
+                                        $candidate->ketua_angkatan ? "'" . $candidate->ketua_angkatan : null,
                                     ])->filter()->implode(' • ');
                                     $wakilSummary = collect([
                                         $candidate->wakil_nama,
                                         $candidate->wakil_prodi,
-                                        $candidate->wakil_angkatan ? 'Angkatan ' . $candidate->wakil_angkatan : null,
+                                        $candidate->wakil_angkatan ? "'" . $candidate->wakil_angkatan : null,
                                     ])->filter()->implode(' • ');
                                     $candidateSummary = collect([
                                         $ketuaSummary ? 'Ketua: ' . $ketuaSummary : null,
@@ -612,32 +646,44 @@
                                     >
                                         <input type="radio" name="caleg_candidate" value="{{ $candidate->id }}" class="d-none" @checked($isSelected)>
                                         <div class="pemilihan-option-body">
-                                            <div class="d-flex justify-content-between align-items-start">
-                                                <span class="pemilihan-option-number">No. {{ $candidate->nomor_urut }}</span>
-                                                <span class="badge bg-light text-dark">{{ $candidate->total_votes ?? 0 }} suara</span>
+                                            <span class="pemilihan-option-number">No. {{ $candidate->nomor_urut }}</span>
+                                            <div class="pemilihan-option-layout">
+                                                <div class="pemilihan-option-photo">
+                                                    <img
+                                                        src="{{ $candidate->photo_url ?: $fallbackPaslonImage }}"
+                                                        alt="Foto {{ $candidate->name }}"
+                                                        onerror="this.onerror=null;this.src='{{ $fallbackPaslonImage }}';"
+                                                    >
+                                                </div>
+                                                <div class="pemilihan-option-content">
+                                                    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                                                        <div class="pemilihan-option-title fw-semibold mb-0">{{ $candidate->name }}</div>
+                                                        <span class="badge bg-light text-dark">{{ $candidate->total_votes ?? 0 }} suara</span>
+                                                    </div>
+                                                    <div class="pemilihan-option-meta">
+                                                        <span><strong>Ketua:</strong> {{ $ketuaSummary ?: '-' }}</span>
+                                                        <span><strong>Wakil:</strong> {{ $wakilSummary ?: '-' }}</span>
+                                                        @if($dapilName)
+                                                            <span>
+                                                                <strong>Dapil:</strong>
+                                                                {{ $dapilName }}@if($dapilProdis) <span class="text-muted">• {{ $dapilProdis }}</span>@endif
+                                                            </span>
+                                                        @endif
+                                                    </div>
+                                                </div>
                                             </div>
-                                            <div class="pemilihan-option-photo">
-                                                <img
-                                                    src="{{ $candidate->photo_url ?: $fallbackPaslonImage }}"
-                                                    alt="Foto {{ $candidate->name }}"
-                                                    onerror="this.onerror=null;this.src='{{ $fallbackPaslonImage }}';"
-                                                >
-                                            </div>
-                                            <div>
-                                                <div class="pemilihan-option-title fw-semibold mb-1">{{ $candidate->name }}</div>
-                                                <ul class="pemilihan-option-info">
-                                                    <li><strong>Ketua:</strong> {{ $ketuaSummary ?: '-' }}</li>
-                                                    <li><strong>Wakil:</strong> {{ $wakilSummary ?: '-' }}</li>
+                                            @if($visiPreview || $misiPreview || $deskripsiPreview)
+                                                <div class="pemilihan-option-footer">
                                                     @if($visiPreview)
-                                                        <li><strong>Visi:</strong> {{ $visiPreview }}</li>
+                                                        <div><strong>Visi:</strong> {{ $visiPreview }}</div>
                                                     @endif
                                                     @if($misiPreview)
-                                                        <li><strong>Misi:</strong> {{ $misiPreview }}</li>
+                                                        <div><strong>Misi:</strong> {{ $misiPreview }}</div>
                                                     @endif
-                                                </ul>
-                                            </div>
-                                            @if($deskripsiPreview)
-                                                <p class="pemilihan-option-text mb-0">{{ $deskripsiPreview }}</p>
+                                                    @if($deskripsiPreview)
+                                                        <div>{{ $deskripsiPreview }}</div>
+                                                    @endif
+                                                </div>
                                             @endif
                                         </div>
                                         @if($isSelected)
