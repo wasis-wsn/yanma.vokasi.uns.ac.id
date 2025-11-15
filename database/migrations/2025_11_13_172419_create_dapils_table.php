@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::create('dapils', function (Blueprint $table) {
             $table->id();
             $table->string('name')->unique(); // Dapil 1, Dapil 2, Dapil 3
-            $table->text('description')->nullable();
             $table->timestamps();
         });
 

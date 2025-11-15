@@ -24,7 +24,6 @@ class DapilController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255|unique:dapils,name',
-            'description' => 'nullable|string',
             'prodi_ids' => 'nullable|array',
             'prodi_ids.*' => 'exists:ref_prodi,id',
         ]);
@@ -33,7 +32,6 @@ class DapilController extends Controller
             DB::transaction(function () use ($request, &$dapil) {
                 $dapil = Dapil::create([
                     'name' => $request->name,
-                    'description' => $request->description,
                 ]);
 
                 if ($request->filled('prodi_ids')) {
@@ -60,7 +58,6 @@ class DapilController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255|unique:dapils,name,' . $dapil->id,
-            'description' => 'nullable|string',
             'prodi_ids' => 'nullable|array',
             'prodi_ids.*' => 'exists:ref_prodi,id',
         ]);
@@ -69,7 +66,6 @@ class DapilController extends Controller
             DB::transaction(function () use ($request, $dapil) {
                 $dapil->update([
                     'name' => $request->name,
-                    'description' => $request->description,
                 ]);
 
                 $dapil->prodis()->sync($request->prodi_ids ?? []);

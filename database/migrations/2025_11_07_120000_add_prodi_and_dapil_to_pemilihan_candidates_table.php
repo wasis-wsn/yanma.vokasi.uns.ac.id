@@ -11,14 +11,6 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('pemilihan_candidates', function (Blueprint $table) {
-            $table->foreignId('prodi_id')
-                ->nullable()
-                ->after('pemilihan_id')
-                ->constrained('ref_prodi')
-                ->nullOnDelete();
-        });
-
         Schema::create('pemilihan_candidate_dapils', function (Blueprint $table) {
             $table->id();
             $table->foreignId('candidate_id')->constrained('pemilihan_candidates')->cascadeOnDelete();
@@ -35,9 +27,5 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('pemilihan_candidate_dapils');
-
-        Schema::table('pemilihan_candidates', function (Blueprint $table) {
-            $table->dropConstrainedForeignId('prodi_id');
-        });
     }
 };

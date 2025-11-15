@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('pemilihan_votes', function (Blueprint $table) {
             $table->id();
             $table->foreignId('pemilihan_id')->constrained('pemilihans')->cascadeOnDelete();
-            $table->foreignId('candidate_id')->constrained('pemilihan_candidates')->cascadeOnDelete();
+            $table->foreignId('candidate_id')->nullable()->constrained('pemilihan_candidates')->nullOnDelete();
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
             $table->timestamp('voted_at')->useCurrent();
             $table->timestamps();

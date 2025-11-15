@@ -275,7 +275,7 @@ class SuratKeteranganAlumniController extends Controller
             // Validasi untuk Staff - hanya edit status
             $request->validate([
                 'status_id' => ['required', 'exists:status_alumni,id'],
-                'catatan' => ['nullable', \Illuminate\Validation\Rule::requiredIf(function () use ($request) {
+                    'catatan' => ['nullable', \Illuminate\Validation\Rule::requiredIf(function () use ($request) {
                     return in_array($request->status_id, ['3', '7', '8']);
                 })],
             ], [
