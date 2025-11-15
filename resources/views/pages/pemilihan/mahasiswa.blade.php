@@ -28,7 +28,6 @@
             'is_open' => $pemilihanCaleg?->votingWindowIsOpen() ?? false,
             'vote_url' => $pemilihanCaleg ? route('pemilihan.vote', $pemilihanCaleg) : null,
             'user_vote' => $calegVote?->candidate_id,
-            'optional' => true,
             'eligible' => $calegEligible,
         ],
     ];
@@ -663,8 +662,7 @@
                             @if(!$calegEligible)
                                 Kamu otomatis melewati langkah ini karena prodi kamu bukan bagian dari dapil aktif.
                             @else
-                                Jika kamu bukan bagian dari dapil yang dibuka atau belum ada dapil yang ditugaskan, klik tombol
-                                <strong>"Saya Bukan Dapil Ini"</strong> untuk melewati langkah ini.
+                                Pastikan kamu memilih calon legislatif yang sesuai dengan dapil yang sedang dibuka.
                             @endif
                         </div>
                         @if($calegSelectedCandidate)
@@ -737,7 +735,7 @@
                                         @elseif(!$calegEligible)
                                             Prodi kamu tidak tercantum dalam dapil aktif.
                                         @else
-                                            Langkah ini dapat dilewati jika bukan dapilmu.
+                                            Silakan pilih salah satu calon legislatif sebelum melanjutkan.
                                         @endif
                                     </div>
                                 </div>
@@ -757,9 +755,6 @@
                 <div class="pemilihan-stepper-footer d-flex flex-wrap justify-content-between align-items-center gap-2">
                     <button type="button" class="btn btn-link text-muted px-0 stepper-prev" disabled>Langkah Sebelumnya</button>
                     <div class="d-flex flex-wrap gap-2">
-                        <button type="button" class="btn btn-outline-secondary px-3 stepper-skip d-none" data-action="skip-caleg">
-                            Saya Bukan Dapil Ini
-                        </button>
                         <button type="button" class="btn btn-primary px-4 stepper-next" data-action="next">
                             Lanjutkan
                         </button>

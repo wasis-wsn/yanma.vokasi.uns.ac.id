@@ -11,16 +11,11 @@
                 step: 1,
                 totalSteps: 3,
                 submitting: false,
-                calegSkipped: false,
                 choices: {
                     presbem: this.buildChoiceState('presbem'),
                     caleg: this.buildChoiceState('caleg'),
                 },
             };
-
-            if (!this.state.choices.caleg.enabled) {
-                this.state.calegSkipped = true;
-            }
 
             this.optionMap = {
                 presbem: {},
@@ -62,14 +57,12 @@
                 selected: hasVote ? data.user_vote : null,
                 initial: hasVote ? data.user_vote : null,
                 locked: !isEligible || (enabled ? (!isOpen || hasVote) : true),
-                optional: type === 'caleg' ? !!data.optional : false,
             };
         },
 
         cacheDom() {
             this.prevBtn = this.root.find('.stepper-prev');
             this.nextBtn = this.root.find('.stepper-next');
-            this.skipBtn = this.root.find('[data-action="skip-caleg"]');
             this.stepperItems = this.root.find('.stepper-item');
             this.stepPanes = this.root.find('[data-step-pane]');
             this.summaryNote = this.root.find('[data-summary-note]');
@@ -99,7 +92,6 @@
             this.root.on('click', '.pemilihan-option', this.handleOptionClick.bind(this));
             this.prevBtn.on('click', this.handlePrev.bind(this));
             this.nextBtn.on('click', this.handleNext.bind(this));
-            this.skipBtn.on('click', this.handleSkipCaleg.bind(this));
             this.root.on('click', '.stepper-edit', this.handleEditRequest.bind(this));
         },
 
@@ -110,10 +102,6 @@
                     this.highlightSelection(type, choice.selected);
                 }
             });
-
-            if (!this.state.choices.caleg.enabled || !this.state.choices.caleg.eligible) {
-                this.state.calegSkipped = true;
-            }
         },
 
         handleOptionClick(event) {
@@ -133,9 +121,6 @@
             }
 
             this.state.choices[type].selected = candidateId;
-            if (type === 'caleg') {
-                this.state.calegSkipped = false;
-            }
 
             this.highlightSelection(type, candidateId);
             this.refreshSummary();
@@ -212,34 +197,6 @@
             this.updateStepUI();
         },
 
-        handleSkipCaleg() {
-            if (this.state.choices.caleg.locked || this.state.calegSkipped || !this.state.choices.caleg.eligible) {
-                return;
-            }
-
-            Swal.fire({
-                title: 'Lewati Pemilihan Caleg?',
-                text: 'Gunakan opsi ini hanya jika kamu bukan bagian dari dapil yang sedang dibuka.',
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonText: 'Ya, Lewati',
-                cancelButtonText: 'Batal',
-            }).then((result) => {
-                if (!result.isConfirmed) {
-                    return;
-                }
-
-                this.state.calegSkipped = true;
-                this.state.choices.caleg.selected = null;
-                this.highlightSelection('caleg', null);
-                this.refreshSummary();
-                this.updateStepUI();
-
-                this.state.step = Math.min(this.state.totalSteps, this.state.step + 1);
-                this.updateStepUI();
-            });
-        },
-
         isStepSatisfied(type) {
             const choice = this.state.choices[type];
             if (!choice || !choice.enabled) {
@@ -249,9 +206,6 @@
                 return true;
             }
             if (choice.locked) {
-                return true;
-            }
-            if (type === 'caleg' && this.state.calegSkipped) {
                 return true;
             }
             // Allow candidateId = 0 (kotak kosong) as a valid selection
@@ -275,20 +229,7 @@
             });
 
             this.updateNavState();
-            this.toggleSkipButton();
             this.refreshSummary();
-        },
-
-        toggleSkipButton() {
-            const showSkip = this.state.step === 2
-                && this.state.choices.caleg.enabled
-                && this.state.choices.caleg.eligible
-                && !this.state.choices.caleg.locked
-                && this.state.choices.caleg.optional
-                && !this.state.calegSkipped;
-
-            this.skipBtn.toggleClass('d-none', !showSkip);
-            this.skipBtn.prop('disabled', this.state.submitting);
         },
 
         updateNavState() {
@@ -332,9 +273,6 @@
             if (choice.locked) {
                 return false;
             }
-            if (type === 'caleg' && this.state.calegSkipped) {
-                return false;
-            }
             // Allow candidateId = 0 (kotak kosong)
             if (choice.selected === undefined || choice.selected === null) {
                 return false;
@@ -361,7 +299,6 @@
 
             this.state.submitting = true;
             this.updateNavState();
-            this.toggleSkipButton();
 
             tasks
                 .reduce((promise, task) => promise.then(task), Promise.resolve())
@@ -382,7 +319,6 @@
                 .finally(() => {
                     this.state.submitting = false;
                     this.updateNavState();
-                    this.toggleSkipButton();
                 });
         },
 
@@ -424,12 +360,6 @@
                 const summaryName = this.root.find(`[data-summary-name="${type}"]`);
                 const summaryDetail = this.root.find(`[data-summary-detail="${type}"]`);
                 if (!summaryName.length || !summaryDetail.length) {
-                    return;
-                }
-
-                if (type === 'caleg' && this.state.calegSkipped) {
-                    summaryName.text('Dilewati');
-                    summaryDetail.text('Kamu menyatakan bukan bagian dari dapil yang dibuka.');
                     return;
                 }
 
