@@ -259,7 +259,6 @@
                     $('#pemilihan_jenis').val(response.data.jenis);
                     $('#pemilihan_mulai').val(formatDatetimeInput(response.data.mulai_at));
                     $('#pemilihan_selesai').val(formatDatetimeInput(response.data.selesai_at));
-                    $('#pemilihan_deskripsi').val(response.data.deskripsi);
                     $('#pemilihan_active').prop('checked', Boolean(response.data.is_active));
                     $('#modalPemilihanLabel').text('Edit Pemilihan');
                     $('#btn-save-pemilihan').text('Perbarui');

@@ -295,7 +295,6 @@ class PemilihanManageController extends Controller
         return $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'jenis' => ['required', Rule::in($jenisOptions)],
-            'deskripsi' => ['nullable', 'string'],
             'mulai_at' => ['nullable', 'date'],
             'selesai_at' => ['nullable', 'date', 'after_or_equal:mulai_at'],
             'is_active' => ['nullable', 'boolean'],
@@ -308,7 +307,6 @@ class PemilihanManageController extends Controller
         ], [
             'name' => 'Nama Pemilihan',
             'jenis' => 'Jenis Pemilihan',
-            'deskripsi' => 'Deskripsi',
             'mulai_at' => 'Tanggal Mulai',
             'selesai_at' => 'Tanggal Selesai',
         ]);

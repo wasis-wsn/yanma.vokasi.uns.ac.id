@@ -179,10 +179,6 @@
                             <input type="datetime-local" class="form-control" name="selesai_at" id="pemilihan_selesai">
                         </div>
                         <div class="col-12">
-                            <label class="form-label">Deskripsi</label>
-                            <textarea name="deskripsi" id="pemilihan_deskripsi" class="form-control" rows="3"></textarea>
-                        </div>
-                        <div class="col-12">
                             <div class="form-check form-switch">
                                 <input type="hidden" name="is_active" value="0">
                                 <input class="form-check-input" type="checkbox" role="switch" id="pemilihan_active" name="is_active" value="1">
@@ -386,24 +382,24 @@
 @push('js')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.5/dist/sweetalert2.all.min.js"></script>
 <script>
-    window.PemiluRoutes = {!! json_encode([
-        'list' => route('pemilu.list'),
-        'store' => route('pemilu.store'),
-        'update' => route('pemilu.update', ':id'),
-        'delete' => route('pemilu.destroy', ':id'),
-        'toggle' => route('pemilu.toggle', ':id'),
-        'toggleAllMenu' => route('pemilu.toggleAllMenu'),
-        'show' => route('pemilu.show', ':id'),
-        'candidateList' => route('pemilu.candidates', ':id'),
-        'candidateStore' => route('pemilu.candidates.store', ':id'),
-        'candidateUpdate' => route('pemilu.candidates.update', ':id'),
-        'candidateDelete' => route('pemilu.candidates.destroy', ':id'),
-        'candidateShow' => route('pemilu.candidates.show', ':id'),
-        'dapilList' => route('dapil.index'),
-        'dapilStore' => route('dapil.store'),
-        'dapilUpdate' => route('dapil.update', ':id'),
-        'dapilDelete' => route('dapil.destroy', ':id'),
-    ]) !!};
+    window.PemiluRoutes = {
+        list: "{{ route('pemilu.list') }}",
+        store: "{{ route('pemilu.store') }}",
+        update: "{{ route('pemilu.update', ':id') }}",
+        delete: "{{ route('pemilu.destroy', ':id') }}",
+        toggle: "{{ route('pemilu.toggle', ':id') }}",
+        toggleAllMenu: "{{ route('pemilu.toggleAllMenu') }}",
+        show: "{{ route('pemilu.show', ':id') }}",
+        candidateList: "{{ route('pemilu.candidates', ':id') }}",
+        candidateStore: "{{ route('pemilu.candidates.store', ':id') }}",
+        candidateUpdate: "{{ route('pemilu.candidates.update', ':id') }}",
+        candidateDelete: "{{ route('pemilu.candidates.destroy', ':id') }}",
+        candidateShow: "{{ route('pemilu.candidates.show', ':id') }}",
+        dapilList: "{{ route('dapil.index') }}",
+        dapilStore: "{{ route('dapil.store') }}",
+        dapilUpdate: "{{ route('dapil.update', ':id') }}",
+        dapilDelete: "{{ route('dapil.destroy', ':id') }}"
+    };
 </script>
 <script src="{{ asset('custom/js/pemilihan/manage.js') }}?q={{ Str::random(5) }}"></script>
 @endpush
