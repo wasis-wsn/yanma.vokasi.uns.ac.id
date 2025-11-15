@@ -557,6 +557,95 @@
         margin-top: 10px;
     }
 
+    .respond-rate-card {
+        background: white;
+        border-radius: 24px;
+        padding: 32px;
+        box-shadow: 0 12px 40px rgba(15, 23, 42, 0.12);
+        border: 1px solid rgba(15, 23, 42, 0.08);
+        margin-bottom: 48px;
+    }
+
+    .respond-rate-header {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-bottom: 20px;
+    }
+
+    .respond-rate-header h3 {
+        font-family: 'Poppins', 'Open Sans', 'Source Sans Pro', sans-serif;
+        font-weight: 700;
+        margin-bottom: 0;
+        color: #0f172a;
+    }
+
+    .respond-rate-header p {
+        margin-bottom: 0;
+        color: #475569;
+        font-weight: 600;
+    }
+
+    .respond-rate-body {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 32px;
+    }
+
+    .respond-rate-chart {
+        flex: 0 0 220px;
+        height: 220px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .respond-rate-info {
+        flex: 1;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 16px;
+    }
+
+    .respond-item {
+        border: 1px solid rgba(15, 23, 42, 0.08);
+        border-radius: 18px;
+        padding: 18px;
+        background: #f8fafc;
+    }
+
+    .respond-item .label {
+        display: block;
+        font-size: 0.85rem;
+        color: #64748b;
+        margin-bottom: 6px;
+    }
+
+    .respond-item .value {
+        font-size: 1.8rem;
+        font-weight: 800;
+        color: #0f172a;
+        line-height: 1;
+    }
+
+    .respond-item.voted .value {
+        color: #0ea5e9;
+    }
+
+    .respond-item.not-voted .value {
+        color: #94a3b8;
+    }
+
+    .pemilwa-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+        gap: 32px;
+        align-items: stretch;
+    }
+
     .pemilwa-card {
         background: white;
         border-radius: 24px;
@@ -589,6 +678,10 @@
 
     .pemilwa-card-header h4 {
         margin-bottom: 0;
+        font-family: 'Poppins', 'Open Sans', 'Source Sans Pro', sans-serif;
+        font-weight: 700;
+        font-size: 1.15rem;
+        color: #1e293b;
     }
 
     .pemilwa-card-header small {
@@ -597,15 +690,7 @@
         font-weight: 600;
     }
 
-    .pemilwa-card-body {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 32px;
-        align-items: stretch;
-    }
-
     .chart-container {
-        flex: 1 1 360px;
         min-height: 320px;
         display: flex;
         align-items: center;
@@ -613,82 +698,17 @@
         position: relative;
     }
 
-    .voting-stats {
-        flex: 1 1 320px;
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-    }
-
-    .stat-box {
-        background: white;
-        border-radius: 12px;
-        padding: 20px;
-        box-shadow: 0 5px 20px rgba(59, 130, 246, 0.1);
-        display: flex;
-        align-items: center;
-        gap: 15px;
-        border: 1px solid rgba(59, 130, 246, 0.1);
-        transition: all 0.3s ease;
-    }
-
-    .stat-box:hover {
-        transform: translateX(5px);
-        box-shadow: 0 10px 30px rgba(59, 130, 246, 0.2);
-    }
-
-    .stat-box.voted {
-        border-left: 3px solid #3b82f6;
-    }
-
-    .stat-box.not-voted {
-        border-left: 3px solid #93b9f7;
-    }
-
-    .stat-icon {
-        width: 50px;
-        height: 50px;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.4rem;
-        flex-shrink: 0;
-    }
-
-    .stat-box.voted .stat-icon {
-        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-        color: white;
-        box-shadow: 0 5px 15px rgba(59, 130, 246, 0.3);
-    }
-
-    .stat-box.not-voted .stat-icon {
-        background: linear-gradient(135deg, #93b9f7 0%, #b6cff6 100%);
-        color: white;
-        box-shadow: 0 5px 15px rgba(147, 185, 247, 0.3);
-    }
-
-    .stat-content {
-        flex: 1;
-    }
-
-    .stat-value {
-        font-size: 1.8rem;
-        font-weight: 800;
-        color: #1e293b;
-        line-height: 1;
-        margin-bottom: 5px;
-    }
-
-    .stat-label {
-        font-size: 0.875rem;
-        color: #64748b;
-        font-weight: 600;
-    }
-
     @media (max-width: 991px) {
         .pemilwa-section {
             padding: 60px 0;
+        }
+
+        .respond-rate-card {
+            padding: 24px;
+        }
+
+        .pemilwa-grid {
+            grid-template-columns: 1fr;
         }
 
         .pemilwa-card {
@@ -699,15 +719,6 @@
             gap: 24px;
         }
 
-        .chart-container {
-            min-height: 280px;
-        }
-
-        .stat-box {
-            padding: 20px;
-        }
-
-        .stat-icon {
             width: 50px;
             height: 50px;
             font-size: 1.3rem;
@@ -1103,51 +1114,64 @@
             </div>
         </section>
 
-        <!-- Pemilwa Section -->
-        <section class="pemilwa-section">
-            <div class="container">
-                <div class="section-header fade-in-up">
-                    <h2>Statistik Pemilihan Mahasiswa</h2>
-                    <p>Suara per paslon untuk setiap pemilihan yang sedang aktif</p>
-                </div>
+        @php
+            $totalResponVoted = max(0, (int) ($totalVoted ?? 0));
+            $totalResponBelum = max(0, (int) ($totalBelumVote ?? 0));
+            $totalRespon = $totalResponVoted + $totalResponBelum;
+            $respondRate = $totalRespon > 0 ? round(($totalResponVoted / $totalRespon) * 100, 1) : 0;
+            $notRespondRate = $totalRespon > 0 ? round(($totalResponBelum / $totalRespon) * 100, 1) : 0;
+            $respondRateLabel = rtrim(rtrim(number_format($respondRate, 1), '0'), '.');
+            $notRespondRateLabel = rtrim(rtrim(number_format($notRespondRate, 1), '0'), '.');
+            $hasPemilwa = isset($pemilwaSummaries) && count($pemilwaSummaries) > 0;
+        @endphp
 
-                @php $hasPemilwa = isset($pemilwaSummaries) && count($pemilwaSummaries) > 0; @endphp
-                @if($hasPemilwa)
-                    @foreach($pemilwaSummaries as $pem)
-                        <div class="pemilwa-card fade-in-up mb-5">
-                            <div class="pemilwa-card-header">
-                                <h4>{{ $pem['name'] }}</h4>
-                                <small>Total suara masuk: {{ number_format($pem['total_votes'] ?? 0) }}</small>
-                            </div>
-                            <div class="pemilwa-card-body">
-                                <div class="chart-container">
-                                    <canvas id="votingChart-{{ $pem['slug'] }}"></canvas>
-                                </div>
-                                <div class="voting-stats">
-                                    @foreach($pem['candidates'] as $idx => $c)
-                                        <div class="stat-box voted">
-                                            <div class="stat-icon">
-                                                <i class="fas fa-user"></i>
-                                            </div>
-                                            <div class="stat-content">
-                                                <div class="stat-value">{{ $c['votes'] }}</div>
-                                                <div class="stat-label">{{ $c['label'] }}</div>
-                                            </div>
-                                        </div>
-                                    @endforeach
-                                </div>
-                            </div>
+        @if($hasPemilwa)
+            <!-- Pemilwa Section -->
+            <section class="pemilwa-section">
+                <div class="container">
+                    <div class="section-header fade-in-up">
+                        <h2>Statistik Pemilihan Mahasiswa</h2>
+                        <p>Suara per paslon untuk setiap pemilihan yang sedang aktif</p>
+                    </div>
+
+                    <div class="respond-rate-card fade-in-up">
+                        <div class="respond-rate-header">
+                            <h3>Respond Rate Pemilih</h3>
+                            <p>{{ number_format($totalResponVoted) }} dari {{ number_format($totalRespon) }} mahasiswa telah memilih</p>
                         </div>
-                    @endforeach
-                @else
-                    <div class="row">
-                        <div class="col-12">
-                            <div class="alert alert-info">Belum ada pemilihan aktif saat ini.</div>
+                        <div class="respond-rate-body">
+                            <div class="respond-rate-chart">
+                                <canvas id="respondRateChart"></canvas>
+                            </div>
+                            <div class="respond-rate-info">
+                                <div class="respond-item voted">
+                                    <span class="label">Sudah memilih</span>
+                                    <span class="value">{{ $respondRateLabel }}%</span>
+                                </div>
+                                <div class="respond-item not-voted">
+                                    <span class="label">Belum memilih</span>
+                                    <span class="value">{{ $notRespondRateLabel }}%</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                @endif
-            </div>
-        </section>
+                    <div class="pemilwa-grid">
+                        @foreach($pemilwaSummaries as $pem)
+                            <div class="pemilwa-card fade-in-up">
+                                <div class="pemilwa-card-header" style="justify-content: ">
+                                    <h4>{{ $pem['name'] }}</h4>
+                                </div>
+                                <div class="pemilwa-card-body">
+                                    <div class="chart-container">
+                                        <canvas id="votingChart-{{ $pem['slug'] }}"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            </section>
+        @endif
 
         <!-- Layanan Section - UNCHANGED -->
         <div class="layanan">
@@ -1286,15 +1310,69 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize per-election charts dynamically
     const pemilwaData = {!! json_encode($pemilwaSummaries ?? []) !!};
+    const respondDataset = {
+        voted: Number({{ $totalResponVoted }}),
+        notVoted: Number({{ $totalResponBelum }}),
+    };
+    const chartFontFamily = "'Poppins','Open Sans','Source Sans Pro',sans-serif";
+    if (window.Chart && Chart.defaults && Chart.defaults.font) {
+        Chart.defaults.font.family = chartFontFamily;
+        Chart.defaults.font.size = 12;
+        Chart.defaults.font.weight = '600';
+    }
+
+    const respondCtx = document.getElementById('respondRateChart');
+    if (respondCtx) {
+        const respondColors = ['rgba(14, 165, 233, 0.95)', 'rgba(148, 163, 184, 0.4)'];
+        const respondBorder = respondColors.map(c => c.replace('0.95', '1').replace('0.4', '0.8'));
+        const totalRespondDataset = (respondDataset.voted || 0) + (respondDataset.notVoted || 0);
+
+        new Chart(respondCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Sudah Memilih', 'Belum Memilih'],
+                datasets: [{
+                    data: [respondDataset.voted, respondDataset.notVoted],
+                    backgroundColor: respondColors,
+                    borderColor: respondBorder,
+                    borderWidth: 2,
+                    hoverOffset: 10,
+                }],
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '55%',
+                plugins: {
+                    legend: {
+                        display: false,
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(15,23,42,0.95)',
+                        bodyFont: { size: 12, family: chartFontFamily },
+                        callbacks: {
+                            label: function(context) {
+                                const value = (context.parsed ?? 0) || 0;
+                                const pct = totalRespondDataset > 0 ? (value / totalRespondDataset) * 100 : 0;
+                                const pctText = `${pct.toFixed(1).replace(/\.0$/, '')}%`;
+                                return ` ${context.label}: ${pctText}`;
+                            },
+                        },
+                    },
+                },
+            },
+        });
+    }
+
     const palette = [
-        'rgba(59, 130, 246, 0.85)', // blue
-        'rgba(16, 185, 129, 0.85)', // green
-        'rgba(245, 158, 11, 0.85)', // amber
-        'rgba(239, 68, 68, 0.85)',  // red
-        'rgba(99, 102, 241, 0.85)', // indigo
-        'rgba(236, 72, 153, 0.85)', // pink
-        'rgba(34, 197, 94, 0.85)',  // emerald
-        'rgba(250, 204, 21, 0.85)'  // yellow
+        'rgba(51, 136, 255, 0.85)',   // bright blue
+        'rgba(77, 158, 255, 0.85)',   // lighter blue
+        'rgba(102, 178, 255, 0.85)',  // sky blue
+        'rgba(128, 198, 255, 0.85)',  // pastel blue
+        'rgba(153, 210, 255, 0.85)',  // soft blue
+        'rgba(178, 222, 255, 0.85)',  // pale blue
+        'rgba(204, 235, 255, 0.85)',  // very light blue
+        'rgba(230, 246, 255, 0.9)'    // almost white-blue
     ];
 
     (pemilwaData || []).forEach(function(p, idx) {
@@ -1329,7 +1407,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         position: 'bottom',
                         labels: {
                             padding: 16,
-                            font: { size: 14, family: "'Inter', sans-serif", weight: '600' },
+                            font: { size: 12, family: chartFontFamily, weight: '600' },
                             color: '#1e293b',
                             usePointStyle: true,
                             boxWidth: 14,
@@ -1339,15 +1417,16 @@ document.addEventListener('DOMContentLoaded', function() {
                     tooltip: {
                         backgroundColor: 'rgba(30,41,59,0.9)',
                         padding: 12,
-                        titleFont: { size: 14, weight: '700', family: "'Inter', sans-serif" },
-                        bodyFont: { size: 13, family: "'Inter', sans-serif" },
+                        titleFont: { size: 13, weight: '700', family: chartFontFamily },
+                        bodyFont: { size: 12, family: chartFontFamily },
                         cornerRadius: 8,
                         callbacks: {
                             label: function(context) {
                                 const value = (context.parsed ?? 0) || 0;
                                 const total = (context.dataset.data || []).reduce((a, b) => (a || 0) + (b || 0), 0);
-                                const pct = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
-                                return ` ${context.label}: ${value} suara (${pct}%)`;
+                                const pct = total > 0 ? (value / total) * 100 : 0;
+                                const pctText = `${pct.toFixed(1).replace(/\.0$/, '')}%`;
+                                return ` ${context.label}: ${pctText}`;
                             }
                         }
                     }
