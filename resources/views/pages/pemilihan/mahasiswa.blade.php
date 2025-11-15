@@ -138,8 +138,8 @@
     }
 
     .pemilihan-option-photo {
-        width: 130px;
-        height: 160px;
+        width: 100%;
+        height: 320px;
         overflow: hidden;
         border-radius: 1rem;
         background-color: #f5f7fb;
@@ -147,6 +147,7 @@
         flex-shrink: 0;
         border: 1px solid #edf1f7;
         box-shadow: 0 6px 16px rgba(15, 37, 64, 0.08);
+        margin-bottom: 1rem;
     }
 
     .pemilihan-option-photo img {
@@ -200,38 +201,70 @@
         flex: 1 1 auto;
         display: flex;
         flex-direction: column;
-        gap: 1rem;
+        gap: 0.75rem;
         position: relative;
-        padding-top: 0.5rem;
     }
 
     .pemilihan-option-layout {
         display: flex;
-        gap: 1.25rem;
-        align-items: stretch;
+        flex-direction: column;
+        gap: 0;
     }
 
     .pemilihan-option-content {
         flex: 1;
         display: flex;
         flex-direction: column;
-        gap: 0.35rem;
+        gap: 0.5rem;
         font-size: 0.9rem;
     }
 
+    .pemilihan-option-title {
+        font-size: 1.05rem;
+        font-weight: 600;
+        color: #1f2a37;
+        margin-bottom: 0.5rem;
+    }
+
     .pemilihan-option-meta {
-        margin-top: 0.35rem;
-        font-size: 0.8rem;
+        font-size: 0.85rem;
         color: #5f6c75;
         display: flex;
         flex-direction: column;
-        gap: 0.35rem;
+        gap: 0.5rem;
     }
 
-    .pemilihan-option-meta span {
+    .pemilihan-option-meta-item {
         display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+        padding: 0.75rem;
+        background-color: #f8f9fb;
+        border-radius: 0.65rem;
+        border-left: 3px solid #0d6efd;
+    }
+
+    .pemilihan-option-meta-label {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        font-weight: 600;
+        color: #0d6efd;
+        letter-spacing: 0.05em;
+    }
+
+    .pemilihan-option-meta-value {
+        font-size: 0.875rem;
+        color: #1f2a37;
         line-height: 1.4;
-        gap: 0.35rem;
+        font-weight: 600;
+    }
+
+    .pemilihan-option-meta-sub {
+        font-size: 0.8rem;
+        color: #6c757d;
+        line-height: 1.3;
+        display: block;
+        margin-top: 0.25rem;
     }
 
     .pemilihan-option-footer {
@@ -285,9 +318,9 @@
     }
 
     .pemilihan-option-golput.is-selected {
-        border-color: #6c757d !important;
-        box-shadow: 0 8px 18px rgba(108, 117, 125, 0.15) !important;
-        background: #dee2e6;
+        border-color: #0d6efd !important;
+        box-shadow: 0 8px 18px rgba(13, 110, 253, 0.15) !important;
+        background: #e7f1ff;
     }
 
     .pemilihan-thanks-state {
@@ -435,47 +468,17 @@
 
                     @if($pemilihanPresbem && $pemilihanPresbem->candidates->isNotEmpty())
                         <div class="row g-3 pemilihan-option-grid">
-                            {{-- Opsi Kotak Kosong (hanya muncul jika kandidat = 1) --}}
-                            @if($pemilihanPresbem->candidates->count() === 1)
-                                <div class="col-12 col-md-6 col-xl-4">
-                                    @php
-                                        $isKotakKosongSelected = $presbemVote?->candidate_id === null && $presbemVote !== null;
-                                    @endphp
-                                    <label class="pemilihan-option pemilihan-option-golput {{ $isKotakKosongSelected ? 'is-selected' : '' }} {{ !$stepperConfig['presbem']['is_open'] ? 'is-disabled' : '' }}"
-                                        data-pemilihan="presbem"
-                                        data-candidate-id="0"
-                                        data-candidate-name="Kotak Kosong"
-                                        data-candidate-nomor="0"
-                                        data-candidate-description="Memilih kotak kosong"
-                                        style="border: 2px dashed #6c757d;"
-                                    >
-                                        <input type="radio" name="presbem_candidate" value="0" class="d-none" @checked($isKotakKosongSelected)>
-                                        <div class="pemilihan-option-body text-center">
-                                            <div class="py-4">
-                                                <i class="fa-regular fa-square fa-3x text-muted mb-3"></i>
-                                                <h5 class="fw-bold text-muted mb-2">Kotak Kosong</h5>
-                                                <p class="text-muted small mb-0">Saya memilih kotak kosong</p>
-                                            </div>
-                                        </div>
-                                        @if($isKotakKosongSelected)
-                                            <span class="pemilihan-option-badge" style="background-color: #6c757d;">Pilihanmu</span>
-                                        @endif
-                                    </label>
-                                </div>
-                            @endif
                             @foreach($pemilihanPresbem->candidates as $candidate)
                                 @php
                                     $isSelected = $presbemVote?->candidate_id === $candidate->id;
-                                    $ketuaSummary = collect([
-                                        $candidate->ketua_nama,
-                                        $candidate->ketua_prodi,
-                                        $candidate->ketua_angkatan ? "'" . $candidate->ketua_angkatan : null,
-                                    ])->filter()->implode(' • ');
-                                    $wakilSummary = collect([
-                                        $candidate->wakil_nama,
-                                        $candidate->wakil_prodi,
-                                        $candidate->wakil_angkatan ? "'" . $candidate->wakil_angkatan : null,
-                                    ])->filter()->implode(' • ');
+                                    $ketuaNama = $candidate->ketua_nama;
+                                    $ketuaProdi = $candidate->ketua_prodi;
+                                    $ketuaAngkatan = $candidate->ketua_angkatan ? "'" . $candidate->ketua_angkatan : null;
+                                    $ketuaSummary = collect([$ketuaNama, $ketuaProdi, $ketuaAngkatan])->filter()->implode(' • ');
+                                    $wakilNama = $candidate->wakil_nama;
+                                    $wakilProdi = $candidate->wakil_prodi;
+                                    $wakilAngkatan = $candidate->wakil_angkatan ? "'" . $candidate->wakil_angkatan : null;
+                                    $wakilSummary = collect([$wakilNama, $wakilProdi, $wakilAngkatan])->filter()->implode(' • ');
                                     $dapilName = $candidate->dapil?->name;
                                     $dapilProdis = $candidate->dapil?->prodis?->pluck('name')->filter()->implode(', ');
                                     $candidateSummary = collect([
@@ -509,13 +512,22 @@
                                                     >
                                                 </div>
                                                 <div class="pemilihan-option-content">
-                                                    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
-                                                        <div class="pemilihan-option-title fw-semibold mb-0">{{ $candidate->name }}</div>
-                                                        <span class="badge bg-light text-dark">{{ $candidate->total_votes ?? 0 }} suara</span>
-                                                    </div>
+                                                    <div class="pemilihan-option-title">{{ $candidate->name }}</div>
                                                     <div class="pemilihan-option-meta">
-                                                        <span><strong>Ketua:</strong> {{ $ketuaSummary ?: '-' }}</span>
-                                                        <span><strong>Wakil:</strong> {{ $wakilSummary ?: '-' }}</span>
+                                                        <div class="pemilihan-option-meta-item">
+                                                            <span class="pemilihan-option-meta-label">Ketua</span>
+                                                            <span class="pemilihan-option-meta-value">{{ $ketuaNama ?: '-' }}</span>
+                                                            @if($ketuaProdi || $ketuaAngkatan)
+                                                                <span class="pemilihan-option-meta-sub">{{ collect([$ketuaProdi, $ketuaAngkatan])->filter()->implode(' • ') }}</span>
+                                                            @endif
+                                                        </div>
+                                                        <div class="pemilihan-option-meta-item">
+                                                            <span class="pemilihan-option-meta-label">Wakil</span>
+                                                            <span class="pemilihan-option-meta-value">{{ $wakilNama ?: '-' }}</span>
+                                                            @if($wakilProdi || $wakilAngkatan)
+                                                                <span class="pemilihan-option-meta-sub">{{ collect([$wakilProdi, $wakilAngkatan])->filter()->implode(' • ') }}</span>
+                                                            @endif
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -539,6 +551,31 @@
                                     </label>
                                 </div>
                             @endforeach
+                            {{-- Opsi Kotak Kosong (hanya muncul jika kandidat = 1) - Ditampilkan di posisi terakhir --}}
+                            @if($pemilihanPresbem->candidates->count() === 1)
+                                <div class="col-12 col-md-6 col-xl-4">
+                                    @php
+                                        $isKotakKosongSelected = $presbemVote?->candidate_id === null && $presbemVote !== null;
+                                    @endphp
+                                    <label class="pemilihan-option pemilihan-option-golput {{ $isKotakKosongSelected ? 'is-selected' : '' }} {{ !$stepperConfig['presbem']['is_open'] ? 'is-disabled' : '' }}"
+                                        data-pemilihan="presbem"
+                                        data-candidate-id="0"
+                                        data-candidate-name="Kotak Kosong"
+                                        data-candidate-nomor="0"
+                                        data-candidate-description="Memilih kotak kosong"
+                                        style="border: 2px dashed #6c757d;"
+                                    >
+                                        <input type="radio" name="presbem_candidate" value="0" class="d-none" @checked($isKotakKosongSelected)>
+                                        <div class="pemilihan-option-body text-center">
+                                            <div class="py-4">
+                                                <i class="fa-regular fa-square fa-3x text-muted mb-3"></i>
+                                                <h5 class="fw-bold text-muted mb-2">Kotak Kosong</h5>
+                                                <p class="text-muted small mb-0">Saya memilih kotak kosong</p>
+                                            </div>
+                                        </div>
+                                    </label>
+                                </div>
+                            @endif
                         </div>
                     @elseif($pemilihanPresbem)
                         <div class="alert alert-warning mb-0">
@@ -584,47 +621,17 @@
                         </div>
                     @elseif($pemilihanCaleg && $pemilihanCaleg->candidates->isNotEmpty())
                         <div class="row g-3 pemilihan-option-grid">
-                            {{-- Opsi Kotak Kosong untuk caleg (hanya muncul jika kandidat = 1) --}}
-                            @if($pemilihanCaleg->candidates->count() === 1)
-                                <div class="col-12 col-md-6 col-xl-4">
-                                    @php
-                                        $isKotakKosongCalegSelected = $calegVote?->candidate_id === null && $calegVote !== null;
-                                    @endphp
-                                    <label class="pemilihan-option pemilihan-option-golput {{ $isKotakKosongCalegSelected ? 'is-selected' : '' }} {{ !$stepperConfig['caleg']['is_open'] ? 'is-disabled' : '' }}"
-                                        data-pemilihan="caleg"
-                                        data-candidate-id="0"
-                                        data-candidate-name="Kotak Kosong"
-                                        data-candidate-nomor="0"
-                                        data-candidate-description="Memilih kotak kosong"
-                                        style="border: 2px dashed #6c757d;"
-                                    >
-                                        <input type="radio" name="caleg_candidate" value="0" class="d-none" @checked($isKotakKosongCalegSelected)>
-                                        <div class="pemilihan-option-body text-center">
-                                            <div class="py-4">
-                                                <i class="fa-regular fa-square fa-3x text-muted mb-3"></i>
-                                                <h5 class="fw-bold text-muted mb-2">Kotak Kosong</h5>
-                                                <p class="text-muted small mb-0">Saya memilih kotak kosong</p>
-                                            </div>
-                                        </div>
-                                        @if($isKotakKosongCalegSelected)
-                                            <span class="pemilihan-option-badge" style="background-color: #6c757d;">Pilihanmu</span>
-                                        @endif
-                                    </label>
-                                </div>
-                            @endif
                             @foreach($pemilihanCaleg->candidates as $candidate)
                                 @php
                                     $isSelected = $calegVote?->candidate_id === $candidate->id;
-                                    $ketuaSummary = collect([
-                                        $candidate->ketua_nama,
-                                        $candidate->ketua_prodi,
-                                        $candidate->ketua_angkatan ? "'" . $candidate->ketua_angkatan : null,
-                                    ])->filter()->implode(' • ');
-                                    $wakilSummary = collect([
-                                        $candidate->wakil_nama,
-                                        $candidate->wakil_prodi,
-                                        $candidate->wakil_angkatan ? "'" . $candidate->wakil_angkatan : null,
-                                    ])->filter()->implode(' • ');
+                                    $ketuaNama = $candidate->ketua_nama;
+                                    $ketuaProdi = $candidate->ketua_prodi;
+                                    $ketuaAngkatan = $candidate->ketua_angkatan ? "'" . $candidate->ketua_angkatan : null;
+                                    $ketuaSummary = collect([$ketuaNama, $ketuaProdi, $ketuaAngkatan])->filter()->implode(' • ');
+                                    $wakilNama = $candidate->wakil_nama;
+                                    $wakilProdi = $candidate->wakil_prodi;
+                                    $wakilAngkatan = $candidate->wakil_angkatan ? "'" . $candidate->wakil_angkatan : null;
+                                    $wakilSummary = collect([$wakilNama, $wakilProdi, $wakilAngkatan])->filter()->implode(' • ');
                                     $candidateSummary = collect([
                                         $ketuaSummary ? 'Ketua: ' . $ketuaSummary : null,
                                         $wakilSummary ? 'Wakil: ' . $wakilSummary : null,
@@ -656,18 +663,29 @@
                                                     >
                                                 </div>
                                                 <div class="pemilihan-option-content">
-                                                    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
-                                                        <div class="pemilihan-option-title fw-semibold mb-0">{{ $candidate->name }}</div>
-                                                        <span class="badge bg-light text-dark">{{ $candidate->total_votes ?? 0 }} suara</span>
-                                                    </div>
+                                                    <div class="pemilihan-option-title">{{ $candidate->name }}</div>
                                                     <div class="pemilihan-option-meta">
-                                                        <span><strong>Ketua:</strong> {{ $ketuaSummary ?: '-' }}</span>
-                                                        <span><strong>Wakil:</strong> {{ $wakilSummary ?: '-' }}</span>
+                                                        <div class="pemilihan-option-meta-item">
+                                                            <span class="pemilihan-option-meta-label">Ketua</span>
+                                                            <span class="pemilihan-option-meta-value">{{ $ketuaNama ?: '-' }}</span>
+                                                            @if($ketuaProdi || $ketuaAngkatan)
+                                                                <span class="pemilihan-option-meta-sub">{{ collect([$ketuaProdi, $ketuaAngkatan])->filter()->implode(' • ') }}</span>
+                                                            @endif
+                                                        </div>
+                                                        <div class="pemilihan-option-meta-item">
+                                                            <span class="pemilihan-option-meta-label">Wakil</span>
+                                                            <span class="pemilihan-option-meta-value">{{ $wakilNama ?: '-' }}</span>
+                                                            @if($wakilProdi || $wakilAngkatan)
+                                                                <span class="pemilihan-option-meta-sub">{{ collect([$wakilProdi, $wakilAngkatan])->filter()->implode(' • ') }}</span>
+                                                            @endif
+                                                        </div>
                                                         @if($dapilName)
-                                                            <span>
-                                                                <strong>Dapil:</strong>
-                                                                {{ $dapilName }}@if($dapilProdis) <span class="text-muted">• {{ $dapilProdis }}</span>@endif
-                                                            </span>
+                                                            <div class="pemilihan-option-meta-item">
+                                                                <span class="pemilihan-option-meta-label">Dapil</span>
+                                                                <span class="pemilihan-option-meta-value">
+                                                                    {{ $dapilName }}@if($dapilProdis) <span class="text-muted">• {{ $dapilProdis }}</span>@endif
+                                                                </span>
+                                                            </div>
                                                         @endif
                                                     </div>
                                                 </div>
@@ -692,6 +710,31 @@
                                     </label>
                                 </div>
                             @endforeach
+                            {{-- Opsi Kotak Kosong untuk caleg (hanya muncul jika kandidat = 1) - Ditampilkan di posisi terakhir --}}
+                            @if($pemilihanCaleg->candidates->count() === 1)
+                                <div class="col-12 col-md-6 col-xl-4">
+                                    @php
+                                        $isKotakKosongCalegSelected = $calegVote?->candidate_id === null && $calegVote !== null;
+                                    @endphp
+                                    <label class="pemilihan-option pemilihan-option-golput {{ $isKotakKosongCalegSelected ? 'is-selected' : '' }} {{ !$stepperConfig['caleg']['is_open'] ? 'is-disabled' : '' }}"
+                                        data-pemilihan="caleg"
+                                        data-candidate-id="0"
+                                        data-candidate-name="Kotak Kosong"
+                                        data-candidate-nomor="0"
+                                        data-candidate-description="Memilih kotak kosong"
+                                        style="border: 2px dashed #6c757d;"
+                                    >
+                                        <input type="radio" name="caleg_candidate" value="0" class="d-none" @checked($isKotakKosongCalegSelected)>
+                                        <div class="pemilihan-option-body text-center">
+                                            <div class="py-4">
+                                                <i class="fa-regular fa-square fa-3x text-muted mb-3"></i>
+                                                <h5 class="fw-bold text-muted mb-2">Kotak Kosong</h5>
+                                                <p class="text-muted small mb-0">Saya memilih kotak kosong</p>
+                                            </div>
+                                        </div>
+                                    </label>
+                                </div>
+                            @endif
                         </div>
                     @elseif($pemilihanCaleg)
                         <div class="alert alert-warning mb-0">
