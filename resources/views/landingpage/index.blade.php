@@ -617,6 +617,67 @@
         position: relative;
     }
 
+    .pemilwa-stats {
+        margin-top: 1.5rem;
+        padding: 1rem 1.25rem;
+        border-radius: 1.25rem;
+        background: rgba(255, 255, 255, 0.9);
+        border: 1px solid rgba(148, 163, 184, 0.35);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 8px 24px rgba(15, 23, 42, 0.08);
+    }
+
+    .pemilwa-total {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding-bottom: 0.85rem;
+        border-bottom: 1px dashed rgba(148, 163, 184, 0.5);
+        margin-bottom: 0.85rem;
+        color: #475569;
+        font-weight: 600;
+    }
+
+    .pemilwa-total strong {
+        font-size: 1.6rem;
+        color: #0f172a;
+    }
+
+    .pemilwa-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+    }
+
+    .pemilwa-list li {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        font-size: 0.95rem;
+        padding: 0.4rem 0;
+    }
+
+    .pemilwa-list-label {
+        color: #0f172a;
+        font-weight: 600;
+    }
+
+    .pemilwa-list-value {
+        font-weight: 700;
+        color: #2563eb;
+    }
+
+    .pemilwa-list-value small {
+        font-size: 0.75rem;
+        color: #475569;
+        font-weight: 600;
+        margin-left: 0.25rem;
+    }
+
     .pemilwa-empty {
         background: white;
         border-radius: 20px;
@@ -1063,6 +1124,24 @@
                                     <div class="pemilwa-card-body">
                                         <div class="chart-container">
                                             <canvas id="votingChart-{{ $pem['slug'] }}"></canvas>
+                                        </div>
+                                        <div class="pemilwa-stats">
+                                            <div class="pemilwa-total">
+                                                <span>Total Suara Masuk</span>
+                                                <strong>{{ number_format($pem['total_votes']) }}</strong>
+                                            </div>
+                                            <ul class="pemilwa-list">
+                                                @foreach($pem['candidates'] as $candidate)
+                                                    @php
+                                                        $candidateLabel = $candidate['label'] ?? 'Tidak diketahui';
+                                                        $candidateVotes = (int) ($candidate['votes'] ?? 0);
+                                                    @endphp
+                                                    <li>
+                                                        <span class="pemilwa-list-label">{{ $candidateLabel }}</span>
+                                                        <span class="pemilwa-list-value">{{ number_format($candidateVotes) }} <small>suara</small></span>
+                                                    </li>
+                                                @endforeach
+                                            </ul>
                                         </div>
                                     </div>
                                 </div>

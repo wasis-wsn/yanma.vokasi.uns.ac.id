@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Pemilihan;
 use App\Models\PemilihanVote;
+use App\Models\User;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -13,11 +14,14 @@ use RuntimeException;
 
 class PemilihanController extends Controller
 {
+    private const SKL_FINAL_STATUSES = ['6', '7'];
+
     public function indexMahasiswa()
     {
         $user = Auth::user();
         $userId = $user?->id;
         $userProdiId = $user?->prodi;
+        $userHasSkl = $this->userHasFinalizedSkl($user);
 
         $pemilihans = Pemilihan::with([
             'candidates' => function ($query) {
@@ -37,11 +41,11 @@ class PemilihanController extends Controller
         $pemilihanCaleg = $pemilihans->get('caleg');
 
         $eligibility = [
-            'presbem' => $this->userEligibleForPemilihan($pemilihanPresbem, $userProdiId),
-            'caleg' => $this->userEligibleForPemilihan($pemilihanCaleg, $userProdiId),
+            'presbem' => $this->userEligibleForPemilihan($pemilihanPresbem, $userProdiId, $userHasSkl),
+            'caleg' => $this->userEligibleForPemilihan($pemilihanCaleg, $userProdiId, $userHasSkl),
         ];
 
-        return view('pages.pemilihan.mahasiswa', compact('pemilihanPresbem', 'pemilihanCaleg', 'eligibility'));
+        return view('pages.pemilihan.mahasiswa', compact('pemilihanPresbem', 'pemilihanCaleg', 'eligibility', 'userHasSkl'));
     }
 
     public function summary(Pemilihan $pemilihan): JsonResponse
@@ -78,9 +82,17 @@ class PemilihanController extends Controller
         $user = Auth::user();
         $userId = $user?->id;
         $userProdiId = $user?->prodi;
+        $userHasSkl = $this->userHasFinalizedSkl($user);
+
+        if ($userHasSkl) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Anda tidak dapat mengikuti pemilihan karena sudah memiliki SKL.',
+            ], 403);
+        }
 
         // Check eligibility (only for caleg/legislatif)
-        if ($pemilihan->jenis === 'caleg' && !$this->userEligibleForPemilihan($pemilihan, $userProdiId)) {
+        if ($pemilihan->jenis === 'caleg' && !$this->userEligibleForPemilihan($pemilihan, $userProdiId, $userHasSkl)) {
             return response()->json([
                 'status' => false,
                 'message' => 'Prodi kamu bukan bagian dari dapil pemilihan legislatif ini.',
@@ -152,6 +164,7 @@ class PemilihanController extends Controller
         $user = Auth::user();
         $userId = $user?->id;
         $userProdiId = $user?->prodi;
+        $userHasSkl = $this->userHasFinalizedSkl($user);
 
         $pemilihan->load([
             'candidates' => function ($query) {
@@ -178,7 +191,7 @@ class PemilihanController extends Controller
                 'selesai_at' => optional($pemilihan->selesai_at)->toDateTimeString(),
                 'is_active' => (bool) $pemilihan->is_active,
                 'is_open' => $pemilihan->votingWindowIsOpen(),
-                'eligible' => $this->userEligibleForPemilihan($pemilihan, $userProdiId),
+                'eligible' => $this->userEligibleForPemilihan($pemilihan, $userProdiId, $userHasSkl),
             ],
             'candidates' => $pemilihan->candidates->map(function ($candidate) {
                 return [
@@ -213,9 +226,13 @@ class PemilihanController extends Controller
         ];
     }
 
-    private function userEligibleForPemilihan(?Pemilihan $pemilihan, ?int $userProdiId): bool
+    private function userEligibleForPemilihan(?Pemilihan $pemilihan, ?int $userProdiId, bool $userHasSkl = false): bool
     {
         if (!$pemilihan) {
+            return false;
+        }
+
+        if ($userHasSkl) {
             return false;
         }
 
@@ -243,5 +260,21 @@ class PemilihanController extends Controller
             return $candidate->dapil
                 && $candidate->dapil->prodis->contains('id', $userProdiId);
         });
+    }
+
+    private function userHasFinalizedSkl(?User $user): bool
+    {
+        if (!$user) {
+            return false;
+        }
+
+        $user->loadMissing('skl');
+        $skl = $user->skl;
+
+        if (!$skl || $skl->status_id === null) {
+            return false;
+        }
+
+        return in_array((string) $skl->status_id, self::SKL_FINAL_STATUSES, true);
     }
 }

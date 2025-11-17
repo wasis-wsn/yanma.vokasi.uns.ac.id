@@ -47,12 +47,14 @@
             const hasVote = data && data.user_vote !== undefined && data.user_vote !== null && data.user_vote !== '';
             const enabled = !!data.enabled;
             const isOpen = !!data.is_open;
-            const isEligible = type === 'caleg' ? data.eligible !== false : true;
+            const isEligible = data.eligible !== false;
+            const ineligibleReason = data.ineligible_reason || null;
 
             return {
                 enabled,
                 isOpen,
                 eligible: isEligible,
+                ineligibleReason,
                 voteUrl: data.vote_url || null,
                 selected: hasVote ? data.user_vote : null,
                 initial: hasVote ? data.user_vote : null,
@@ -364,8 +366,13 @@
                 }
 
                 if (!choice.eligible) {
-                    summaryName.text('Tidak diwajibkan');
-                    summaryDetail.text('Prodi kamu tidak tercantum dalam dapil aktif.');
+                    if (choice.ineligibleReason === 'skl') {
+                        summaryName.text('Tidak dapat memilih');
+                        summaryDetail.text('Kamu sudah memiliki SKL sehingga tidak dapat mengikuti pemilihan ini.');
+                    } else {
+                        summaryName.text('Tidak diwajibkan');
+                        summaryDetail.text('Prodi kamu tidak tercantum dalam dapil aktif.');
+                    }
                     return;
                 }
 

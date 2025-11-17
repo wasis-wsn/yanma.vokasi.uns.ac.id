@@ -14,6 +14,17 @@
         : null;
     $presbemEligible = $eligibility['presbem'] ?? true;
     $calegEligible = $eligibility['caleg'] ?? false;
+    $hasSklRestriction = $userHasSkl ?? false;
+
+    if ($hasSklRestriction) {
+        $presbemEligible = false;
+        $calegEligible = false;
+    }
+
+    $presbemIneligibleReason = !$presbemEligible && $hasSklRestriction ? 'skl' : null;
+    $calegIneligibleReason = !$calegEligible
+        ? ($hasSklRestriction ? 'skl' : 'dapil')
+        : null;
 
     $stepperConfig = [
         'presbem' => [
@@ -22,6 +33,7 @@
             'vote_url' => $pemilihanPresbem ? route('pemilihan.vote', $pemilihanPresbem) : null,
             'user_vote' => $presbemVote?->candidate_id,
             'eligible' => $presbemEligible,
+            'ineligible_reason' => $presbemIneligibleReason,
         ],
         'caleg' => [
             'enabled' => (bool) $pemilihanCaleg,
@@ -29,6 +41,7 @@
             'vote_url' => $pemilihanCaleg ? route('pemilihan.vote', $pemilihanCaleg) : null,
             'user_vote' => $calegVote?->candidate_id,
             'eligible' => $calegEligible,
+            'ineligible_reason' => $calegIneligibleReason,
         ],
     ];
     $fallbackPaslonImage = asset('paslon.png');
@@ -414,7 +427,11 @@
                                 <li>
                                     <span class="d-block text-dark fw-semibold mb-1">Legislatif DEMA</span>
                                     @if(!$calegEligible)
-                                        Kamu tidak terdaftar pada dapil legislatif yang aktif saat ini.
+                                        @if($hasSklRestriction)
+                                            Kamu tidak dapat mengikuti pemilihan legislatif karena sudah memiliki SKL.
+                                        @else
+                                            Kamu tidak terdaftar pada dapil legislatif yang aktif saat ini.
+                                        @endif
                                     @elseif($calegSelectedCandidate)
                                         No. {{ $calegSelectedCandidate->nomor_urut }} - {{ $calegSelectedCandidate->name }}
                                     @elseif($calegVote)
@@ -431,6 +448,15 @@
         @else
             <div class="card pemilihan-stepper-card" id="pemilihanStepper" data-config='@json($stepperConfig)'>
                 <div class="card-body">
+                    @if($hasSklRestriction)
+                        <div class="alert alert-warning d-flex align-items-start gap-2">
+                            <i class="fa-solid fa-circle-exclamation fa-lg mt-1"></i>
+                            <div>
+                                <div class="fw-semibold mb-1">Kamu sudah tercatat memiliki SKL.</div>
+                                <p class="mb-0">Sesuai ketentuan, pemegang SKL tidak diperkenankan mengikuti pemilihan mahasiswa.</p>
+                            </div>
+                        </div>
+                    @endif
                     <div class="pemilihan-stepper-header mb-4">
                     <div class="stepper-item active" data-step="1">
                         <span class="stepper-number">1</span>
@@ -466,7 +492,11 @@
                         </p>
                     </div>
 
-                    @if($pemilihanPresbem && $pemilihanPresbem->candidates->isNotEmpty())
+                    @if(!$presbemEligible && $hasSklRestriction)
+                        <div class="alert alert-info mb-0">
+                            Kamu tidak dapat mengikuti pemilihan Presiden BEM karena sudah memiliki SKL.
+                        </div>
+                    @elseif($pemilihanPresbem && $pemilihanPresbem->candidates->isNotEmpty())
                         <div class="row g-3 pemilihan-option-grid">
                             @foreach($pemilihanPresbem->candidates as $candidate)
                                 @php
@@ -493,7 +523,7 @@
                                     $deskripsiPreview = $candidate->deskripsi ? \Illuminate\Support\Str::limit(strip_tags($candidate->deskripsi), 140) : null;
                                 @endphp
                                 <div class="col-12 col-md-6 col-xl-4">
-                                    <label class="pemilihan-option {{ $isSelected ? 'is-selected' : '' }} {{ !$stepperConfig['presbem']['is_open'] ? 'is-disabled' : '' }}"
+                                    <label class="pemilihan-option {{ $isSelected ? 'is-selected' : '' }} {{ (!$stepperConfig['presbem']['is_open'] || !$presbemEligible) ? 'is-disabled' : '' }}"
                                         data-pemilihan="presbem"
                                         data-candidate-id="{{ $candidate->id }}"
                                         data-candidate-name="{{ $candidate->name }}"
@@ -559,7 +589,7 @@
                                     @php
                                         $isKotakKosongSelected = $presbemVote?->candidate_id === null && $presbemVote !== null;
                                     @endphp
-                                    <label class="pemilihan-option pemilihan-option-golput {{ $isKotakKosongSelected ? 'is-selected' : '' }} {{ !$stepperConfig['presbem']['is_open'] ? 'is-disabled' : '' }}"
+                                    <label class="pemilihan-option pemilihan-option-golput {{ $isKotakKosongSelected ? 'is-selected' : '' }} {{ (!$stepperConfig['presbem']['is_open'] || !$presbemEligible) ? 'is-disabled' : '' }}"
                                         data-pemilihan="presbem"
                                         data-candidate-id="0"
                                         data-candidate-name="Kotak Kosong"
@@ -601,6 +631,10 @@
                                 Kamu sudah memilih kandidat nomor {{ $presbemSelectedCandidate->nomor_urut ?? '-' }} ({{ $presbemSelectedCandidate->name ?? 'tidak diketahui' }}).
                                 Perubahan tidak diperbolehkan.
                             </div>
+                        @elseif(!$presbemEligible && $hasSklRestriction)
+                            <div class="text-danger small mt-2">
+                                Kamu sudah memiliki SKL, sehingga tidak dapat mengirim suara pada pemilihan ini.
+                            </div>
                         @elseif(!$stepperConfig['presbem']['is_open'])
                             <div class="text-warning small mt-2">
                                 Periode pemilihan belum dibuka atau sudah ditutup.
@@ -619,7 +653,11 @@
 
                     @if(!$calegEligible)
                         <div class="alert alert-info mb-0">
-                            Prodi kamu tidak tercantum dalam dapil legislatif yang sedang dibuka. Kamu tidak perlu memilih caleg.
+                            @if($hasSklRestriction)
+                                Kamu tidak dapat mengikuti pemilihan legislatif karena sudah memiliki SKL.
+                            @else
+                                Prodi kamu tidak tercantum dalam dapil legislatif yang sedang dibuka. Kamu tidak perlu memilih caleg.
+                            @endif
                         </div>
                     @elseif($calegEligible && $pemilihanCaleg && $pemilihanCaleg->candidates->isNotEmpty())
                         <div class="row g-3 pemilihan-option-grid">
@@ -646,7 +684,7 @@
                                     $deskripsiPreview = $candidate->deskripsi ? \Illuminate\Support\Str::limit(strip_tags($candidate->deskripsi), 140) : null;
                                 @endphp
                                 <div class="col-12 col-md-6 col-xl-4">
-                                    <label class="pemilihan-option {{ $isSelected ? 'is-selected' : '' }} {{ !$stepperConfig['caleg']['is_open'] ? 'is-disabled' : '' }}"
+                                    <label class="pemilihan-option {{ $isSelected ? 'is-selected' : '' }} {{ (!$stepperConfig['caleg']['is_open'] || !$calegEligible) ? 'is-disabled' : '' }}"
                                         data-pemilihan="caleg"
                                         data-candidate-id="{{ $candidate->id }}"
                                         data-candidate-name="{{ $candidate->name }}"
@@ -720,7 +758,7 @@
                                     @php
                                         $isKotakKosongCalegSelected = $calegVote?->candidate_id === null && $calegVote !== null;
                                     @endphp
-                                    <label class="pemilihan-option pemilihan-option-golput {{ $isKotakKosongCalegSelected ? 'is-selected' : '' }} {{ !$stepperConfig['caleg']['is_open'] ? 'is-disabled' : '' }}"
+                                    <label class="pemilihan-option pemilihan-option-golput {{ $isKotakKosongCalegSelected ? 'is-selected' : '' }} {{ (!$stepperConfig['caleg']['is_open'] || !$calegEligible) ? 'is-disabled' : '' }}"
                                         data-pemilihan="caleg"
                                         data-candidate-id="0"
                                         data-candidate-name="Kotak Kosong"
@@ -765,7 +803,11 @@
                             </div>
                         @elseif(!$calegEligible)
                             <div class="text-info small mt-2">
-                                Lanjutkan ke langkah berikutnya setelah memastikan pilihan Presiden BEM.
+                                @if($hasSklRestriction)
+                                    Kamu sudah memiliki SKL, sehingga tidak dapat mengikuti pemilihan legislatif.
+                                @else
+                                    Prodi kamu tidak tercantum dalam dapil legislatif yang sedang dibuka.
+                                @endif
                             </div>
                         @elseif(!$stepperConfig['caleg']['is_open'] && $pemilihanCaleg)
                             <div class="text-warning small mt-2">
@@ -790,6 +832,8 @@
                                     <div class="pemilihan-summary-title" data-summary-name="presbem">
                                         @if($presbemSelectedCandidate)
                                             No. {{ $presbemSelectedCandidate->nomor_urut }} - {{ $presbemSelectedCandidate->name }}
+                                        @elseif(!$presbemEligible)
+                                            Tidak dapat memilih
                                         @else
                                             Belum dipilih
                                         @endif
@@ -797,6 +841,8 @@
                                     <div class="text-muted small" data-summary-detail="presbem">
                                         @if($presbemSelectedCandidate)
                                             Suara kamu sudah tercatat.
+                                        @elseif(!$presbemEligible)
+                                            Kamu sudah memiliki SKL sehingga tidak dapat mengikuti pemilihan ini.
                                         @else
                                             Silakan memilih terlebih dahulu.
                                         @endif
@@ -804,7 +850,7 @@
                                 </div>
                                 <button type="button" class="btn btn-link btn-sm px-0 stepper-edit"
                                     data-target-step="1" data-summary-edit="presbem"
-                                    @if($presbemVote || !$stepperConfig['presbem']['is_open']) disabled @endif>
+                                    @if($presbemVote || !$stepperConfig['presbem']['is_open'] || !$presbemEligible) disabled @endif>
                                     Ubah
                                 </button>
                             </div>
@@ -816,6 +862,8 @@
                                     <div class="pemilihan-summary-title" data-summary-name="caleg">
                                         @if($calegSelectedCandidate)
                                             No. {{ $calegSelectedCandidate->nomor_urut }} - {{ $calegSelectedCandidate->name }}
+                                        @elseif(!$calegEligible && $hasSklRestriction)
+                                            Tidak dapat memilih
                                         @elseif(!$calegEligible)
                                             Tidak diwajibkan
                                         @else
@@ -825,6 +873,8 @@
                                     <div class="text-muted small" data-summary-detail="caleg">
                                         @if($calegSelectedCandidate)
                                             Suara kamu sudah tercatat.
+                                        @elseif(!$calegEligible && $hasSklRestriction)
+                                            Kamu sudah memiliki SKL sehingga tidak dapat mengikuti pemilihan legislatif.
                                         @elseif(!$calegEligible)
                                             Prodi kamu tidak tercantum dalam dapil aktif.
                                         @else
