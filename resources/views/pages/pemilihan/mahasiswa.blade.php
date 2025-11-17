@@ -521,13 +521,15 @@
                                                                 <span class="pemilihan-option-meta-sub">{{ collect([$ketuaProdi, $ketuaAngkatan])->filter()->implode(' • ') }}</span>
                                                             @endif
                                                         </div>
-                                                        <div class="pemilihan-option-meta-item">
-                                                            <span class="pemilihan-option-meta-label">Wakil</span>
-                                                            <span class="pemilihan-option-meta-value">{{ $wakilNama ?: '-' }}</span>
-                                                            @if($wakilProdi || $wakilAngkatan)
-                                                                <span class="pemilihan-option-meta-sub">{{ collect([$wakilProdi, $wakilAngkatan])->filter()->implode(' • ') }}</span>
-                                                            @endif
-                                                        </div>
+                                                        @if($wakilNama)
+                                                            <div class="pemilihan-option-meta-item">
+                                                                <span class="pemilihan-option-meta-label">Wakil</span>
+                                                                <span class="pemilihan-option-meta-value">{{ $wakilNama }}</span>
+                                                                @if($wakilProdi || $wakilAngkatan)
+                                                                    <span class="pemilihan-option-meta-sub">{{ collect([$wakilProdi, $wakilAngkatan])->filter()->implode(' • ') }}</span>
+                                                                @endif
+                                                            </div>
+                                                        @endif
                                                     </div>
                                                 </div>
                                             </div>
@@ -619,7 +621,7 @@
                         <div class="alert alert-info mb-0">
                             Prodi kamu tidak tercantum dalam dapil legislatif yang sedang dibuka. Kamu tidak perlu memilih caleg.
                         </div>
-                    @elseif($pemilihanCaleg && $pemilihanCaleg->candidates->isNotEmpty())
+                    @elseif($calegEligible && $pemilihanCaleg && $pemilihanCaleg->candidates->isNotEmpty())
                         <div class="row g-3 pemilihan-option-grid">
                             @foreach($pemilihanCaleg->candidates as $candidate)
                                 @php
@@ -672,13 +674,15 @@
                                                                 <span class="pemilihan-option-meta-sub">{{ collect([$ketuaProdi, $ketuaAngkatan])->filter()->implode(' • ') }}</span>
                                                             @endif
                                                         </div>
-                                                        <div class="pemilihan-option-meta-item">
-                                                            <span class="pemilihan-option-meta-label">Wakil</span>
-                                                            <span class="pemilihan-option-meta-value">{{ $wakilNama ?: '-' }}</span>
-                                                            @if($wakilProdi || $wakilAngkatan)
-                                                                <span class="pemilihan-option-meta-sub">{{ collect([$wakilProdi, $wakilAngkatan])->filter()->implode(' • ') }}</span>
-                                                            @endif
-                                                        </div>
+                                                        @if($wakilNama)
+                                                            <div class="pemilihan-option-meta-item">
+                                                                <span class="pemilihan-option-meta-label">Wakil</span>
+                                                                <span class="pemilihan-option-meta-value">{{ $wakilNama }}</span>
+                                                                @if($wakilProdi || $wakilAngkatan)
+                                                                    <span class="pemilihan-option-meta-sub">{{ collect([$wakilProdi, $wakilAngkatan])->filter()->implode(' • ') }}</span>
+                                                                @endif
+                                                            </div>
+                                                        @endif
                                                         @if($dapilName)
                                                             <div class="pemilihan-option-meta-item">
                                                                 <span class="pemilihan-option-meta-label">Dapil</span>
@@ -736,11 +740,11 @@
                                 </div>
                             @endif
                         </div>
-                    @elseif($pemilihanCaleg)
+                    @elseif($calegEligible && $pemilihanCaleg)
                         <div class="alert alert-warning mb-0">
                             Belum ada calon legislatif yang aktif di dapilmu.
                         </div>
-                    @else
+                    @elseif($calegEligible)
                         <div class="alert alert-info mb-0">
                             Tidak ada pemilihan legislatif yang sedang berlangsung.
                         </div>
@@ -750,7 +754,7 @@
                         <div class="text-muted small">
                             @if(!$calegEligible)
                                 Kamu otomatis melewati langkah ini karena prodi kamu bukan bagian dari dapil aktif.
-                            @else
+                            @elseif($calegEligible && $pemilihanCaleg)
                                 Pastikan kamu memilih calon legislatif yang sesuai dengan dapil yang sedang dibuka.
                             @endif
                         </div>

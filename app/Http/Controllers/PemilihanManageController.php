@@ -182,7 +182,6 @@ class PemilihanManageController extends Controller
                     'wakil_angkatan' => $candidate->wakil_angkatan,
                     'visi' => $candidate->visi,
                     'misi' => $candidate->misi,
-                    'deskripsi' => $candidate->deskripsi,
                     'foto' => $candidate->foto,
                     'photo_url' => $candidate->photo_url,
                     'prodi' => $candidate->prodi ? [
@@ -235,7 +234,6 @@ class PemilihanManageController extends Controller
                 'wakil_angkatan' => $candidate->wakil_angkatan,
                 'visi' => $candidate->visi,
                 'misi' => $candidate->misi,
-                'deskripsi' => $candidate->deskripsi,
                 'prodi_id' => $candidate->prodi_id,
                 'prodi_name' => $candidate->prodi?->name,
                 'dapil_id' => $candidate->dapil_id,
@@ -315,10 +313,13 @@ class PemilihanManageController extends Controller
     private function validateCandidate(Request $request, Pemilihan $pemilihan, ?int $candidateId = null): array
     {
         $pemilihanId = $pemilihan->id;
+        $isCaleg = $pemilihan->jenis === 'caleg';
         // Dapil validation rules (only for caleg)
-        $dapilRules = $pemilihan->jenis === 'caleg'
+        $dapilRules = $isCaleg
             ? ['required', 'exists:dapils,id']
             : ['nullable', 'exists:dapils,id'];
+        $wakilTextRules = $isCaleg ? ['nullable', 'string', 'max:255'] : ['required', 'string', 'max:255'];
+        $wakilAngkatanRules = $isCaleg ? ['nullable', 'string', 'max:50'] : ['required', 'string', 'max:50'];
 
         return $request->validate([
             'nomor_urut' => [
@@ -333,12 +334,11 @@ class PemilihanManageController extends Controller
             'ketua_nama' => ['required', 'string', 'max:255'],
             'ketua_prodi' => ['required', 'string', 'max:255'],
             'ketua_angkatan' => ['required', 'string', 'max:50'],
-            'wakil_nama' => ['required', 'string', 'max:255'],
-            'wakil_prodi' => ['required', 'string', 'max:255'],
-            'wakil_angkatan' => ['required', 'string', 'max:50'],
+            'wakil_nama' => $wakilTextRules,
+            'wakil_prodi' => $wakilTextRules,
+            'wakil_angkatan' => $wakilAngkatanRules,
             'visi' => ['nullable', 'string'],
             'misi' => ['nullable', 'string'],
-            'deskripsi' => ['nullable', 'string'],
             'prodi_id' => ['nullable', 'exists:ref_prodi,id'],
             'dapil_id' => $dapilRules,
             'foto' => ['nullable', 'image', 'max:2048'],
@@ -361,7 +361,6 @@ class PemilihanManageController extends Controller
             'wakil_angkatan' => 'Angkatan wakil ketua',
             'visi' => 'Visi',
             'misi' => 'Misi',
-            'deskripsi' => 'Deskripsi',
             'prodi_id' => 'Prodi calon',
             'dapil_id' => 'Dapil',
             'foto' => 'Foto',

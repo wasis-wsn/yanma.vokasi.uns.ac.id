@@ -218,19 +218,19 @@
                             <input type="text" class="form-control" name="name" id="candidate_name" required>
                         </div>
 
-                        <div class="col-12">
+                        <div class="col-12" id="candidate_ketua_section">
                             <div class="border rounded p-3">
                                 <div class="d-flex justify-content-between align-items-center mb-3">
-                                    <h6 class="mb-0">Data Diri Ketua</h6>
-                                    <span class="badge bg-primary-subtle text-primary">Ketua</span>
+                                    <h6 class="mb-0" id="candidate_ketua_title" data-label-default="Data Diri Ketua" data-label-caleg="Data Calon">Data Diri Ketua</h6>
+                                    <span class="badge bg-primary-subtle text-primary" id="candidate_ketua_badge" data-label-default="Ketua" data-label-caleg="Calon">Ketua</span>
                                 </div>
                                 <div class="row g-3">
                                     <div class="col-md-6">
-                                        <label class="form-label">Nama Ketua</label>
+                                        <label class="form-label" id="ketua_nama_label" data-label-default="Nama Ketua" data-label-caleg="Nama Calon">Nama Ketua</label>
                                         <input type="text" class="form-control" name="ketua_nama" id="ketua_nama" required>
                                     </div>
                                     <div class="col-md-4">
-                                        <label class="form-label">Prodi Ketua</label>
+                                        <label class="form-label" id="ketua_prodi_label" data-label-default="Prodi Ketua" data-label-caleg="Prodi Calon">Prodi Ketua</label>
                                         <select class="form-select" name="ketua_prodi" id="ketua_prodi" required>
                                             <option value="" disabled selected>Pilih prodi</option>
                                             @foreach($prodis as $prodi)
@@ -239,14 +239,14 @@
                                         </select>
                                     </div>
                                     <div class="col-md-2">
-                                        <label class="form-label">Angkatan</label>
+                                        <label class="form-label" id="ketua_angkatan_label" data-label-default="Angkatan Ketua" data-label-caleg="Angkatan Calon">Angkatan Ketua</label>
                                         <input type="text" class="form-control" name="ketua_angkatan" id="ketua_angkatan" required>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="col-12">
+                        <div class="col-12" id="candidate_wakil_section">
                             <div class="border rounded p-3">
                                 <div class="d-flex justify-content-between align-items-center mb-3">
                                     <h6 class="mb-0">Data Diri Wakil Ketua</h6>

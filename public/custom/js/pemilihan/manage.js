@@ -21,6 +21,15 @@
         wakil_prodi: $('#wakil_prodi'),
         wakil_angkatan: $('#wakil_angkatan'),
     };
+    const ketuaSection = $('#candidate_ketua_section');
+    const ketuaTitle = $('#candidate_ketua_title');
+    const ketuaBadge = $('#candidate_ketua_badge');
+    const ketuaLabels = {
+        nama: $('#ketua_nama_label'),
+        prodi: $('#ketua_prodi_label'),
+        angkatan: $('#ketua_angkatan_label'),
+    };
+    const wakilSection = $('#candidate_wakil_section');
 
     const pemilihanTable = $('#pemilihan-table').DataTable({
         processing: true,
@@ -67,6 +76,7 @@
         $('#modalCandidateLabel').text('Tambah Calon');
         $('#btn-save-candidate').text('Simpan');
         updateDapilFieldState();
+        updateLeaderSectionState();
     }
 
     function setPhotoPreview(url) {
@@ -131,6 +141,44 @@
         }
     }
 
+    function updateLeaderSectionState() {
+        const isCaleg = selectedPemilihanJenis === 'caleg';
+        if (ketuaTitle.length) {
+            const text = isCaleg
+                ? ketuaTitle.data('label-caleg') || ketuaTitle.text()
+                : ketuaTitle.data('label-default') || ketuaTitle.text();
+            ketuaTitle.text(text);
+        }
+        if (ketuaBadge.length) {
+            const badgeText = isCaleg
+                ? ketuaBadge.data('label-caleg') || ketuaBadge.text()
+                : ketuaBadge.data('label-default') || ketuaBadge.text();
+            ketuaBadge.text(badgeText);
+        }
+        Object.values(ketuaLabels).forEach((label) => {
+            if (!label.length) return;
+            const text = isCaleg
+                ? label.data('label-caleg') || label.text()
+                : label.data('label-default') || label.text();
+            label.text(text);
+        });
+        if (wakilSection.length) {
+            wakilSection.toggleClass('d-none', isCaleg);
+        }
+        ['wakil_nama', 'wakil_prodi', 'wakil_angkatan'].forEach((key) => {
+            const input = leaderInputs[key];
+            if (!input || !input.length) return;
+            input.prop('required', !isCaleg);
+            if (isCaleg) {
+                if (input.is('select')) {
+                    input.prop('selectedIndex', 0);
+                } else {
+                    input.val('');
+                }
+            }
+        });
+    }
+
     function updateSelectedPemilihanLabel(name = null) {
         const label = $('#selected-pemilihan-label');
         if (!name) {
@@ -139,6 +187,7 @@
             $('#candidate-table tbody').html('<tr><td colspan="5" class="text-center text-muted">Belum ada pemilihan yang dipilih.</td></tr>');
             selectedPemilihanJenis = null;
             updateDapilFieldState();
+            updateLeaderSectionState();
             return;
         }
         label.text(`Pemilihan: ${name}`);
@@ -164,6 +213,7 @@
             }
 
             updateDapilFieldState();
+            updateLeaderSectionState();
 
             const candidates = Array.isArray(response.candidates) ? response.candidates : [];
 
@@ -173,19 +223,24 @@
             }
 
             candidates.forEach((candidate, index) => {
+                const isCalegPemilihan = selectedPemilihanJenis === 'caleg';
                 const visi = candidate.visi ? `<div class="small text-muted mb-1">Visi: ${candidate.visi}</div>` : '';
                 const misi = candidate.misi ? `<div class="small text-muted">Misi: ${candidate.misi}</div>` : '';
-                const ketuaLine = renderLeaderLine('Ketua', candidate.ketua_nama, candidate.ketua_prodi, candidate.ketua_angkatan);
-                const wakilLine = renderLeaderLine('Wakil', candidate.wakil_nama, candidate.wakil_prodi, candidate.wakil_angkatan);
+                const ketuaLabel = isCalegPemilihan ? 'Calon' : 'Ketua';
+                const ketuaLine = renderLeaderLine(ketuaLabel, candidate.ketua_nama, candidate.ketua_prodi, candidate.ketua_angkatan);
+                const wakilLine = isCalegPemilihan ? '' : renderLeaderLine('Wakil', candidate.wakil_nama, candidate.wakil_prodi, candidate.wakil_angkatan);
                 const detailText = `<div class="fw-semibold text-dark mb-1">${candidate.nomor_urut}. ${candidate.name}</div>${ketuaLine}${wakilLine}${visi}${misi}`;
 
                 const photoHtml = candidate.photo_url
                     ? `<img src="${candidate.photo_url}" class="rounded border" style="width:72px;height:72px;object-fit:cover;" alt="Foto ${candidate.name}" loading="lazy">`
                     : '<div class="rounded border bg-light d-flex align-items-center justify-content-center text-muted" style="width:72px;height:72px;"><i class="fa-solid fa-user"></i></div>';
 
-                const dapilTitle = candidate.dapil && candidate.dapil.name
-                    ? `<div class="fw-semibold text-primary mb-2"><i class="fa-solid fa-location-dot me-1"></i>Dapil ${candidate.dapil.name}</div>`
-                    : '<div class="text-muted small mb-2">Dapil belum ditentukan.</div>';
+                let dapilTitle = '<div class="text-muted small mb-2">-</div>';
+                if (isCalegPemilihan) {
+                    dapilTitle = candidate.dapil && candidate.dapil.name
+                        ? `<div class="fw-semibold text-primary mb-2"><i class="fa-solid fa-location-dot me-1"></i>Dapil ${candidate.dapil.name}</div>`
+                        : '<div class="text-muted small mb-2">Dapil belum ditentukan.</div>';
+                }
                 const action = `
                     <div class="btn-group btn-group-sm" role="group">
                         <button class="btn btn-warning btn-edit-candidate" data-id="${candidate.id}"><i class="fa fa-pen"></i></button>
@@ -224,6 +279,7 @@
     }
 
     updateDapilFieldState();
+    updateLeaderSectionState();
 
     if (candidatePhotoInput.length) {
         candidatePhotoInput.on('change', function (event) {
