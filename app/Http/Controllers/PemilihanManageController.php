@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\PemilihanVoteExport;
 use App\Models\Pemilihan;
 use App\Models\PemilihanCandidate;
 use App\Models\Prodi;
@@ -10,6 +11,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
+use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Yajra\DataTables\Facades\DataTables;
 
 class PemilihanManageController extends Controller
@@ -151,6 +154,13 @@ class PemilihanManageController extends Controller
             'message' => $message,
             'menu_enabled' => $menuEnabled,
         ]);
+    }
+
+    public function exportVotes(): BinaryFileResponse
+    {
+        $fileName = 'pemilihan_votes_' . now()->format('Ymd_His') . '.xlsx';
+
+        return Excel::download(new PemilihanVoteExport(), $fileName);
     }
 
     public function candidates(Pemilihan $pemilihan): JsonResponse

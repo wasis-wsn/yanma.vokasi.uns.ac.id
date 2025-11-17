@@ -289,6 +289,7 @@ Route::middleware('auth')->group(function () {
         Route::name('pemilu.')->prefix('pemilu/manage')->group(function () {
             Route::get('/', [PemilihanManageController::class, 'index'])->name('index');
             Route::get('/list', [PemilihanManageController::class, 'list'])->name('list');
+            Route::get('/export-votes', [PemilihanManageController::class, 'exportVotes'])->name('exportVotes');
             Route::get('/{pemilihan}/detail', [PemilihanManageController::class, 'show'])->name('show');
             Route::post('/', [PemilihanManageController::class, 'store'])->name('store');
             Route::post('/toggle-all-menu', [PemilihanManageController::class, 'toggleAllMenu'])->name('toggleAllMenu');

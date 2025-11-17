@@ -44,6 +44,9 @@
                         <button class="btn btn-outline-{{ pemiluMenuEnabled() ? 'danger' : 'success' }} btn-toggle-all-menu">
                             <i class="fa fa-power-off"></i> {{ pemiluMenuEnabled() ? 'Sembunyikan Menu Pemilu' : 'Tampilkan Menu Pemilu' }}
                         </button>
+                        <a class="btn btn-success" href="{{ route('pemilu.exportVotes') }}">
+                            <i class="fa fa-download"></i> Export Data Suara
+                        </a>
                         <button class="btn btn-primary btn-add-pemilihan">
                             <i class="fa fa-plus"></i> Tambah Pemilihan
                         </button>
