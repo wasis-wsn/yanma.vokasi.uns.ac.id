@@ -33,14 +33,16 @@
                 { data: 'DT_RowIndex' },
                 { data: 'tanggal_lulus' },
                 { data: 'nomor_ijazah' },
+                { data: 'catatan' },
                 { data: 'status' },
                 { data: 'tanggal_submit', name: 'created_at' },
                 { data: 'action' }
             ],
             columnDefs: [
                 { className: 'text-center', width: '3%', targets: [1] },
-                { className: 'text-center', targets: [2,3,4,5,6] },
-                { className: 'btn-group-vertical', targets: [6] }
+                { className: 'text-center', targets: [2,3,5,6,7] },
+                { className: 'text-wrap', targets: [4] },
+                { className: 'btn-group-vertical', targets: [7] }
             ],
             order: [[0, 'desc']]
         });

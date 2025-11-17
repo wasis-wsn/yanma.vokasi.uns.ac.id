@@ -33,6 +33,7 @@
                 { data: "program_studi" },
                 { data: "tanggal_lulus" },
                 { data: "nomor_ijazah" },
+                { data: "catatan" },
                 { data: "status" },
                 { data: "tanggal_submit", name: "created_at" },
                 { data: "action" },
@@ -45,19 +46,19 @@
                 },
                 {
                     width: "10%",
-                    targets: [3,8],
+                    targets: [3,9],
                 },
                 {
                     className: "btn-group-vertical",
-                    targets: [9],
+                    targets: [10],
                 },
                 {
                     className: "text-wrap",
-                    targets: [2],
+                    targets: [2,7],
                 },
                 {
                     className: "text-center",
-                    targets: [5,6,7,8,9],
+                    targets: [5,6,8,9,10],
                 },
             ],
             lengthMenu: [
@@ -226,9 +227,11 @@
                     $("form#form-edit").attr("action", action);
                     $("#status_id-revisi").val(res.data.status_id || '');
                     $("#no_surat-revisi").val(res.data.no_surat || '');
+                    $("#catatan-revisi").val(res.data.catatan || '');
                     $("#modalEdit").modal("show");
 
                     const statusVal = $('#status_id-revisi').val();
+                    toggleCatatanField(statusVal);
                     toggleNoSuratField(statusVal);
                     toggleUploadField(statusVal);
                     $('#status_id-revisi').trigger('change');
@@ -251,6 +254,16 @@
         });
     });
 
+    function toggleCatatanField(statusVal) {
+        // Status 3 = Revisi, 7 = Ditolak Dekanat, 8 = Ditolak Staff
+        if (statusVal === '3' || statusVal === '7' || statusVal === '8') {
+            $("#form-catatan-edit").removeAttr("hidden");
+        } else {
+            $("#form-catatan-edit").attr("hidden", true);
+            $("#catatan-revisi").val("");
+        }
+    }
+
     function toggleNoSuratField(statusVal) {
         if (statusVal === '6') {
             $("#form-no-surat-edit").removeAttr("hidden");
@@ -271,6 +284,7 @@
 
     $('#status_id-revisi').on('change', function(){
         const val = $(this).val();
+        toggleCatatanField(val);
         toggleNoSuratField(val);
         toggleUploadField(val);
     });
@@ -335,105 +349,108 @@
                 processData: false,
             });
         });
+    });
 
-        // form-edit for staff: only send status_id (and conditional no_surat/file)
-        $("#form-edit").submit(function (e) {
-            e.preventDefault();
+    // form-edit for staff: only send status_id (and conditional no_surat/file)
+    $("#form-edit").submit(function (e) {
+        e.preventDefault();
 
-            Swal.fire({
-                title: "Apakah inputan Anda sudah benar?",
-                icon: "question",
-                showCancelButton: true,
-                confirmButtonText: "Ya, Sudah!"
-            }).then(function(result){
-                if (!result.isConfirmed) return;
+        Swal.fire({
+            title: "Apakah inputan Anda sudah benar?",
+            icon: "question",
+            showCancelButton: true,
+            confirmButtonText: "Ya, Sudah!"
+        }).then(function(result){
+            if (!result.isConfirmed) return;
 
-                // Untuk staff, hanya kirim status_id
-                let formData = new FormData();
-                formData.append('_method', 'PUT');
-                const statusVal = $('#status_id-revisi').val();
-                formData.append('status_id', statusVal);
-                if (statusVal === '6') {
-                    formData.append('no_surat', $('#no_surat-revisi').val());
+            // Untuk staff, hanya kirim status_id
+            let formData = new FormData();
+            formData.append('_method', 'PUT');
+            const statusVal = $('#status_id-revisi').val();
+            formData.append('status_id', statusVal);
+            if (statusVal === '3' || statusVal === '7' || statusVal === '8') {
+                formData.append('catatan', $('#catatan-revisi').val());
+            }
+            if (statusVal === '6') {
+                formData.append('no_surat', $('#no_surat-revisi').val());
+            }
+            if (statusVal === '9') {
+                const file = $('#file-revisi')[0].files[0];
+                if (file) {
+                    formData.append('file', file);
                 }
-                if (statusVal === '9') {
-                    const file = $('#file-revisi')[0].files[0];
-                    if (file) {
-                        formData.append('file', file);
-                    }
-                }
+            }
 
-                $.ajax({
-                    url: $(e.target).attr("action"),
-                    type: "POST",
-                    headers: {
-                        "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content"),
-                    },
-                    data: formData,
-                    processData: false,
-                    contentType: false,
-                    beforeSend: function () {
+            $.ajax({
+                url: $(e.target).attr("action"),
+                type: "POST",
+                headers: {
+                    "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content"),
+                },
+                data: formData,
+                processData: false,
+                contentType: false,
+                beforeSend: function () {
+                    Swal.fire({
+                        title: "Mohon Tunggu",
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        },
+                    });
+                },
+                success: function (res) {
+                    Swal.close();
+                    if (res.status) {
+                        $("#form-edit input").val("");
+                        $("#form-edit textarea").val("");
+                        $("#modalEdit").modal("hide");
                         Swal.fire({
-                            title: "Mohon Tunggu",
-                            allowOutsideClick: false,
-                            didOpen: () => {
-                                Swal.showLoading();
-                            },
+                            title: "Berhasil!",
+                            text: res.message,
+                            icon: "success",
                         });
-                    },
-                    success: function (res) {
-                        Swal.close();
-                        if (res.status) {
-                            $("#form-edit input").val("");
-                            $("#form-edit textarea").val("");
-                            $("#modalEdit").modal("hide");
-                            Swal.fire({
-                                title: "Berhasil!",
-                                text: res.message,
-                                icon: "success",
-                            });
-                            if (typeof tableRekom !== 'undefined' && tableRekom.ajax) tableRekom.ajax.reload();
-                        } else {
-                            Swal.fire({
-                                title: "Gagal!",
-                                text: res.message,
-                                icon: "error",
-                            });
-                        }
-                    },
-                    error: function (xhr, status, error) {
-                        Swal.close();
-                        console.error('Edit error:', xhr.responseText);
+                        if (typeof tableRekom !== 'undefined' && tableRekom.ajax) tableRekom.ajax.reload();
+                    } else {
+                        Swal.fire({
+                            title: "Gagal!",
+                            text: res.message,
+                            icon: "error",
+                        });
+                    }
+                },
+                error: function (xhr, status, error) {
+                    Swal.close();
+                    console.error('Edit error:', xhr.responseText);
 
-                        if (xhr.status === 422) {
-                            var errors = {};
-                            try {
-                                errors = JSON.parse(xhr.responseText).errors || {};
-                            } catch(e){}
-                            var msgs = Object.values(errors).map(function(v){
-                                return v.join(' ');
-                            }).join('\n');
-                            Swal.fire({
-                                title: 'Validasi Gagal',
-                                html: msgs || 'Harap periksa inputan Anda',
-                                icon: 'warning'
-                            });
-                        } else {
-                            var err = {};
-                            try {
-                                err = JSON.parse(xhr.responseText);
-                            } catch(e){}
-                            Swal.fire({
-                                title: "Gagal!",
-                                text: err.message || 'Terjadi kesalahan',
-                                icon: "error",
-                            });
-                        }
-                    },
-                    cache: false,
-                    contentType: false,
-                    processData: false,
-                });
+                    if (xhr.status === 422) {
+                        var errors = {};
+                        try {
+                            errors = JSON.parse(xhr.responseText).errors || {};
+                        } catch(e){}
+                        var msgs = Object.values(errors).map(function(v){
+                            return v.join(' ');
+                        }).join('\n');
+                        Swal.fire({
+                            title: 'Validasi Gagal',
+                            html: msgs || 'Harap periksa inputan Anda',
+                            icon: 'warning'
+                        });
+                    } else {
+                        var err = {};
+                        try {
+                            err = JSON.parse(xhr.responseText);
+                        } catch(e){}
+                        Swal.fire({
+                            title: "Gagal!",
+                            text: err.message || 'Terjadi kesalahan',
+                            icon: "error",
+                        });
+                    }
+                },
+                cache: false,
+                contentType: false,
+                processData: false,
             });
         });
     });

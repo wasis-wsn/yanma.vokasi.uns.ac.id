@@ -53,6 +53,7 @@
                                             <th>No</th>
                                             <th>Tanggal Lulus</th>
                                             <th>Nomor Ijazah</th>
+                                            <th>Catatan</th>
                                             <th>Status</th>
                                             <th>Tanggal Submit</th>
                                             <th>Aksi</th>
@@ -65,6 +66,7 @@
                                             <th>Program Studi</th>
                                             <th>Tanggal Lulus</th>
                                             <th>Nomor Ijazah</th>
+                                            <th>Catatan</th>
                                             <th>Status</th>
                                             <th>Tanggal Submit</th>
                                             <th>Aksi</th>

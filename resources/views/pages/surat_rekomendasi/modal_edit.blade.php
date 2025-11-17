@@ -44,6 +44,11 @@
                             @endforeach
                         </select>
                     </div>
+                    <div class="form-group" id="form-catatan-edit" hidden>
+                        <label class="form-label" for="catatan-revisi">Catatan <span class="text-danger">*</span></label>
+                        <textarea class="form-control" id="catatan-revisi" name="catatan" rows="3" placeholder="Tuliskan catatan untuk revisi..."></textarea>
+                        <small class="text-muted">Catatan wajib diisi untuk status revisi.</small>
+                    </div>
                     <div class="form-group" id="form-no-surat-edit" hidden>
                         <label class="form-label" for="no_surat-revisi">Nomor Surat <span class="text-danger">*</span></label>
                         <input class="form-control" id="no_surat-revisi" type="text" name="no_surat">

@@ -71,6 +71,9 @@ class SuratRekomendasiController extends Controller
             ->editColumn('nomor_ijazah', function ($row) {
                 return $row->nomor_ijazah ?? '-';
             })
+            ->editColumn('catatan', function ($row) {
+                return $row->catatan ? '<span class="text-wrap">' . $row->catatan . '</span>' : '-';
+            })
             ->addColumn('status', function ($row) {
                 if ($row->status) {
                     return '<span class="btn btn-sm ' . $row->status->color . '">' . $row->status->name . '</span>';
@@ -95,7 +98,7 @@ class SuratRekomendasiController extends Controller
                 }
                 return '-';
             })
-            ->rawColumns(['action', 'tanggal_submit', 'tanggal_lulus', 'file', 'status'])
+            ->rawColumns(['action', 'tanggal_submit', 'tanggal_lulus', 'file', 'status', 'catatan'])
             ->toJson();
     }
 
@@ -124,6 +127,9 @@ class SuratRekomendasiController extends Controller
             ->editColumn('nomor_ijazah', function ($row) {
                 return $row->nomor_ijazah ?? '-';
             })
+            ->editColumn('catatan', function ($row) {
+                return $row->catatan ? '<span class="text-wrap">' . $row->catatan . '</span>' : '-';
+            })
             ->addColumn('status', function ($row) {
                 if ($row->status) {
                     return '<span class="btn btn-sm ' . $row->status->color . '">' . $row->status->name . '</span>';
@@ -147,7 +153,7 @@ class SuratRekomendasiController extends Controller
                 }
                 return '-';
             })
-            ->rawColumns(['action', 'tanggal_submit', 'tanggal_lulus', 'file', 'status'])
+            ->rawColumns(['action', 'tanggal_submit', 'tanggal_lulus', 'file', 'status', 'catatan'])
             ->toJson();
     }
 
@@ -180,6 +186,9 @@ class SuratRekomendasiController extends Controller
             ->editColumn('nomor_ijazah', function ($row) {
                 return $row->nomor_ijazah ?? '-';
             })
+            ->editColumn('catatan', function ($row) {
+                return $row->catatan ? '<span class="text-wrap">' . $row->catatan . '</span>' : '-';
+            })
             ->addColumn('status', function ($row) {
                 if ($row->status) {
                     return '<span class="btn btn-sm ' . $row->status->color . '">' . $row->status->name . '</span>';
@@ -202,7 +211,7 @@ class SuratRekomendasiController extends Controller
                 }
                 return '-';
             })
-            ->rawColumns(['action', 'tanggal_submit', 'tanggal_lulus', 'file', 'status'])
+            ->rawColumns(['action', 'tanggal_submit', 'tanggal_lulus', 'file', 'status', 'catatan'])
             ->toJson();
     }
 
@@ -314,11 +323,15 @@ class SuratRekomendasiController extends Controller
                 'status_id' => ['required', 'exists:status_alumni,id'],
                 'no_surat' => ['nullable', 'string', 'max:255'],
                 'file' => ['nullable', 'file', 'mimes:pdf,doc,docx', 'max:5120'],
+                'catatan' => ['nullable', \Illuminate\Validation\Rule::requiredIf(function () use ($request) {
+                    return in_array($request->status_id, ['3', '7', '8']);
+                })],
             ], [
                 'required' => ':attribute wajib diisi!',
                 'exists' => ':attribute tidak valid!',
             ], [
                 'status_id' => 'Status',
+                'catatan' => 'Catatan',
             ]);
         } else {
             // Validasi untuk Mahasiswa - edit data pengajuan (boleh upload ijazah/transkrip)
@@ -356,6 +369,11 @@ class SuratRekomendasiController extends Controller
 
                 $data_update['status_id'] = $request->status_id;
                 $data_update['tanggal_proses'] = now();
+
+                // optional catatan from staff form
+                if ($request->has('catatan')) {
+                    $data_update['catatan'] = $request->catatan ?: null;
+                }
 
                 // optional nomor surat from staff form
                 if ($request->filled('no_surat')) {
