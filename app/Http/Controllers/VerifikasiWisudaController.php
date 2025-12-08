@@ -10,6 +10,7 @@ use App\Models\Tahun;
 use App\Models\Template;
 use App\Models\TranskripNilai;
 use App\Models\VerifikasiWisuda;
+use App\Services\PeriodeWisudaFormatter;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -704,47 +705,11 @@ public function bulkProcess(Request $request)
 
 private function formatPeriodeDisplay($periode_wisuda)
 {
-    if (!$periode_wisuda) {
-        return '';
-    }
-
     try {
-        $normalized = $this->normalizePeriodeValue($periode_wisuda);
-
-        if (!$normalized) {
-            return e($periode_wisuda);
-        }
-
-        [$year, $month] = explode('-', $normalized);
-        return Carbon::createFromDate((int) $year, (int) $month, 1)->translatedFormat('F Y');
+        return PeriodeWisudaFormatter::formatForDisplay($periode_wisuda);
     } catch (\Throwable $e) {
         Log::warning('formatPeriodeDisplay error: ' . $e->getMessage());
-        return e($periode_wisuda);
-    }
-}
-
-private function normalizePeriodeValue($periode): ?string
-{
-    $periode = trim((string) $periode);
-
-    if ($periode === '') {
-        return null;
-    }
-
-    if (preg_match('/^(\\d{4})[-\\/](\\d{1,2})$/', $periode, $matches)) {
-        return sprintf('%04d-%02d', $matches[1], $matches[2]);
-    }
-
-    if (preg_match('/^(\\d{6})$/', $periode, $matches)) {
-        $year = substr($matches[1], 0, 4);
-        $month = substr($matches[1], 4, 2);
-        return sprintf('%04d-%02d', $year, $month);
-    }
-
-    try {
-        return Carbon::parse($periode)->format('Y-m');
-    } catch (\Throwable $e) {
-        return null;
+        return (string) $periode_wisuda;
     }
 }
 }

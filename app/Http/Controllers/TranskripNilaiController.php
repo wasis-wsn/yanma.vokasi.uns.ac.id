@@ -8,6 +8,7 @@ use App\Models\StatusTranskrip;
 use App\Models\Tahun;
 use App\Models\Template;
 use App\Models\TranskripNilai;
+use App\Services\PeriodeWisudaFormatter;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -29,15 +30,7 @@ class TranskripNilaiController extends Controller
 
     public function listStaff(Request $request)
     {
-        // Filter berdasarkan tahun dari periode_wisuda dan status transkrip itu sendiri
-        $list = TranskripNilai::with('user.prodis', 'status')
-            ->whereRaw("SUBSTRING(periode_wisuda, 1, 4) = ?", [$request->year]);
-
-        if ($request->status != 'all') {
-            $list = $list->where('status_id', $request->status);
-        }
-
-        $list = $list->orderBy('created_at', 'desc')->get();
+        $list = $this->buildTranskripList($request->year, $request->status);
 
         return DataTables::of($list)
             ->addIndexColumn()
@@ -72,15 +65,7 @@ class TranskripNilaiController extends Controller
 
     public function listFo(Request $request)
     {
-        // Filter berdasarkan tahun dari periode_wisuda dan status transkrip itu sendiri
-        $list = TranskripNilai::with('user.prodis', 'status')
-            ->whereRaw("SUBSTRING(periode_wisuda, 1, 4) = ?", [$request->year]);
-
-        if ($request->status != 'all') {
-            $list = $list->where('status_id', $request->status);
-        }
-
-        $list = $list->orderBy('created_at', 'desc')->get();
+        $list = $this->buildTranskripList($request->year, $request->status);
 
         return DataTables::of($list)
             ->addIndexColumn()
@@ -112,15 +97,7 @@ class TranskripNilaiController extends Controller
 
     public function listDekanat(Request $request)
     {
-        // Filter berdasarkan tahun dari periode_wisuda dan status transkrip itu sendiri
-        $list = TranskripNilai::with('user.prodis', 'status')
-            ->whereRaw("SUBSTRING(periode_wisuda, 1, 4) = ?", [$request->year]);
-
-        if ($request->status != 'all') {
-            $list = $list->where('status_id', $request->status);
-        }
-
-        $list = $list->orderBy('created_at', 'desc')->get();
+        $list = $this->buildTranskripList($request->year, $request->status);
 
         return DataTables::of($list)
             ->addIndexColumn()
@@ -145,6 +122,31 @@ class TranskripNilaiController extends Controller
             })
             ->rawColumns(['id', 'action', 'status_id', 'tanggal_ambil', 'periode_wisuda'])
             ->toJson();
+    }
+
+    private function buildTranskripList($year, $status)
+    {
+        $query = TranskripNilai::with('user.prodis', 'status');
+
+        if ($status != 'all') {
+            $query->where('status_id', $status);
+        }
+
+        if ($year) {
+            $query->whereNotNull('periode_wisuda')
+                ->where('periode_wisuda', 'like', '%' . $year . '%');
+        }
+
+        $list = $query->orderBy('created_at', 'desc')->get();
+
+        if ($year) {
+            $yearString = (string) $year;
+            $list = $list->filter(function ($row) use ($yearString) {
+                return PeriodeWisudaFormatter::extractYear($row->periode_wisuda) === $yearString;
+            })->values();
+        }
+
+        return $list;
     }
 
     public function export(Request $request)
@@ -229,47 +231,11 @@ class TranskripNilaiController extends Controller
     // Add format helper similar to VerifikasiWisudaController
     private function formatPeriodeDisplay($periode_wisuda)
     {
-        if (!$periode_wisuda) {
-            return '';
-        }
-
         try {
-            $normalized = $this->normalizePeriodeValue($periode_wisuda);
-
-            if (!$normalized) {
-                return e($periode_wisuda);
-            }
-
-            [$year, $month] = explode('-', $normalized);
-            return Carbon::createFromDate((int) $year, (int) $month, 1)->translatedFormat('F Y');
+            return PeriodeWisudaFormatter::formatForDisplay($periode_wisuda);
         } catch (\Throwable $e) {
             Log::warning('formatPeriodeDisplay error (TranskripNilaiController): ' . $e->getMessage());
-            return e($periode_wisuda);
-        }
-    }
-
-    private function normalizePeriodeValue($periode): ?string
-    {
-        $periode = trim((string) $periode);
-
-        if ($periode === '') {
-            return null;
-        }
-
-        if (preg_match('/^(\\d{4})[-\\/](\\d{1,2})$/', $periode, $matches)) {
-            return sprintf('%04d-%02d', $matches[1], $matches[2]);
-        }
-
-        if (preg_match('/^(\\d{6})$/', $periode, $matches)) {
-            $year = substr($matches[1], 0, 4);
-            $month = substr($matches[1], 4, 2);
-            return sprintf('%04d-%02d', $year, $month);
-        }
-
-        try {
-            return Carbon::parse($periode)->format('Y-m');
-        } catch (\Throwable $e) {
-            return null;
+            return (string) $periode_wisuda;
         }
     }
 }

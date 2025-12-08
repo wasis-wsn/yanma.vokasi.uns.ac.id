@@ -3,6 +3,7 @@
 namespace App\Exports;
 
 use App\Models\TranskripNilai;
+use App\Services\PeriodeWisudaFormatter;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
@@ -53,9 +54,18 @@ class TranskripExport implements FromCollection, WithHeadings, WithStyles, WithM
      */
     public function collection()
     {
-        return TranskripNilai::with(['user' => function ($query) {
+        $data = TranskripNilai::with(['user' => function ($query) {
             $query->orderBy('name'); // Urutkan berdasarkan nama pengguna
-        }, 'user.prodis'])->whereYear('created_at', $this->tahun)->get();
+        }, 'user.prodis'])
+            ->whereNotNull('periode_wisuda')
+            ->where('periode_wisuda', 'like', '%' . $this->tahun . '%')
+            ->get();
+
+        $targetYear = (string) $this->tahun;
+
+        return $data->filter(function ($row) use ($targetYear) {
+            return PeriodeWisudaFormatter::extractYear($row->periode_wisuda) === $targetYear;
+        })->values();
     }
 
     public function map($row): array
@@ -69,7 +79,7 @@ class TranskripExport implements FromCollection, WithHeadings, WithStyles, WithM
             $row->user->nim,
             $row->user->name,
             $row->user->prodis->name,
-            ($row->periode_wisuda) ? Carbon::createFromFormat('Y-m', $row->periode_wisuda)->translatedFormat('F Y') : '',
+            PeriodeWisudaFormatter::formatForDisplay($row->periode_wisuda),
             $row->status->name,
             ($row->tanggal_ambil) ? Carbon::parse($row->tanggal_ambil)->translatedFormat('d F Y H:i:s') : '',
             $row->catatan,

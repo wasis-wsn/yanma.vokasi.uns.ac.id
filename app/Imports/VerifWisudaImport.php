@@ -4,6 +4,7 @@ namespace App\Imports;
 
 use App\Models\VerifikasiWisuda;
 use App\Models\User;
+use App\Services\PeriodeWisudaFormatter;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Maatwebsite\Excel\Concerns\ToModel;
@@ -294,54 +295,7 @@ class VerifWisudaImport implements ToModel, WithHeadingRow, WithValidation, Skip
 
     private function normalizePeriodeValue($value): ?string
     {
-        if (is_null($value)) {
-            return null;
-        }
-
-        if (is_numeric($value)) {
-            $numericString = trim((string) $value);
-
-            // Handle YYYYMM format typed as number (e.g., 202403)
-            if (preg_match('/^(\\d{6})$/', $numericString)) {
-                $year = substr($numericString, 0, 4);
-                $month = substr($numericString, 4, 2);
-                return sprintf('%04d-%02d', $year, $month);
-            }
-
-            // Handle Excel serial numbers representing dates
-            if ((int) $value > 30000) {
-                try {
-                    $date = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($value);
-                    return $date->format('Y-m');
-                } catch (\Throwable $e) {
-                    // fall through to generic handling
-                }
-            }
-        }
-
-        $stringValue = trim((string) $value);
-
-        if ($stringValue === '') {
-            return null;
-        }
-
-        if (preg_match('/^(\\d{4})[-\\/](\\d{1,2})$/', $stringValue, $matches)) {
-            return sprintf('%04d-%02d', $matches[1], $matches[2]);
-        }
-
-        if (preg_match('/^(\\d{6})$/', $stringValue, $matches)) {
-            $year = substr($matches[1], 0, 4);
-            $month = substr($matches[1], 4, 2);
-            return sprintf('%04d-%02d', $year, $month);
-        }
-
-        try {
-            $date = \Carbon\Carbon::parse($stringValue);
-            return $date->format('Y-m');
-        } catch (\Throwable $e) {
-            // If parsing fails, store the original string for reference
-            return $stringValue;
-        }
+        return PeriodeWisudaFormatter::normalize($value, true);
     }
 
     private function findPeriodeColumnKey(array $row): ?string
