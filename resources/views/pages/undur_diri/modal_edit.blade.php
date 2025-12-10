@@ -52,8 +52,7 @@
                         </div>
                         <small class="text-danger">Ukuran Maks File 10 MB</small>
                         <input class="form-control" type="file" id="edit_customFilePersetujuanOrtu"
-                            name="file_persetujuan_ortu"
-                            accept="application/pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+                            name="file_persetujuan_ortu" accept="application/pdf">
                         <small class="text-danger">Jangan upload apapun jika file tidak direvisi/diubah</small>
                     </div>
                     <div class="form-group">

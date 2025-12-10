@@ -284,7 +284,7 @@ class UndurDiriController extends Controller
             'semester_id' => 'required',
             'tahun_akademik_id' => 'required',
             'file' => ['required', 'file', 'mimes:pdf', 'max:10240'],
-            'file_persetujuan_ortu' => ['required', 'file', 'mimes:pdf,doc,docx', 'max:10240'],
+            'file_persetujuan_ortu' => ['required', 'file', 'mimes:pdf', 'max:10240'],
         ], [
             'required' => ':attribute wajib diisi!',
             'max' => 'ukuran file :attribute tidak boleh melebihi 10 mb!',
@@ -329,7 +329,7 @@ class UndurDiriController extends Controller
     {
         $request->validate([
             'file' => ['file', 'mimes:pdf', 'max:10240'],
-            'file_persetujuan_ortu' => ['file', 'mimes:pdf,doc,docx', 'max:10240'],
+            'file_persetujuan_ortu' => ['file', 'mimes:pdf', 'max:10240'],
         ], [
             'required' => ':attribute wajib diisi!',
             'max' => 'ukuran file :attribute tidak boleh melebihi 10 mb!',

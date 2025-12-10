@@ -46,8 +46,7 @@
                             </a>
                         </div>
                         <input class="form-control" type="file" id="customFilePersetujuanOrtu"
-                            name="file_persetujuan_ortu"
-                            accept="application/pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+                            name="file_persetujuan_ortu" accept="application/pdf">
                         <small class="text-danger">Ukuran Maks File 10 MB</small>
                     </div>
                     <div class="form-group">
