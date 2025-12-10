@@ -27,12 +27,12 @@
                             <td id="detail-prodi"></td>
                         </tr>
                         @can('staff')
-                        <tr>
-                            <td>
-                                Email Mahasiswa
-                            </td>
-                            <td id="detail-email"></td>
-                        </tr>
+                            <tr>
+                                <td>
+                                    Email Mahasiswa
+                                </td>
+                                <td id="detail-email"></td>
+                            </tr>
                         @endcan
                         <tr>
                             <td>
@@ -45,7 +45,17 @@
                                 File Upload
                             </td>
                             <td>
-                                : <a href="" target="_blank" class="btn btn-primary btn-small" id="detail-file"><i class="fa fa-file"></i> Lihat File</a>
+                                : <a href="" target="_blank" class="btn btn-primary btn-small" id="detail-file"><i
+                                        class="fa fa-file"></i> Lihat File</a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                File Persetujuan Orang Tua
+                            </td>
+                            <td>
+                                : <a href="" target="_blank" class="btn btn-success btn-small"
+                                    id="detail-file-persetujuan-ortu"><i class="fa fa-file"></i> Lihat File</a>
                             </td>
                         </tr>
                         <tr>
@@ -53,7 +63,7 @@
                                 Nomor Surat
                             </td>
                             <td id="detail-no">
-                                
+
                             </td>
                         </tr>
                         <tr>
@@ -61,7 +71,7 @@
                                 Catatan
                             </td>
                             <td id="detail-catatan">
-                                
+
                             </td>
                         </tr>
                         <tr>
@@ -69,7 +79,7 @@
                                 Tanggal Diproses
                             </td>
                             <td id="detail-proses">
-                                
+
                             </td>
                         </tr>
                         <tr>
@@ -85,7 +95,8 @@
             </div>
             <div class="modal-footer d-flex justify-content-end">
                 @can('staff')
-                <button class="btn btn-success btn-proses" id="tombol-proses" data-id="" hidden><i class="fa fa-gear"></i> Proses</button>
+                    <button class="btn btn-success btn-proses" id="tombol-proses" data-id="" hidden><i
+                            class="fa fa-gear"></i> Proses</button>
                 @endcan
             </div>
         </div>

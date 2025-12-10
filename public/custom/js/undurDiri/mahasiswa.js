@@ -92,6 +92,15 @@ $("#show_data").on("click", ".btn-detail", function () {
                     "href",
                     `${window.Laravel.baseUrl}/storage/undur/upload/${res.data.file}`
                 );
+                if (res.data.file_persetujuan_ortu) {
+                    $("#detail-file-persetujuan-ortu").attr(
+                        "href",
+                        `${window.Laravel.baseUrl}/storage/undur/upload/${res.data.file_persetujuan_ortu}`
+                    );
+                    $("#detail-file-persetujuan-ortu").parent().parent().show();
+                } else {
+                    $("#detail-file-persetujuan-ortu").parent().parent().hide();
+                }
                 $("#detail-catatan").html((res.data.catatan) ? ": " + res.data.catatan : ':');
                 $("#detail-proses").html(": " + res.data.tgl_proses);
                 $("#detail-status").html(res.data.status.name);

@@ -12,40 +12,59 @@
                         <textarea class="form-control" id="catatan-revisi" rows="2" disabled></textarea>
                     </div>
                     <p>
-                        Scan dokumen berikut dan jadikan satu file .pdf: 
-                        <ol>
-                            <li>
-                                Surat Pernyataan mahasiswa (Download dari Siakad)
-                            </li>
-                            <li>
-                                Kuitansi Pembayaran SPP & UKT Terakhir (Download dari Siakad)
-                            </li>
-                            <li>
-                                Transkrip nilai
-                            </li>
-                            <li>
-                                Surat Keterangan Bebas Pinjaman buku dari UPT Perpustakaan
-                            </li>
-                            <li>
-                                Surat Keterangan Bebas KOPMA UNS
-                            </li>
-                            <li>
-                                Surat Keterangan Bebas Laboratorium (*Jika ada)
-                            </li>
-                        </ol>
+                        Scan dokumen berikut dan jadikan satu file .pdf:
+                    <ol>
+                        <li>
+                            Surat Pernyataan mahasiswa (Download dari Siakad)
+                        </li>
+                        <li>
+                            Kuitansi Pembayaran SPP & UKT Terakhir (Download dari Siakad)
+                        </li>
+                        <li>
+                            Transkrip nilai
+                        </li>
+                        <li>
+                            Surat Keterangan Bebas Pinjaman buku dari UPT Perpustakaan
+                        </li>
+                        <li>
+                            Surat Keterangan Bebas KOPMA UNS
+                        </li>
+                        <li>
+                            Surat Keterangan Bebas Laboratorium (*Jika ada)
+                        </li>
+                    </ol>
                     </p>
                     <div class="form-group">
                         <label for="edit_customFile1" class="form-label custom-file-input">Dokumen Persyaratan</label>
                         <small class="text-danger">Ukuran Maks File 10 MB</small>
-                        <input class="form-control" type="file" id="edit_customFile1" name="file" accept="application/pdf">
+                        <input class="form-control" type="file" id="edit_customFile1" name="file"
+                            accept="application/pdf">
                         <small class="text-danger">Jangan upload apapun jika file tidak direvisi/diubah</small>
                     </div>
                     <div class="form-group">
-                        <label class="form-label" for="edit_tahun_akademik">Tahun Akademik<span class="text-danger">*</span>:</label>
-                        <input class="form-control" type="text" id="edit_tahun_akademik" @disabled(auth()->user()->role == '1')>
+                        <label for="edit_customFilePersetujuanOrtu" class="form-label custom-file-input">File
+                            Persetujuan Orang Tua</label>
+                        <div class="mb-2">
+                            <a href="{{ asset('storage/template/TemplateSuratPersetujuanOrtu.docx') }}"
+                                class="btn btn-outline-primary btn-sm" download>
+                                <i class="fa fa-download"></i> Download Template Surat Persetujuan Orang Tua
+                            </a>
+                        </div>
+                        <small class="text-danger">Ukuran Maks File 10 MB</small>
+                        <input class="form-control" type="file" id="edit_customFilePersetujuanOrtu"
+                            name="file_persetujuan_ortu"
+                            accept="application/pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+                        <small class="text-danger">Jangan upload apapun jika file tidak direvisi/diubah</small>
                     </div>
                     <div class="form-group">
-                        <label class="form-label" for="edit_semester">Semester Akademik<span class="text-danger">*</span>:</label>
+                        <label class="form-label" for="edit_tahun_akademik">Tahun Akademik<span
+                                class="text-danger">*</span>:</label>
+                        <input class="form-control" type="text" id="edit_tahun_akademik"
+                            @disabled(auth()->user()->role == '1')>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="edit_semester">Semester Akademik<span
+                                class="text-danger">*</span>:</label>
                         <input class="form-control" type="text" id="edit_semester" @disabled(auth()->user()->role == '1')>
                     </div>
                 </div>

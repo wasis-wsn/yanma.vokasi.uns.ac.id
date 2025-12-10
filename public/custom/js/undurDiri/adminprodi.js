@@ -93,6 +93,15 @@ $(document).ready(function() {
                         "href",
                         `${window.Laravel.baseUrl}/storage/undur/upload/${res.data.file}`
                     );
+                    if (res.data.file_persetujuan_ortu) {
+                        $("#detail-file-persetujuan-ortu").attr(
+                            "href",
+                            `${window.Laravel.baseUrl}/storage/undur/upload/${res.data.file_persetujuan_ortu}`
+                        );
+                        $("#detail-file-persetujuan-ortu").parent().parent().show();
+                    } else {
+                        $("#detail-file-persetujuan-ortu").parent().parent().hide();
+                    }
                     $("#detail-catatan").html(
                         res.data.catatan ? ": " + res.data.catatan : ":"
                     );

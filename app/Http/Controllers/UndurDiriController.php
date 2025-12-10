@@ -92,7 +92,7 @@ class UndurDiriController extends Controller
             $list = $list->where('status_id', $request->status);
         }
         if ($request->prodi != 'all') {
-            $list = $list->whereHas('user', function($query) use ($request) {
+            $list = $list->whereHas('user', function ($query) use ($request) {
                 $query->where('prodi', $request->prodi);
             });
         }
@@ -144,7 +144,7 @@ class UndurDiriController extends Controller
             $list = $list->where('status_id', $request->status);
         }
         if ($request->prodi != 'all') {
-            $list = $list->whereHas('user', function($query) use ($request) {
+            $list = $list->whereHas('user', function ($query) use ($request) {
                 $query->where('prodi', $request->prodi);
             });
         }
@@ -181,7 +181,7 @@ class UndurDiriController extends Controller
             $list = $list->where('status_id', $request->status);
         }
         if ($request->prodi != 'all') {
-            $list = $list->whereHas('user', function($query) use ($request) {
+            $list = $list->whereHas('user', function ($query) use ($request) {
                 $query->where('prodi', $request->prodi);
             });
         }
@@ -227,7 +227,7 @@ class UndurDiriController extends Controller
         }
 
         if ($request->prodi != 'all') {
-            $list = $list->whereHas('user', function($query) use ($request) {
+            $list = $list->whereHas('user', function ($query) use ($request) {
                 $query->where('prodi', $request->prodi);
             });
         }
@@ -284,18 +284,24 @@ class UndurDiriController extends Controller
             'semester_id' => 'required',
             'tahun_akademik_id' => 'required',
             'file' => ['required', 'file', 'mimes:pdf', 'max:10240'],
+            'file_persetujuan_ortu' => ['required', 'file', 'mimes:pdf,doc,docx', 'max:10240'],
         ], [
             'required' => ':attribute wajib diisi!',
             'max' => 'ukuran file :attribute tidak boleh melebihi 10 mb!',
         ], [
             'file' => 'File PDF',
+            'file_persetujuan_ortu' => 'File Persetujuan Orang Tua',
             'semester_id' => 'Semester Pengajuan Selang/Cuti',
             'tahun_akademik_id' => 'Tahun Akademik',
         ]);
 
         try {
-            $file = 'UndurDiri' . '_' . Auth::user()->nim . '_' . Str::of(Auth::user()->name)->replace(' ','') . '_' . time() . '.pdf';
+            $file = 'UndurDiri' . '_' . Auth::user()->nim . '_' . Str::of(Auth::user()->name)->replace(' ', '') . '_' . time() . '.pdf';
             $request->file('file')->storeAs('undur/upload/', $file, 'public');
+
+            $extPersetujuanOrtu = $request->file('file_persetujuan_ortu')->getClientOriginalExtension();
+            $filePersetujuanOrtu = 'UndurDiri_PersetujuanOrtu_' . Auth::user()->nim . '_' . Str::of(Auth::user()->name)->replace(' ', '') . '_' . time() . '.' . $extPersetujuanOrtu;
+            $request->file('file_persetujuan_ortu')->storeAs('undur/upload/', $filePersetujuanOrtu, 'public');
 
             UndurDiri::create([
                 'user_id' => Auth::user()->id,
@@ -303,6 +309,7 @@ class UndurDiriController extends Controller
                 'semester_id' => $request->semester_id,
                 'tahun_akademik_id' => $request->tahun_akademik_id,
                 'file' => $file,
+                'file_persetujuan_ortu' => $filePersetujuanOrtu,
             ]);
         } catch (\Throwable $th) {
             return response()->json(['status' => false, 'message' => 'Terjadi Kesalahan'], 500);
@@ -322,11 +329,13 @@ class UndurDiriController extends Controller
     {
         $request->validate([
             'file' => ['file', 'mimes:pdf', 'max:10240'],
+            'file_persetujuan_ortu' => ['file', 'mimes:pdf,doc,docx', 'max:10240'],
         ], [
             'required' => ':attribute wajib diisi!',
             'max' => 'ukuran file :attribute tidak boleh melebihi 10 mb!',
         ], [
             'file' => 'Dokumen Persyaratan',
+            'file_persetujuan_ortu' => 'File Persetujuan Orang Tua',
         ]);
 
         try {
@@ -339,14 +348,25 @@ class UndurDiriController extends Controller
 
             $file = $ajuan->file;
             if ($request->hasFile('file')) {
-                $file = 'UndurDiri' . '_' . Auth::user()->nim . '_' . Str::of(Auth::user()->name)->replace(' ','') . '_' . time() . '.pdf';
+                $file = 'UndurDiri' . '_' . Auth::user()->nim . '_' . Str::of(Auth::user()->name)->replace(' ', '') . '_' . time() . '.pdf';
                 $request->file('file')->storeAs('undur/upload/', $file, 'public');
                 Storage::disk('public')->delete('undur/upload/' . $ajuan->file);
+            }
+
+            $filePersetujuanOrtu = $ajuan->file_persetujuan_ortu;
+            if ($request->hasFile('file_persetujuan_ortu')) {
+                $extPersetujuanOrtu = $request->file('file_persetujuan_ortu')->getClientOriginalExtension();
+                $filePersetujuanOrtu = 'UndurDiri_PersetujuanOrtu_' . Auth::user()->nim . '_' . Str::of(Auth::user()->name)->replace(' ', '') . '_' . time() . '.' . $extPersetujuanOrtu;
+                $request->file('file_persetujuan_ortu')->storeAs('undur/upload/', $filePersetujuanOrtu, 'public');
+                if ($ajuan->file_persetujuan_ortu) {
+                    Storage::disk('public')->delete('undur/upload/' . $ajuan->file_persetujuan_ortu);
+                }
             }
 
             $ajuan->update([
                 'status_id' => '1',
                 'file' => $file,
+                'file_persetujuan_ortu' => $filePersetujuanOrtu,
             ]);
             return response()->json(['status' => true, 'message' => 'Ajuan Berhasil ' . $message], 200);
         } catch (\Throwable $th) {
@@ -363,6 +383,9 @@ class UndurDiriController extends Controller
                 return response()->json(['status' => false, 'message' => 'Tidak dapat menghapus data'], 500);
             }
             Storage::disk('public')->delete('undur/upload/' . $ajuan->file);
+            if ($ajuan->file_persetujuan_ortu) {
+                Storage::disk('public')->delete('undur/upload/' . $ajuan->file_persetujuan_ortu);
+            }
             $ajuan->delete();
             return response()->json(['status' => true, 'message' => 'Ajuan berhasil dihapus'], 200);
         } catch (\Throwable $th) {
@@ -459,11 +482,11 @@ class UndurDiriController extends Controller
             ]);
 
             $ids = explode(',', $request->selected_ids);
-            $decodedIds = array_map(function($id) {
+            $decodedIds = array_map(function ($id) {
                 return decodeId($id);
             }, $ids);
 
-            $validIds = array_filter($decodedIds, function($id) {
+            $validIds = array_filter($decodedIds, function ($id) {
                 return is_numeric($id) && $id > 0;
             });
 

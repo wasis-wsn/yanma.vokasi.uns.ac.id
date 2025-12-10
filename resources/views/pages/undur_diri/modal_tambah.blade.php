@@ -5,40 +5,56 @@
                 <h5 class="modal-title" id="exampleModalLabel">Tambah Ajuan Undur Diri</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form action="{{ route('undurDiri.store') }}"
-                method="POST" id="form-tambah" enctype="multipart/form-data">
+            <form action="{{ route('undurDiri.store') }}" method="POST" id="form-tambah" enctype="multipart/form-data">
                 <div class="modal-body text-dark">
                     <p>
-                        Scan dokumen berikut dan jadikan satu file .pdf: 
-                        <ol>
-                            <li>
-                                Surat Pernyataan mahasiswa (Download dari Siakad)
-                            </li>
-                            <li>
-                                Kuitansi Pembayaran SPP & UKT Terakhir (Download dari Siakad)
-                            </li>
-                            <li>
-                                Transkrip nilai
-                            </li>
-                            <li>
-                                Surat Keterangan Bebas Pinjaman buku dari UPT Perpustakaan
-                            </li>
-                            <li>
-                                Surat Keterangan Bebas KOPMA UNS
-                            </li>
-                            <li>
-                                Surat Keterangan Bebas Laboratorium (*Jika ada)
-                            </li>
-                        </ol>
+                        Scan dokumen berikut dan jadikan satu file .pdf:
+                    <ol>
+                        <li>
+                            Surat Pernyataan mahasiswa (Download dari Siakad)
+                        </li>
+                        <li>
+                            Kuitansi Pembayaran SPP & UKT Terakhir (Download dari Siakad)
+                        </li>
+                        <li>
+                            Transkrip nilai
+                        </li>
+                        <li>
+                            Surat Keterangan Bebas Pinjaman buku dari UPT Perpustakaan
+                        </li>
+                        <li>
+                            Surat Keterangan Bebas KOPMA UNS
+                        </li>
+                        <li>
+                            Surat Keterangan Bebas Laboratorium (*Jika ada)
+                        </li>
+                    </ol>
                     </p>
                     <div class="form-group">
-                        <label for="customFile1" class="form-label custom-file-input">Unggah File PDF disini <span class="text-danger">*</span></label>
+                        <label for="customFile1" class="form-label custom-file-input">Unggah File PDF disini <span
+                                class="text-danger">*</span></label>
                         <input class="form-control" type="file" id="customFile1" name="file" accept="application/pdf">
                         <small class="text-danger">Ukuran Maks File 10 MB</small>
                     </div>
                     <div class="form-group">
-                        <label class="form-label" for="tahun_akademik">Tahun Akademik<span class="text-danger">*</span>:</label>
-                        <select class="form-select" data-trigger id="tahun_akademik" @disabled(auth()->user()->role == '1')>
+                        <label for="customFilePersetujuanOrtu" class="form-label custom-file-input">Unggah File
+                            Persetujuan Orang Tua <span class="text-danger">*</span></label>
+                        <div class="mb-2">
+                            <a href="{{ asset('storage/template/TemplateSuratPersetujuanOrtu.docx') }}"
+                                class="btn btn-outline-primary btn-sm" download>
+                                <i class="fa fa-download"></i> Download Template Surat Persetujuan Orang Tua
+                            </a>
+                        </div>
+                        <input class="form-control" type="file" id="customFilePersetujuanOrtu"
+                            name="file_persetujuan_ortu"
+                            accept="application/pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+                        <small class="text-danger">Ukuran Maks File 10 MB</small>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="tahun_akademik">Tahun Akademik<span
+                                class="text-danger">*</span>:</label>
+                        <select class="form-select" data-trigger id="tahun_akademik"
+                            @disabled(auth()->user()->role == '1')>
                             @foreach ($tahunAkademik as $tahun)
                                 <option value="{{$tahun->id}}" @selected($layanan->tahun_akademik_id == $tahun->id)>
                                     {{$tahun->tahun_akademik}}
@@ -48,7 +64,8 @@
                         <input type="hidden" name="tahun_akademik_id" value="{{$layanan->tahun_akademik_id}}">
                     </div>
                     <div class="form-group">
-                        <label class="form-label" for="semester">Semester Akademik<span class="text-danger">*</span>:</label>
+                        <label class="form-label" for="semester">Semester Akademik<span
+                                class="text-danger">*</span>:</label>
                         <select class="form-select" data-trigger id="semester" @disabled(auth()->user()->role == '1')>
                             @foreach ($semester as $s)
                                 <option value="{{$s->id}}" @selected($layanan->semester_id == $s->id)>
